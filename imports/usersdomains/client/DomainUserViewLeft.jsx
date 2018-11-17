@@ -1,0 +1,92 @@
+import { Component } from "react"
+import PropTypes from "prop-types"
+import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup.jsx"
+import RadioButton from "/imports/vx/client/RadioButton.jsx"
+import DomainEntityList from "/imports/vx/client/DomainEntityList.jsx"
+import BottomButton from "/imports/vx/client/BottomButton.jsx"
+
+export default class DomainUserViewLeft extends Component {
+
+    static PropTypes = {
+        id : PropTypes.string.isRequired,
+        domains : PropTypes.array.isRequired
+    }
+
+    static defaultProps = {
+        id : "domain-user-view-left"
+    }
+
+    constructor(props) {
+        super(props)
+        this.locked = false
+        this.state = { usersDomainsButton : "button-domains" }
+    }
+
+    shouldComponentUpdate() {
+        return !this.locked
+    }
+
+    setLocked(locked) {
+        this.locked = locked
+    }
+
+    render() {
+        return (
+            <div id={this.props.id}
+                className="left-list-container flexi-grow">
+                <RadioButtonGroup id="button-users-domains"
+                        activeButtonId={this.state.usersDomainsButton}>
+                    <RadioButton id="button-users"
+                        text={Util.i18n("user_domain.label_users")}
+                        onClick={this.handleClickUsers.bind(this)}/>
+                    <RadioButton id="button-domains"
+                        text={Util.i18n("user_domain.label_domains")}/>
+                </RadioButtonGroup>
+                <DomainEntityList id="domain-user-view-left"
+                    domains={this.props.domains}
+                    selectable={true}
+                    chevrons={true}
+                    onSelect={this.handleSelectDomain.bind(this)}/>
+                <BottomButton id="button-create-domain"
+                    className="btn-primary"
+                    text={Util.i18n("user_domain.button_create_domain")}
+                    onClick={this.handleClickCreateDomain.bind(this)}/>
+            </div>
+        )
+    }
+
+    handleClickUsers() {
+        OLog.debug("DomainUserViewLeft handleClickUsers")
+        this.setState({ usersDomainsButton : "button-users" }, () => {
+            UX.iosInvoke(null, null, "/users-domains", "LEFT", "crossfade")
+        })
+    }
+
+    handleSelectDomain(event, component) {
+        let currentRequest = {};
+        currentRequest.criteria = { _id : component.props._id };
+        OLog.debug("UserDomainViewLeft.jsx handleSelectDomain will select new domain currentRequest=" + OLog.debugString(currentRequest));
+        Session.set("PUBLISH_AUTHORING_DOMAIN", currentRequest);
+        if (UX.isSlideMode(true)) {
+            UX.iosMinorPush("common.button_domains", "RIGHT");
+        }
+    }
+
+    handleClickCreateDomain(callback) {
+        UX.setLocked(["domain-user-view-left", "domain-user-view-right"], true)
+        Meteor.setTimeout(() => {
+            Domains.insert({ tenant: Util.getCurrentTenantId(Meteor.userId()) }, (error, domainId) => {
+                if (error) {
+                    callback()
+                    UX.notifyForDatabaseError(error)
+                    OLog.error("UserDomainViewLeft.jsx handleClickCreateDomain error attempting to create domain=" + error)
+                    return
+                }
+                VXApp.refreshGlobalSubscriptions(false, () => {
+                    callback()
+                    UX.iosMajorPush(null, null, "/domain/" + domainId, "RIGHT", "crossfade");
+                })
+            })
+        })
+    }
+}

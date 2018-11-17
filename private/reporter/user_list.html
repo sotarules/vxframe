@@ -1,0 +1,29 @@
+<p class="report-title">
+{{title}}<br>{{reportDate}}<br>{{timezone}}
+</p>
+<hr>
+<p class="report-title">
+{{stateName}}
+</p>    
+<table cellspacing="0" cellpadding="0" border="0" height="100%" width="100%" class="report-table">
+    <thead> 
+        <tr class="report-row-header">
+	        <th class="report-header-center">{{{i18n 'reporter' 'heading_full_name'}}}</th>
+            <th class="report-header-center">{{{i18n 'reporter' 'heading_address'}}}</th> 
+            <th class="report-header-center">{{{i18n 'reporter' 'heading_phone'}}}</th> 
+            <th class="report-header-center">{{{i18n 'reporter' 'heading_mobile'}}}</th>
+            <th class="report-header-center">{{{i18n 'reporter' 'heading_email'}}}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {{#each reportLine}}
+    <tr class="report-row-detail">    
+        <td class="report-cell-wide report-cell-center"><span>{{fullName}}</span></td>  
+        <td class="report-cell-wide report-cell-center"><span>{{address1}} {{city}} {{state}} {{zip}}</span></td>  
+        <td class="report-cell-normal report-cell-center"><span>{{phone}}</span></td>
+        <td class="report-cell-normal report-cell-center"><span>{{mobile}}</span></td>
+        <td class="report-cell-normal report-cell-center"><span>{{email}}</span></td>
+    </tr>
+    {{/each}}
+    </tbody>
+</table>

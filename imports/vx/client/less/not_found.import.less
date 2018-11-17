@@ -1,0 +1,108 @@
+.not-found-image {
+    max-width: 205px;
+    width: 100%;
+    height: auto;	
+}
+
+.not-found-centered {
+	margin-top: 15%;
+}
+
+.not-found-wrapper {
+    margin: 20px;
+    background-image: url("@{rs}/img/system/yosemite.jpg");
+    .background-size(cover);
+    .img-responsive;
+    .border-radius(10px);
+    padding: 20px; 
+    .justify-content(center);
+    .align-items(center); 
+    display : flex;
+}
+
+.not-found-glass {
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.3) !important;    
+    border-style: solid;
+    border-color: #E0E0E0;
+    border-width: thin;
+    .justify-content(center);
+    .align-items(center);
+    width : 100%;
+}
+
+.not-found-pitch {
+    vertical-align: middle;  
+    text-align: center;
+    color: #FFFFFF;
+    .justify-content(center);
+    .align-items(center);      
+}
+
+.not-found-cube {
+    width: 150px;
+    opacity: 0.9;
+}
+
+.not-found-heading {
+    text-align: center;
+    letter-spacing: -2px;
+    font-size: 40px;
+    font-weight: normal;
+    line-height: 1;
+}
+
+.not-found-subheading {
+    color: #FFFFFF;
+    text-align: center;
+    font-size: 24px;
+    letter-spacing: -1px;
+    line-height: 1.25;
+}
+
+/* Phone */
+@media (max-width : @screen-xs-min) {
+    .not-found-cube {
+        width: 75px;
+    }
+    .not-found-wrapper {
+        margin: 0px;
+        .border-radius(0px);        
+    }
+    .not-found-heading {
+        font-size: 36px;
+    }
+    .not-found-subheading {
+        font-size: 16px;
+    }    
+}
+
+/* Tablet */
+@media (min-width : @screen-sm-min) {
+    .not-found-heading {
+        font-size: 50px;
+    }
+    .not-found-subheading {
+        font-size: 24px;
+    }
+}
+
+/* Small Desktop */
+@media (min-width : @screen-md-min) {
+    .not-found-heading {
+        font-size: 60px;
+    }
+    .not-found-subheading {
+        font-size: 34px;
+    }
+}
+
+/* Large Desktop */
+@media (min-width : @screen-lg-min) {
+    .not-found-heading {
+        font-size: 70px;
+    }
+    .not-found-subheading {
+        font-size: 44px;
+    }
+}

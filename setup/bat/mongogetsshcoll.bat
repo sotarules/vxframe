@@ -1,0 +1,1 @@
+mongodump --db %1 --out F:\Download\dump --port 5154 --collection %2

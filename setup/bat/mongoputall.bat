@@ -1,0 +1,1 @@
+mongorestore --host %1:27017 --drop F:\Download\dump\all\ 

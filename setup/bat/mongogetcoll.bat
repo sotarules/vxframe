@@ -1,0 +1,1 @@
+mongodump --host %1:27017 --db %2 --out F:\Download\dump --collection %3
