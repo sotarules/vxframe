@@ -118,7 +118,7 @@ VXApp = _.extend(VXApp || {}, {
      * @return {boolean} True if the current user is authorized for the current route.
      */
     isAuthorizedRoute() {
-        let superAdminRoutes = ["/diag", "/events" ]
+        let superAdminRoutes = ["/log", "/events" ]
         let systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/"]
         let path = Util.routePath(true)
         if (Util.startsWith(superAdminRoutes, path)) {
@@ -347,7 +347,7 @@ VXApp = _.extend(VXApp || {}, {
      */
     getPublishingMode(side, subscriptionParameters) {
         //console.log("vxapp.js getPublishingMode side=" + side + " subscriptionParameters=" + OLog.debugString(subscriptionParameters))
-        if (Util.isRoutePath("/diag") || Util.isRoutePath("/events")) {
+        if (Util.isRoutePath("/log") || Util.isRoutePath("/events")) {
             return subscriptionParameters.superAdmin && subscriptionParameters.preferenceLogsDefeatTenantFilters ? "DEFEAT" : "TEXAS"
         }
         if (UX.iosIsRoutePathOnStack("/users-domains") || UX.iosIsRoutePathOnStack("/domains-users") || Util.isRoutePath("/user/") || Util.isRoutePath("/domain/")) {

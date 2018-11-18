@@ -99,29 +99,33 @@ Service = {
                 return
             }
 
-            let mobile = domain.twilioDestinationOverride ? domain.twilioDestinationOverride : mobile
+            mobile = domain.twilioDestinationOverride ? domain.twilioDestinationOverride : mobile
 
             let apiUrl, sendRequest
 
             if (!domain.twilioTest) {
-
-                apiUrl = CX.TWILIO_API_URL_PREFIX + "/" + domain.twilioUser + "/" + CX.TWILIO_API_URL_SUFFIX
-                sendRequest = { auth : domain.twilioUser + ":" + domain.twilioAuthToken,
+                let twilioUser = domain.twilioUser || CX.TWILIO_ACCOUNT_SID
+                let twilioAuthToken = domain.twilioAuthToken || CX.TWILIO_AUTH_TOKEN
+                let twilioFromPhone = domain.twilioFromPhone || CX.TWILIO_FROM_PHONE
+                apiUrl = CX.TWILIO_API_URL_PREFIX + "/" + twilioUser + "/" + CX.TWILIO_API_URL_SUFFIX
+                sendRequest = { auth : twilioUser + ":" + twilioAuthToken,
                     params : {
                         "To" : Service.preparePhone(mobile),
-                        "From" : encodeURI(domain.twilioFromPhone),
+                        "From" : encodeURI(twilioFromPhone),
                         "Body" : body
                     }
                 }
             }
             else {
-
-                apiUrl = CX.TWILIO_API_URL_PREFIX + "/" + CX.TWILIO_ACCOUNT_SID_TEST + "/" + CX.TWILIO_API_URL_SUFFIX
+                let twilioUser = CX.TWILIO_ACCOUNT_SID_TEST
+                let twilioAuthToken = CX.TWILIO_AUTH_TOKEN_TEST
+                let twilioFromPhone = CX.TWILIO_FROM_PHONE_TEST
+                apiUrl = CX.TWILIO_API_URL_PREFIX + "/" + twilioUser + "/" + CX.TWILIO_API_URL_SUFFIX
                 sendRequest = {
-                    auth : CX.TWILIO_ACCOUNT_SID_TEST + ":" + CX.TWILIO_AUTH_TOKEN_TEST,
+                    auth : twilioUser + ":" + twilioAuthToken,
                     params : {
-                        "To" : encodeURI(CX.TWILIO_FROM_PHONE_TEST),
-                        "From" : encodeURI(CX.TWILIO_FROM_PHONE_TEST),
+                        "To" : encodeURI(twilioFromPhone),
+                        "From" : encodeURI(twilioFromPhone),
                         "Body" : body
                     }
                 }
