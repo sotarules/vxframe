@@ -1,8 +1,8 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXModal from "/imports/vx/client/VXModal.jsx"
-import ModalBody from "/imports/vx/client/ModalBody.jsx"
-import ModalFooterSimple from "/imports/vx/client/ModalFooterSimple.jsx"
+import VXModal from "/imports/vx/client/VXModal"
+import ModalBody from "/imports/vx/client/ModalBody"
+import ModalFooterSimple from "/imports/vx/client/ModalFooterSimple"
 
 export default class AboutModal extends Component {
 

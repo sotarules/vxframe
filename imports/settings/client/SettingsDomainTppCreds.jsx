@@ -1,7 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import GroupBox from "/imports/vx/client/GroupBox.jsx"
-import SettingsDomainTppCredsRow from "/imports/settings/client/SettingsDomainTppCredsRow.jsx"
+import GroupBox from "/imports/vx/client/GroupBox"
+import SettingsDomainTppCredsRow from "/imports/settings/client/SettingsDomainTppCredsRow"
 
 export default class SettingsDomainTppCreds extends Component {
 

@@ -1,8 +1,8 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup.jsx"
-import RadioButton from "/imports/vx/client/RadioButton.jsx"
-import UserEntityList from "/imports/vx/client/UserEntityList.jsx"
+import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup"
+import RadioButton from "/imports/vx/client/RadioButton"
+import UserEntityList from "/imports/vx/client/UserEntityList"
 
 export default class DomainEditLeft extends Component {
 

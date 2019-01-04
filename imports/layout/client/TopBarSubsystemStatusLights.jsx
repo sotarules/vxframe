@@ -1,6 +1,6 @@
 import { Component } from "react";
 import PropTypes from "prop-types";
-import TopBarSubsystemStatus from "/imports/layout/client/TopBarSubsystemStatus.jsx";
+import TopBarSubsystemStatus from "/imports/layout/client/TopBarSubsystemStatus";
 
 export default class TopBarSubsystemStatusLights extends Component {
 

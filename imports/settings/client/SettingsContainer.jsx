@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import Settings from "/imports/settings/client/Settings.jsx"
+import Settings from "/imports/settings/client/Settings"
 
 export default withTracker(() => {
 

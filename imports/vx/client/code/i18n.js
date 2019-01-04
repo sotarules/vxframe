@@ -382,8 +382,8 @@ Meteor.i18nMessages.layout = _.extend(Meteor.i18nMessages.layout || {}, {
 
 Meteor.i18nMessages.footer = _.extend(Meteor.i18nMessages.footer || {}, {
     copyright: {
-        en: "Copyright &#169; 2018 SOTA Enterprises - All rights reserved.",
-        rx: "$Copyright &#169; 2018 SOTA Enterprises - All rights reserved.$"
+        en: "Copyright &#169; 2019 SOTA Enterprises - All rights reserved.",
+        rx: "$Copyright &#169; 2019 SOTA Enterprises - All rights reserved.$"
     }
 })
 

@@ -1,12 +1,12 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RightPanel from "/imports/vx/client/RightPanel.jsx"
-import RightHeader from "/imports/vx/client/RightHeader.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXInput from "/imports/vx/client/VXInput.jsx"
-import VXButton from "/imports/vx/client/VXButton.jsx"
-import EntityListHeader from "/imports/vx/client/EntityListHeader.jsx"
-import DomainEntityList from "/imports/vx/client/DomainEntityList.jsx"
+import RightPanel from "/imports/vx/client/RightPanel"
+import RightHeader from "/imports/vx/client/RightHeader"
+import VXForm from "/imports/vx/client/VXForm"
+import VXInput from "/imports/vx/client/VXInput"
+import VXButton from "/imports/vx/client/VXButton"
+import EntityListHeader from "/imports/vx/client/EntityListHeader"
+import DomainEntityList from "/imports/vx/client/DomainEntityList"
 
 export default class UserEditRight extends Component {
 

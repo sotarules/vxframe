@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import UserEditRight from "/imports/users/client/UserEditRight.jsx"
+import UserEditRight from "/imports/users/client/UserEditRight"
 
 export default withTracker(( ) => {
 

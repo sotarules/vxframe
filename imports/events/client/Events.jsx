@@ -1,7 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import EventsControls from "/imports/events/client/EventsControls.jsx"
-import EventsTableContainer from "/imports/events/client/EventsTableContainer.jsx"
+import EventsControls from "/imports/events/client/EventsControls"
+import EventsTableContainer from "/imports/events/client/EventsTableContainer"
 
 export default class Events extends Component {
 

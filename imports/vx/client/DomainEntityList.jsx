@@ -1,8 +1,8 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import EntityList from "/imports/vx/client/EntityList.jsx"
-import EntityItem from "/imports/vx/client/EntityItem.jsx"
-import EntityListRoleCheckboxes from "/imports/vx/client/EntityListRoleCheckboxes.jsx"
+import EntityList from "/imports/vx/client/EntityList"
+import EntityItem from "/imports/vx/client/EntityItem"
+import EntityListRoleCheckboxes from "/imports/vx/client/EntityListRoleCheckboxes"
 
 export default class DomainEntityList extends Component {
 

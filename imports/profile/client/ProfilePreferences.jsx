@@ -1,10 +1,10 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RightPanel from "/imports/vx/client/RightPanel.jsx"
-import RightBody from "/imports/vx/client/RightBody.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import ProfilePreferencesRow from "/imports/profile/client/ProfilePreferencesRow.jsx"
-import FooterCancelSave from "/imports/vx/client/FooterCancelSave.jsx"
+import RightPanel from "/imports/vx/client/RightPanel"
+import RightBody from "/imports/vx/client/RightBody"
+import VXForm from "/imports/vx/client/VXForm"
+import ProfilePreferencesRow from "/imports/profile/client/ProfilePreferencesRow"
+import FooterCancelSave from "/imports/vx/client/FooterCancelSave"
 
 export default class ProfilePreferences extends Component {
 

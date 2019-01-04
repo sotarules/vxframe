@@ -1,7 +1,7 @@
 import { Component } from "react"
-import SlidePairContainer from "/imports/vx/client/SlidePairContainer.jsx"
-import DomainEditLeftContainer from "/imports/domains/client/DomainEditLeftContainer.jsx"
-import DomainEditRightContainer from "/imports/domains/client/DomainEditRightContainer.jsx"
+import SlidePairContainer from "/imports/vx/client/SlidePairContainer"
+import DomainEditLeftContainer from "/imports/domains/client/DomainEditLeftContainer"
+import DomainEditRightContainer from "/imports/domains/client/DomainEditRightContainer"
 
 export default class DomainEdit extends Component {
     render() {

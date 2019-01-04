@@ -1,9 +1,9 @@
 import { Component } from "react"
-import TopBarBurgerButton from "/imports/layout/client/TopBarBurgerButton.jsx"
-import TopBarLogo from "/imports/layout/client/TopBarLogo.jsx"
-import TopBarTitle from "/imports/layout/client/TopBarTitle.jsx"
-import TopBarSubsystemStatusLightsContainer from "/imports/layout/client/TopBarSubsystemStatusLightsContainer.jsx"
-import TopBarUserPhotoContainer from "/imports/layout/client/TopBarUserPhotoContainer.jsx"
+import TopBarBurgerButton from "/imports/layout/client/TopBarBurgerButton"
+import TopBarLogo from "/imports/layout/client/TopBarLogo"
+import TopBarTitle from "/imports/layout/client/TopBarTitle"
+import TopBarSubsystemStatusLightsContainer from "/imports/layout/client/TopBarSubsystemStatusLightsContainer"
+import TopBarUserPhotoContainer from "/imports/layout/client/TopBarUserPhotoContainer"
 
 export default class TopBar extends Component {
 

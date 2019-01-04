@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import TemplateEditRight from "/imports/templates/client/TemplateEditRight.jsx"
+import TemplateEditRight from "/imports/templates/client/TemplateEditRight"
 
 export default withTracker(( ) => {
 

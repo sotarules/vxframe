@@ -1,7 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXCheck from "/imports/vx/client/VXCheck.jsx"
+import VXForm from "/imports/vx/client/VXForm"
+import VXCheck from "/imports/vx/client/VXCheck"
 
 export default class EntityListRoleCheckboxes extends Component {
 

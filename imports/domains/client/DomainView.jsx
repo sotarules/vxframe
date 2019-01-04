@@ -1,7 +1,7 @@
 import { Component } from "react"
-import SlidePairContainer from "/imports/vx/client/SlidePairContainer.jsx"
-import DomainViewLeftContainer from "/imports/domains/client/DomainViewLeftContainer.jsx"
-import DomainViewRightContainer from "/imports/domains/client/DomainViewRightContainer.jsx"
+import SlidePairContainer from "/imports/vx/client/SlidePairContainer"
+import DomainViewLeftContainer from "/imports/domains/client/DomainViewLeftContainer"
+import DomainViewRightContainer from "/imports/domains/client/DomainViewRightContainer"
 
 export default class DomainView extends Component {
 

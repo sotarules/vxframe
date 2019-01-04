@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import TopBarSubsystemStatusLights from "/imports/layout/client/TopBarSubsystemStatusLights.jsx"
+import TopBarSubsystemStatusLights from "/imports/layout/client/TopBarSubsystemStatusLights"
 
 export default withTracker(( ) => {
     let domain = Domains.findOne(Util.getCurrentDomainId(Meteor.userId()))

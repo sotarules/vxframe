@@ -1,7 +1,7 @@
 import { Component } from "react";
 import PropTypes from "prop-types";
-import IOSBackButton from "/imports/layout/client/IOSBackButton.jsx";
-import IOSButton from "/imports/layout/client/IOSButton.jsx";
+import IOSBackButton from "/imports/layout/client/IOSBackButton";
+import IOSButton from "/imports/layout/client/IOSButton";
 
 export default class IOSButtonBar extends Component {
 

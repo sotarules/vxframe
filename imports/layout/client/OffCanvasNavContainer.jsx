@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import OffCanvasNav from "/imports/layout/client/OffCanvasNav.jsx"
+import OffCanvasNav from "/imports/layout/client/OffCanvasNav"
 
 export default withTracker(( ) => {
 

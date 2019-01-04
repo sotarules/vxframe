@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import SystemLogRow from "/imports/systemlog/client/SystemLogRow.jsx"
+import SystemLogRow from "/imports/systemlog/client/SystemLogRow"
 
 export default class SystemLogTable extends Component {
 

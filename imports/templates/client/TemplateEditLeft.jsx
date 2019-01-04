@@ -1,8 +1,8 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup.jsx"
-import RadioButton from "/imports/vx/client/RadioButton.jsx"
-import TemplateEntityList from "/imports/vx/client/TemplateEntityList.jsx"
+import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup"
+import RadioButton from "/imports/vx/client/RadioButton"
+import TemplateEntityList from "/imports/vx/client/TemplateEntityList"
 
 export default class TemplateEditLeft extends Component {
 

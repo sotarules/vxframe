@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import LayoutStandard from "/imports/layout/client/LayoutStandard.jsx"
+import LayoutStandard from "/imports/layout/client/LayoutStandard"
 
 export default withTracker(props => {
 

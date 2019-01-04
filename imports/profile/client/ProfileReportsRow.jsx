@@ -1,9 +1,9 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXButton from "/imports/vx/client/VXButton.jsx"
-import VXCheck from "/imports/vx/client/VXCheck.jsx"
-import VXSelect from "/imports/vx/client/VXSelect.jsx"
-import ProfileReportsModal from "/imports/profile/client/ProfileReportsModal.jsx"
+import VXButton from "/imports/vx/client/VXButton"
+import VXCheck from "/imports/vx/client/VXCheck"
+import VXSelect from "/imports/vx/client/VXSelect"
+import ProfileReportsModal from "/imports/profile/client/ProfileReportsModal"
 
 export default class ProfileReportsRow extends Component {
 

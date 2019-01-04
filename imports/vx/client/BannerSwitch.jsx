@@ -1,6 +1,6 @@
 import React, { Component } from "react"
 import PropTypes from "prop-types"
-import VXSwitch from "/imports/vx/client/VXSwitch.jsx"
+import VXSwitch from "/imports/vx/client/VXSwitch"
 
 export default class BannerSwitch extends Component {
 

@@ -1,8 +1,8 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import SlidePairContainer from "/imports/vx/client/SlidePairContainer.jsx"
-import TemplateViewLeftContainer from "/imports/templates/client/TemplateViewLeftContainer.jsx"
-import TemplateViewRightContainer from "/imports/templates/client/TemplateViewRightContainer.jsx"
+import SlidePairContainer from "/imports/vx/client/SlidePairContainer"
+import TemplateViewLeftContainer from "/imports/templates/client/TemplateViewLeftContainer"
+import TemplateViewRightContainer from "/imports/templates/client/TemplateViewRightContainer"
 
 export default class TemplateView extends Component {
 

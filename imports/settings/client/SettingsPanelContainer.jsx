@@ -1,6 +1,6 @@
 import { connect } from "react-redux"
 
-import SettingsPanel from "/imports/settings/client/SettingsPanel.jsx"
+import SettingsPanel from "/imports/settings/client/SettingsPanel"
 
 const mapStateToProps = state => {
     console.log("SettingsPanelContainer.js mapStateToProps *fire*")

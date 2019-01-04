@@ -2,7 +2,7 @@ import { Component } from "react"
 import PropTypes from "prop-types"
 import OffCanvasNavItem from "./OffCanvasNavItem"
 import OffCanvasNavSeparator from "./OffCanvasNavSeparator"
-import AboutModal from "/imports/vx/client/AboutModal.jsx"
+import AboutModal from "/imports/vx/client/AboutModal"
 
 export default class OffCanvasNav extends Component {
 

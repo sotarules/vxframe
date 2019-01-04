@@ -1,12 +1,12 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXModal from "/imports/vx/client/VXModal.jsx"
-import ModalHeaderImage from "/imports/vx/client/ModalHeaderImage.jsx"
-import ModalBody from "/imports/vx/client/ModalBody.jsx"
-import ModalFooterConfirm from "/imports/vx/client/ModalFooterConfirm.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXDate from "/imports/vx/client/VXDate.jsx"
-import VXSelect from "/imports/vx/client/VXSelect.jsx"
+import VXModal from "/imports/vx/client/VXModal"
+import ModalHeaderImage from "/imports/vx/client/ModalHeaderImage"
+import ModalBody from "/imports/vx/client/ModalBody"
+import ModalFooterConfirm from "/imports/vx/client/ModalFooterConfirm"
+import VXForm from "/imports/vx/client/VXForm"
+import VXDate from "/imports/vx/client/VXDate"
+import VXSelect from "/imports/vx/client/VXSelect"
 
 export default class ProfileReportsModal extends Component {
 

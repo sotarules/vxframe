@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import DomainEditRight from "/imports/domains/client/DomainEditRight.jsx"
+import DomainEditRight from "/imports/domains/client/DomainEditRight"
 
 export default withTracker(( ) => {
 

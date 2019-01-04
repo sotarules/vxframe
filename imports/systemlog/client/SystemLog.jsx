@@ -1,7 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import SystemLogControls from "/imports/systemlog/client/SystemLogControls.jsx"
-import SystemLogTableContainer from "/imports/systemlog/client/SystemLogTableContainer.jsx"
+import SystemLogControls from "/imports/systemlog/client/SystemLogControls"
+import SystemLogTableContainer from "/imports/systemlog/client/SystemLogTableContainer"
 
 export default class SystemLog extends Component {
 

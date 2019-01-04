@@ -1,11 +1,11 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXModal from "/imports/vx/client/VXModal.jsx"
-import ModalHeaderSimple from "/imports/vx/client/ModalHeaderSimple.jsx"
-import ModalBody from "/imports/vx/client/ModalBody.jsx"
-import ModalFooterSimple from "/imports/vx/client/ModalFooterSimple.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXInput from "/imports/vx/client/VXInput.jsx"
+import VXModal from "/imports/vx/client/VXModal"
+import ModalHeaderSimple from "/imports/vx/client/ModalHeaderSimple"
+import ModalBody from "/imports/vx/client/ModalBody"
+import ModalFooterSimple from "/imports/vx/client/ModalFooterSimple"
+import VXForm from "/imports/vx/client/VXForm"
+import VXInput from "/imports/vx/client/VXInput"
 
 export default class SigninModal extends Component {
 

@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXInput from "/imports/vx/client/VXInput.jsx"
+import VXInput from "/imports/vx/client/VXInput"
 
 export default class SettingsDomainTppCredsRow extends Component {
 

@@ -1,7 +1,7 @@
 import { Component } from "react"
-import SlidePairContainer from "/imports/vx/client/SlidePairContainer.jsx"
-import TenantEditLeftContainer from "/imports/tenants/client/TenantEditLeftContainer.jsx"
-import TenantEditRightContainer from "/imports/tenants/client/TenantEditRightContainer.jsx"
+import SlidePairContainer from "/imports/vx/client/SlidePairContainer"
+import TenantEditLeftContainer from "/imports/tenants/client/TenantEditLeftContainer"
+import TenantEditRightContainer from "/imports/tenants/client/TenantEditRightContainer"
 
 export default class TenantEdit extends Component {
     render() {

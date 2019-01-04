@@ -1,8 +1,8 @@
 import { Component } from "react";
 import PropTypes from "prop-types"
-import EmptyEntityList from "/imports/vx/client/EmptyEntityList.jsx"
-import EntityList from "/imports/vx/client/EntityList.jsx";
-import EntityItem from "/imports/vx/client/EntityItem.jsx";
+import EmptyEntityList from "/imports/vx/client/EmptyEntityList"
+import EntityList from "/imports/vx/client/EntityList";
+import EntityItem from "/imports/vx/client/EntityItem";
 
 export default class TemplateEntityList extends Component {
 

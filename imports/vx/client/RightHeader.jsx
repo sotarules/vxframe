@@ -1,7 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import Decoration from "/imports/vx/client/Decoration.jsx"
-import VXButton from "/imports/vx/client/VXButton.jsx"
+import Decoration from "/imports/vx/client/Decoration"
+import VXButton from "/imports/vx/client/VXButton"
 
 export default class RightHeader extends Component {
 

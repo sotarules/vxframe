@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import TopBarUserPhoto from "/imports/layout/client/TopBarUserPhoto.jsx"
+import TopBarUserPhoto from "/imports/layout/client/TopBarUserPhoto"
 
 export default withTracker(() => {
 

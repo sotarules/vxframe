@@ -1,8 +1,8 @@
 import { Component } from "react";
 import PropTypes from "prop-types";
-import VXModal from "/imports/vx/client/VXModal.jsx"
-import ModalHeaderSimple from "/imports/vx/client/ModalHeaderSimple.jsx"
-import ModalFooterYesNo from "/imports/vx/client/ModalFooterYesNo.jsx"
+import VXModal from "/imports/vx/client/VXModal"
+import ModalHeaderSimple from "/imports/vx/client/ModalHeaderSimple"
+import ModalFooterYesNo from "/imports/vx/client/ModalFooterYesNo"
 
 export default class CancelChangesModal extends Component {
 

@@ -1,7 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXButton from "/imports/vx/client/VXButton.jsx"
-import CancelChangesModal from "/imports/vx/client/CancelChangesModal.jsx"
+import VXButton from "/imports/vx/client/VXButton"
+import CancelChangesModal from "/imports/vx/client/CancelChangesModal"
 
 export default class FooterCancelSave extends Component {
 

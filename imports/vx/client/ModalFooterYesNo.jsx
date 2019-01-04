@@ -1,6 +1,6 @@
 import { Component } from "react";
 import PropTypes from "prop-types";
-import VXButton from "/imports/vx/client/VXButton.jsx";
+import VXButton from "/imports/vx/client/VXButton";
 
 export default class ModalFooterYesNo extends Component {
 

@@ -1,11 +1,11 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RightPanel from "/imports/vx/client/RightPanel.jsx"
-import RightHeader from "/imports/vx/client/RightHeader.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXFieldBox from "/imports/vx/client/VXFieldBox.jsx"
-import EntityListHeader from "/imports/vx/client/EntityListHeader.jsx"
-import UserEntityList from "/imports/vx/client/UserEntityList.jsx"
+import RightPanel from "/imports/vx/client/RightPanel"
+import RightHeader from "/imports/vx/client/RightHeader"
+import VXForm from "/imports/vx/client/VXForm"
+import VXFieldBox from "/imports/vx/client/VXFieldBox"
+import EntityListHeader from "/imports/vx/client/EntityListHeader"
+import UserEntityList from "/imports/vx/client/UserEntityList"
 
 export default class DomainViewRight extends Component {
 

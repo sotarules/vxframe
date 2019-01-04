@@ -1,7 +1,7 @@
 import { Component } from "react"
-import SettingsSystem from "/imports/settings/client/SettingsSystem.jsx"
-import SettingsTenant from "/imports/settings/client/SettingsTenant.jsx"
-import SettingsDomain from "/imports/settings/client/SettingsDomain.jsx"
+import SettingsSystem from "/imports/settings/client/SettingsSystem"
+import SettingsTenant from "/imports/settings/client/SettingsTenant"
+import SettingsDomain from "/imports/settings/client/SettingsDomain"
 
 export default class SettingsPanel extends Component {
 

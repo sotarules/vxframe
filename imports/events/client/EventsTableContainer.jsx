@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import EventsTable from "/imports/events/client/EventsTable.jsx"
+import EventsTable from "/imports/events/client/EventsTable"
 
 export default withTracker(( ) => {
 

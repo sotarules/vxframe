@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import FieldSpinner from "/imports/vx/client/FieldSpinner.jsx"
+import FieldSpinner from "/imports/vx/client/FieldSpinner"
 
 export default class VXSelect extends Component {
 

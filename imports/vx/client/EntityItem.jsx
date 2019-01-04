@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import Decoration from "/imports/vx/client/Decoration.jsx"
+import Decoration from "/imports/vx/client/Decoration"
 
 export default class EntityItem extends Component {
 

@@ -1,9 +1,9 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXInput from "/imports/vx/client/VXInput.jsx"
-import VXButton from "/imports/vx/client/VXButton.jsx"
-import SigninModal from "/imports/signin/client/SigninModal.jsx"
+import VXForm from "/imports/vx/client/VXForm"
+import VXInput from "/imports/vx/client/VXInput"
+import VXButton from "/imports/vx/client/VXButton"
+import SigninModal from "/imports/signin/client/SigninModal"
 
 export default class Signin extends Component {
 

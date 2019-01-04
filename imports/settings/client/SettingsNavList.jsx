@@ -1,6 +1,6 @@
 import { Component } from "react"
-import NavList from "/imports/vx/client/NavList.jsx"
-import NavItem from "/imports/vx/client/NavItem.jsx"
+import NavList from "/imports/vx/client/NavList"
+import NavItem from "/imports/vx/client/NavItem"
 
 export default class SettingsNavList extends Component {
 

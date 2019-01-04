@@ -1,7 +1,7 @@
 import { Component } from "react"
-import SlidePairContainer from "/imports/vx/client/SlidePairContainer.jsx"
-import UserEditLeftContainer from "/imports/users/client/UserEditLeftContainer.jsx"
-import UserEditRightContainer from "/imports/users/client/UserEditRightContainer.jsx"
+import SlidePairContainer from "/imports/vx/client/SlidePairContainer"
+import UserEditLeftContainer from "/imports/users/client/UserEditLeftContainer"
+import UserEditRightContainer from "/imports/users/client/UserEditRightContainer"
 
 export default class UserEdit extends Component {
     render() {

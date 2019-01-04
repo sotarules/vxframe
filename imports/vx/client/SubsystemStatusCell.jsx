@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import SubsystemStatus from "/imports/vx/client/SubsystemStatus.jsx"
+import SubsystemStatus from "/imports/vx/client/SubsystemStatus"
 
 export default class SubsystemStatusCell extends Component {
 

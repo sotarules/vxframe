@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import EventsRow from "/imports/events/client/EventsRow.jsx"
+import EventsRow from "/imports/events/client/EventsRow"
 
 export default class EventsTable extends Component {
 

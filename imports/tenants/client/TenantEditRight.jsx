@@ -1,12 +1,12 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RightPanel from "/imports/vx/client/RightPanel.jsx"
-import RightHeaderBasic from "/imports/vx/client/RightHeaderBasic.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXImage from "/imports/vx/client/VXImage.jsx"
-import VXInput from "/imports/vx/client/VXInput.jsx"
-import EntityListHeader from "/imports/vx/client/EntityListHeader.jsx"
-import DomainEntityList from "/imports/vx/client/DomainEntityList.jsx"
+import RightPanel from "/imports/vx/client/RightPanel"
+import RightHeaderBasic from "/imports/vx/client/RightHeaderBasic"
+import VXForm from "/imports/vx/client/VXForm"
+import VXImage from "/imports/vx/client/VXImage"
+import VXInput from "/imports/vx/client/VXInput"
+import EntityListHeader from "/imports/vx/client/EntityListHeader"
+import DomainEntityList from "/imports/vx/client/DomainEntityList"
 
 export default class TenantEditRight extends Component {
 

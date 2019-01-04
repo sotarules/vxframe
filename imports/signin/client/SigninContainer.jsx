@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import Signin from "/imports/signin/client/Signin.jsx"
+import Signin from "/imports/signin/client/Signin"
 
 export default withTracker(props => {
     let mode

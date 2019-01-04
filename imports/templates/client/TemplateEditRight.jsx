@@ -1,11 +1,11 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RightPanel from "/imports/vx/client/RightPanel.jsx"
-import RightBody from "/imports/vx/client/RightBody.jsx"
-import RightHeader from "/imports/vx/client/RightHeader.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXInput from "/imports/vx/client/VXInput.jsx"
-import VXTextArea from "/imports/vx/client/VXTextArea.jsx"
+import RightPanel from "/imports/vx/client/RightPanel"
+import RightBody from "/imports/vx/client/RightBody"
+import RightHeader from "/imports/vx/client/RightHeader"
+import VXForm from "/imports/vx/client/VXForm"
+import VXInput from "/imports/vx/client/VXInput"
+import VXTextArea from "/imports/vx/client/VXTextArea"
 
 export default class TemplateEditRight extends Component {
 

@@ -1,7 +1,7 @@
 import { Component } from "react";
 import PropTypes from "prop-types"
-import EntityList from "/imports/vx/client/EntityList.jsx";
-import EntityItem from "/imports/vx/client/EntityItem.jsx";
+import EntityList from "/imports/vx/client/EntityList";
+import EntityItem from "/imports/vx/client/EntityItem";
 
 export default class TenantEntityList extends Component {
 

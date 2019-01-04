@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import DomainViewRight from "/imports/domains/client/DomainViewRight.jsx"
+import DomainViewRight from "/imports/domains/client/DomainViewRight"
 
 export default withTracker(( ) => {
 

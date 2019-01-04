@@ -1,8 +1,8 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import SlidePairContainer from "/imports/vx/client/SlidePairContainer.jsx"
-import SettingsNavListContainer from "/imports/settings/client/SettingsNavListContainer.jsx"
-import SettingsPanelContainer from "/imports/settings/client/SettingsPanelContainer.jsx"
+import SlidePairContainer from "/imports/vx/client/SlidePairContainer"
+import SettingsNavListContainer from "/imports/settings/client/SettingsNavListContainer"
+import SettingsPanelContainer from "/imports/settings/client/SettingsPanelContainer"
 
 export default class Settings extends Component {
 

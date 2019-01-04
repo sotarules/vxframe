@@ -1,12 +1,12 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RightPanel from "/imports/vx/client/RightPanel.jsx"
-import RightBody from "/imports/vx/client/RightBody.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXFieldSet from "/imports/vx/client/VXFieldSet.jsx"
-import VXInput from "/imports/vx/client/VXInput.jsx"
-import VXSelect from "/imports/vx/client/VXSelect.jsx"
-import FooterCancelSave from "/imports/vx/client/FooterCancelSave.jsx"
+import RightPanel from "/imports/vx/client/RightPanel"
+import RightBody from "/imports/vx/client/RightBody"
+import VXForm from "/imports/vx/client/VXForm"
+import VXFieldSet from "/imports/vx/client/VXFieldSet"
+import VXInput from "/imports/vx/client/VXInput"
+import VXSelect from "/imports/vx/client/VXSelect"
+import FooterCancelSave from "/imports/vx/client/FooterCancelSave"
 
 export default class SettingsTenant extends Component {
 
