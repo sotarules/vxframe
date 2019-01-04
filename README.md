@@ -1,6 +1,6 @@
 # VXFrame
 
-VXFrame is Meteor/React/Bootstrap framework for developing multi-tenant SaaS applications. The key design
+VXFrame is React/Redux/Meteor/Bootstrap framework for developing multi-tenant SaaS applications. The key design
 goals are to reduce development cost and to make the development process fun.
 
 ## Features
@@ -29,10 +29,6 @@ goals are to reduce development cost and to make the development process fun.
 * Scalable via Nginx clustering and MongoDB replication
 * Internationalization and Localization 
 * Secure architecture
-
-## Quick Start
-
-
 
 ## Atmosphere Packages
 
@@ -86,7 +82,10 @@ Best practices for Meteor suggest that whenever possible you use raw NPM package
 | react-bootstrap | React component wrappers for Bootstrap widgets. Used by VXFrame to deal with overlays such as Bootstrap popovers.  |
 | react-fastclick | Gets rid of annoying 350ms delay on touch devices, definitely a must-have package. |
 | react-spinjs | General purpose spinner that can be used for any purpose, typically to animate pages while waiting for subscriptions to become ready. |
-
+| redux | Predictable state container, works hand-in-glove with Meteor tracker to control local state. |
+| redux-actions | Flux Standard Action utilities for Redux. |
+| redux-logger | Helpful logger middleware for Redux - makes debugging easier by logging all state changes. |
+| redux-thunk | Thunk middleware for Redux. |
 ## NPM Developer Dependencies
 
 These NPMs are developer dependencies, particularly for dealing with JSLint in your text editor of choice (see below). 
