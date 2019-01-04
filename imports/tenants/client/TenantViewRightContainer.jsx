@@ -1,7 +1,8 @@
+import { connect } from "react-redux"
 import { withTracker } from "meteor/react-meteor-data"
-import TenantViewRight from "/imports/tenants/client/TenantViewRight.jsx"
+import TenantViewRight from "/imports/tenants/client/TenantViewRight"
 
-export default withTracker(( ) => {
+const MeteorContainer = withTracker(( ) => {
 
     let tenant = ContextMaker.tenants()
     if (!tenant) {
@@ -24,3 +25,12 @@ export default withTracker(( ) => {
 
 })(TenantViewRight)
 
+const mapStateToProps = state => {
+    return {
+        publishCurrentTenant : state.publishCurrentTenant
+    }
+}
+
+export default connect(
+    mapStateToProps
+)(MeteorContainer)

@@ -7,6 +7,7 @@ import VXFieldBox from "/imports/vx/client/VXFieldBox.jsx"
 import EntityListHeader from "/imports/vx/client/EntityListHeader.jsx"
 import DomainEntityList from "/imports/vx/client/DomainEntityList.jsx"
 import RetireModal from "/imports/vx/client/RetireModal.jsx"
+import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
 
 export default class UserDomainViewRight extends Component {
 
@@ -53,24 +54,24 @@ export default class UserDomainViewRight extends Component {
                         <VXForm id="user-domain-view-right-form"
                             ref={(form) => { this.form = form }}
                             className="right-panel-form flexi-fixed">
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_email")}
-                                            value={Util.getUserEmail(this.props.user)}/>
-                                    </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXFieldBox label={Util.i18n("common.label_email")}
+                                        value={Util.getUserEmail(this.props.user)}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_phone")}
-                                            value={Util.fetchUserPhone(this.props.user)}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXFieldBox label={Util.i18n("common.label_phone")}
+                                        value={Util.fetchUserPhone(this.props.user)}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_mobile")}
-                                            value={Util.fetchUserMobile(this.props.user)}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXFieldBox label={Util.i18n("common.label_mobile")}
+                                        value={Util.fetchUserMobile(this.props.user)}/>
                                 </div>
+                            </div>
                         </VXForm>
                     </RightHeader>
                     <EntityListHeader label={Util.i18n("user_domain.label_domains_header")}/>
@@ -109,6 +110,6 @@ export default class UserDomainViewRight extends Component {
             collection={Meteor.users}
             _id={this.props.user._id}
             retireMethod="retireUser"
-            sessionVariable="PUBLISH_AUTHORING_USER"/>)
+            publishSetAction={setPublishAuthoringUser}/>)
     }
 }

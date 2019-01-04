@@ -1,9 +1,10 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup.jsx"
-import RadioButton from "/imports/vx/client/RadioButton.jsx"
-import UserEntityList from "/imports/vx/client/UserEntityList.jsx"
-import BottomButton from "/imports/vx/client/BottomButton.jsx"
+import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup"
+import RadioButton from "/imports/vx/client/RadioButton"
+import UserEntityList from "/imports/vx/client/UserEntityList"
+import BottomButton from "/imports/vx/client/BottomButton"
+import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
 
 export default class UserDomainViewLeft extends Component {
 
@@ -35,7 +36,7 @@ export default class UserDomainViewLeft extends Component {
             <div id={this.props.id}
                 className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-users-domains"
-                        activeButtonId={this.state.usersDomainsButton}>
+                    activeButtonId={this.state.usersDomainsButton}>
                     <RadioButton id="button-users"
                         text={Util.i18n("user_domain.label_users")}/>
                     <RadioButton id="button-domains"
@@ -63,11 +64,11 @@ export default class UserDomainViewLeft extends Component {
     }
 
     handleSelectUser(event, component) {
-        let currentRequest = {};
-        currentRequest.criteria = { _id : component.props._id };
-        OLog.debug("UserDomainViewLeft.jsx handleSelectUser will select new user currentRequest=" + OLog.debugString(currentRequest));
-        Session.set("PUBLISH_AUTHORING_USER", currentRequest);
-        if (UX.isSlideMode(true)) {
+        let publishAuthoringUser = {};
+        publishAuthoringUser.criteria = { _id : component.props._id }
+        OLog.debug("UserDomainViewLeft.jsx handleSelectUser will select new user publishAuthoringUser=" + OLog.debugString(publishAuthoringUser))
+        Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
+        if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_users", "RIGHT");
         }
     }

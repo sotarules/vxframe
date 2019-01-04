@@ -32,8 +32,13 @@
     "react-dom": "^15.6.2",
     "react-fastclick": "^3.0.2",
     "react-mounter": "^1.2.0",
+    "react-redux": "^5.1.1",
     "react-spinjs": "^3.0.0",
-    "react-transition-group": "^2.5.0"
+    "react-transition-group": "^2.5.0",
+    "redux": "^4.0.1",
+    "redux-actions": "^2.6.4",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.3.0"
   },
   "devDependencies": {
     "@meteorjs/eslint-config-meteor": "^1.0.5",

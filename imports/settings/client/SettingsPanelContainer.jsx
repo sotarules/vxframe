@@ -1,15 +1,14 @@
-import { withTracker } from "meteor/react-meteor-data"
+import { connect } from "react-redux"
+
 import SettingsPanel from "/imports/settings/client/SettingsPanel.jsx"
 
-export default withTracker(props => {
-
-    if (!Session.get("SETTINGS_TAB")) {
-        Session.set("SETTINGS_TAB", "system")
-    }
-
+const mapStateToProps = state => {
+    console.log("SettingsPanelContainer.js mapStateToProps *fire*")
     return {
-        tabName : Session.get("SETTINGS_TAB"),
-        ...props
+        tabName : state.settingsTab
     }
+}
 
-})(SettingsPanel)
+export default connect(
+    mapStateToProps
+)(SettingsPanel)

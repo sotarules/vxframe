@@ -1,8 +1,9 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup.jsx"
-import RadioButton from "/imports/vx/client/RadioButton.jsx"
-import DomainEntityList from "/imports/vx/client/DomainEntityList.jsx"
+import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup"
+import RadioButton from "/imports/vx/client/RadioButton"
+import DomainEntityList from "/imports/vx/client/DomainEntityList"
+import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
 
 export default class DomainViewLeft extends Component {
 
@@ -34,7 +35,7 @@ export default class DomainViewLeft extends Component {
             <div id={this.props.id}
                 className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-my-domains"
-                        activeButtonId="button-my-domains">
+                    activeButtonId="button-my-domains">
                     <RadioButton id="button-my-domains"
                         text={Util.i18n("common.label_my_domains")}/>
                 </RadioButtonGroup>
@@ -49,12 +50,12 @@ export default class DomainViewLeft extends Component {
     }
 
     handleSelectDomain(event, component) {
-        let currentRequest = {};
-        currentRequest.criteria = { _id : component.props._id };
-        OLog.debug("DomainViewLeft.jsx handleSelect will select new domain currentRequest=" + OLog.debugString(currentRequest));
-        Session.set("PUBLISH_CURRENT_DOMAIN", currentRequest);
-        if (UX.isSlideMode(true)) {
-            UX.iosMinorPush("common.button_my_domains", "RIGHT");
+        let publishCurrentDomain = {}
+        publishCurrentDomain.criteria = { _id : component.props._id };
+        OLog.debug("DomainViewLeft.jsx handleSelect will select new domain publishCurrentDomain=" + OLog.debugString(publishCurrentDomain))
+        Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
+        if (UX.isSlideMode()) {
+            UX.iosMinorPush("common.button_my_domains", "RIGHT")
         }
     }
 }

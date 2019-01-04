@@ -1,11 +1,13 @@
 import { Component } from "react"
+import { Provider } from "react-redux"
+
 import PropTypes from "prop-types"
 import TransitionGroup from "react-transition-group/TransitionGroup"
-import OffCanvasNavContainer from "/imports/layout/client/OffCanvasNavContainer.jsx"
-import TopBar from "/imports/layout/client/TopBar.jsx"
-import NotAuthorizedPage from "/imports/notfound/client/NotAuthorizedPage.jsx"
-import SlidePanel from "/imports/vx/client/SlidePanel.jsx"
-import VXAnchor from "/imports/vx/client/VXAnchor.jsx"
+import OffCanvasNavContainer from "/imports/layout/client/OffCanvasNavContainer"
+import TopBar from "/imports/layout/client/TopBar"
+import NotAuthorizedPage from "/imports/notfound/client/NotAuthorizedPage"
+import SlidePanel from "/imports/vx/client/SlidePanel"
+import VXAnchor from "/imports/vx/client/VXAnchor"
 
 export default class LayoutStandard extends Component {
 
@@ -29,36 +31,40 @@ export default class LayoutStandard extends Component {
     render() {
         if (!this.props.isAuthorizedRoute) {
             return (
-                <div className="flexi-grow">
-                    <OffCanvasNavContainer/>
-                    <TopBar/>
-                    <div className="flexi-grow nav-canvas">
-                        <NotAuthorizedPage/>
+                <Provider store={Store}>
+                    <div className="flexi-grow">
+                        <OffCanvasNavContainer/>
+                        <TopBar/>
+                        <div className="flexi-grow nav-canvas">
+                            <NotAuthorizedPage/>
+                        </div>
                     </div>
-                </div>
+                </Provider>
             )
         }
         return (
-            <div id={this.props.id}
-                className="flexi-grow">
-                <OffCanvasNavContainer/>
-                <TopBar/>
-                <div className="container container-width-100 nav-canvas flexi-grow">
-                    <div className="animation-top flexi-grow">
-                        <div className="animation-container notification-container flexi-grow">
-                            <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
-                                <SlidePanel key={this.props.routePath}
-                                    id={this.props.routePath}
-                                    className="animation-panel flexi-grow"
-                                    getAnimation={this.getAnimation.bind(this)}>
-                                    {this.props.content}
-                                </SlidePanel>
-                            </TransitionGroup>
+            <Provider store={Store}>
+                <div id={this.props.id}
+                    className="flexi-grow">
+                    <OffCanvasNavContainer/>
+                    <TopBar/>
+                    <div className="container container-width-100 nav-canvas flexi-grow">
+                        <div className="animation-top flexi-grow">
+                            <div className="animation-container notification-container flexi-grow">
+                                <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
+                                    <SlidePanel key={this.props.routePath}
+                                        id={this.props.routePath}
+                                        className="animation-panel flexi-grow"
+                                        getAnimation={this.getAnimation.bind(this)}>
+                                        {this.props.content}
+                                    </SlidePanel>
+                                </TransitionGroup>
+                            </div>
                         </div>
                     </div>
+                    <VXAnchor/>
                 </div>
-                <VXAnchor/>
-            </div>
+            </Provider>
         )
     }
 

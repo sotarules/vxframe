@@ -1,12 +1,12 @@
 import { withTracker } from "meteor/react-meteor-data"
-import TemplateViewLeft from "/imports/templates/client/TemplateViewLeft.jsx"
+import TemplateViewLeft from "/imports/templates/client/TemplateViewLeft"
 
 export default withTracker(( ) => {
 
-    let templatesPublishRequest = Session.get("PUBLISH_CURRENT_TEMPLATES")
+    let publishRequest = Store.getState().publishCurrentTemplates
 
     return {
-        templates : Templates.find(templatesPublishRequest.criteria, templatesPublishRequest.options).fetch()
+        templates : Templates.find(publishRequest.criteria, publishRequest.options).fetch()
     }
 
 })(TemplateViewLeft)

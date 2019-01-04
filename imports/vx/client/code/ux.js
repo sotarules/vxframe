@@ -3,6 +3,8 @@
 import ReactDOM from "react-dom"
 import Parser from "html-react-parser"
 
+import { setIosState } from "/imports/vx/client/code/actions"
+
 /**
  * User interface utility functions.
  */
@@ -451,68 +453,51 @@ UX = {
     },
 
     /**
-     * Set the SLIDE_MODE session variable in accord with device orientation.
+     * Update the slide mode state in accord with device orientation.
      */
     updateSlideMode() {
-        let slideModeOld = UX.isSlideMode(true)
+        let iosState = Store.getState().iosState
+        let slideModeOld = iosState.slideMode
         let slideModeNew = UX.isGridCollapsed()
         if (slideModeOld === slideModeNew) {
             return
         }
-        //OLog.debug("ux.js updateSlideMode collapsed=" + collapsed + " narrowWidth=" + narrowWidth + " portrait=" + portrait + " slideModeOld=" + slideModeOld + " slideModeNew=" + slideModeNew)
         UX.setLayoutAnimation("crossfade")
         UX.setSlidePairAnimation("crossfade")
-        UX.setSlideMode(slideModeNew)
-        UX.initState()
-        // When transitioning to slide mode, always show the LEFT panel, this
-        // avoids an ugly redraw issue where the RIGHT body shows first then LEFT.
+        iosState.slideMode = slideModeNew
+        iosState.majorBackLabel = null
+        iosState.minorBackLabel = null
+        iosState.stack = []
         if (slideModeNew) {
-            UX.setCurrentPanel(Util.routePath(), "LEFT")
+            UX.mutatePanelMap(iosState, Util.routePath(), "LEFT")
         }
+        Store.dispatch(setIosState(iosState))
     },
 
     /**
      * Determine whether the system is in slide mode.
      *
-     * @param {boolean} nonreactive True to suppress reactivity.
      * @return {boolean} True if the system is in slide mode.
      */
-    isSlideMode(nonreactive) {
-        let slideMode
-        if (nonreactive) {
-            Tracker.nonreactive(() => {
-                slideMode = Session.get("SLIDE_MODE")
-            })
-        }
-        else {
-            slideMode = Session.get("SLIDE_MODE")
-        }
-        return slideMode === true
-    },
-
-    /**
-     * Set slide mode.
-     *
-     * @param {boolean} slideMode True to enable slide mode.
-     */
-    setSlideMode(slideMode) {
-        Session.set("SLIDE_MODE", slideMode)
+    isSlideMode() {
+        return Store.getState().iosState.slideMode === true
     },
 
     /**
      * Get iOS button bar visibility state.
-
+     *
+     * @param {object} iosState iOS state object.
      * @param {object} visible Visibility parameters object.
      * @return {boolean} True if iOS button bar visible.
      */
-    isIosButtonBarVisible(visible) {
+    isIosButtonBarVisible(iosState, visible) {
         // If something is on stack, we must show the back button:
-        if (UX.getIosStack().length > 0) {
+        if (iosState.stack && iosState.stack.length > 0) {
             return true
         }
         // Nothing is on stack, in slide mode suppress iOS button bar on first
         // panel (left):
-        if (UX.isSlideMode()) {
+        if (iosState.slideMode) {
             return false
         }
         let result = _.reduce(Object.keys(visible), (memo, key) => {
@@ -522,118 +507,25 @@ UX = {
     },
 
     /**
-     * Push state object onto iOS stack (non-reactive).
-     *
-     * @param {object} state State object.
-     */
-    iosPush(state) {
-        Tracker.nonreactive(() => {
-            let iosStack = Session.get("IOS_STACK") || []
-            iosStack.push(state)
-            Session.set("IOS_STACK", iosStack)
-        })
-    },
-
-    /**
-     * Pop state object from iOS stack (non-reactive).
-     *
-     * @return {object} State object.
-     */
-    iosPop() {
-        let state
-        Tracker.nonreactive(() => {
-            let iosStack = Session.get("IOS_STACK") || []
-            state = iosStack.pop()
-            Session.set("IOS_STACK", iosStack)
-        })
-        return state
-    },
-
-    /**
-     * Get the contents of the iOS stack (non-reactive).
+     * Get the contents of the iOS stack.
      *
      * @return {array} iOS stack.
      */
     getIosStack() {
-        let iosStack
-        Tracker.nonreactive(() => {
-            iosStack = Session.get("IOS_STACK") || []
-        })
-        return iosStack
+        return Store.getState().iosState.stack || []
     },
 
     /**
-     * Set the contents of the iOS stack (session variable).
+     * Return the localized current back label, either major or minor.
      *
-     * @param {array} iosStack iOS stack.
-     */
-    setIosStack(iosStack) {
-        Session.set("IOS_STACK", iosStack)
-    },
+     * @param {boolean} slideMode Slide mode.
+     * @param {string} majorBackLabel Major back label key.
+     * @param {string} minorBackLabel Minor back label key.
 
-    /**
-     * Get current major back label bundle key.
-     *
-     * @param {boolean} nonreactive True to suppress reactivity.
-     * @return {string} Back label bundle key.
-     */
-    getCurrentMajorBackLabel(nonreactive) {
-        let backLabel
-        if (nonreactive) {
-            Tracker.nonreactive(() => {
-                backLabel = Session.get("CURRENT_MAJOR_BACK_LABEL")
-            })
-        }
-        else {
-            backLabel = Session.get("CURRENT_MAJOR_BACK_LABEL")
-        }
-        return backLabel
-    },
-
-    /**
-     * Set current major back label bundle key.
-     *
-     * @param {string} backLabel Back label bundle key.
-     */
-    setCurrentMajorBackLabel(backLabel) {
-        Session.set("CURRENT_MAJOR_BACK_LABEL", backLabel)
-    },
-
-    /**
-     * Get current minor back label bundle key.
-     *
-     * @param {boolean} nonreactive True to suppress reactivity.
-     * @return {string} Back label bundle key.
-     */
-    getCurrentMinorBackLabel(nonreactive) {
-        var backLabel
-        if (nonreactive) {
-            Tracker.nonreactive(() => {
-                backLabel = Session.get("CURRENT_MINOR_BACK_LABEL")
-            })
-        }
-        else {
-            backLabel = Session.get("CURRENT_MINOR_BACK_LABEL")
-        }
-        return backLabel
-    },
-
-    /**
-     * Set current minor back label bundle key.
-     *
-     * @param {string} backLabel Back label bundle key.
-     */
-    setCurrentMinorBackLabel(backLabel) {
-        Session.set("CURRENT_MINOR_BACK_LABEL", backLabel)
-    },
-
-    /**
-     * Return the current back label, either major or minor.
-     *
      * @return {string} Localized back label.
      */
-    backLabel() {
-        let backLabel = UX.isSlideMode() ? UX.getCurrentMinorBackLabel() : UX.getCurrentMajorBackLabel()
+    backLabel(slideMode, majorBackLabel, minorBackLabel) {
+        let backLabel = slideMode ? minorBackLabel : majorBackLabel
         if (backLabel) {
             return Util.i18n(backLabel)
         }
@@ -644,75 +536,60 @@ UX = {
      * Get current panel.
      *
      * @param {string} path Route path.
-     * @param {boolean} nonreactive True to suppress reactivity.
      * @return {string} Panel LEFT or RIGHT.
      */
-    getCurrentPanel(path, nonreactive) {
-        let name = "CURRENT_PANEL_" + Util.routeFirstSegment(path)
-        let panel = Session.get(name)
-        if (nonreactive) {
-            Tracker.nonreactive(() => {
-                panel = Session.get(name)
-            })
-        }
-        else {
-            panel = Session.get(name)
-        }
-
+    getCurrentPanel(path) {
+        let panelMap = Store.getState().iosState.panelMap || {}
+        let routeSegmentFirst = Util.routeFirstSegment(path)
+        let panel = panelMap[routeSegmentFirst]
         return panel || "LEFT"
     },
 
     /**
-     * Set current panel.
+     * Add the specified route/panel to the panel map contained
+     * in the supplied iosState (in-place mutation).
      *
+     * @param {object} iosState iOS state object.
      * @param {string} path Route path.
      * @param {string} panel Panel LEFT or RIGHT.
      */
-    setCurrentPanel(path, panel) {
-        let name = "CURRENT_PANEL_" + Util.routeFirstSegment(path)
-        Session.set(name, panel)
+    mutatePanelMap(iosState, path, panel) {
+        iosState.panelMap = iosState.panelMap || {}
+        let routeSegmentFirst = Util.routeFirstSegment(path)
+        iosState.panelMap[routeSegmentFirst] = panel
     },
 
     /**
      * Determine whether the left panel is currently displayed.
      *
      * @param {string} segment Optional first route segment.
-     * @param {boolean} nonreactive True to suppress reactivity.
+     * @return {boolean} True if current panel is left.
      */
-    isCurrentPanelLeft(segment, nonreactive) {
-        segment = segment || Util.routeFirstSegment(Util.routePath())
-        let name = "CURRENT_PANEL_" + segment
-        let panel
-        if (nonreactive) {
-            Tracker.nonreactive(() => {
-                panel = Session.get(name)
-            })
-        }
-        else {
-            panel = Session.get(name)
-        }
-        return panel === "LEFT"
+    isCurrentPanelLeft(segment) {
+        return UX.isCurrentPanel(segment, "LEFT")
     },
 
     /**
      * Determine whether the right panel is currently displayed.
      *
      * @param {string} segment Optional first route segment.
-     * @param {boolean} nonreactive True to suppress reactivity.
+     * @return {boolean} True if current panel is left.
      */
-    isCurrentPanelRight(segment, nonreactive) {
+    isCurrentPanelRight(segment) {
+        return UX.isCurrentPanel(segment, "RIGHT")
+    },
+
+    /**
+     * Determine whether the right panel is currently displayed.
+     *
+     * @param {string} segment Optional first route segment.
+     * @param {string} panel LEFT or RIGHT.
+     * @return {boolean} True if current panel is matches the value supplied.
+     */
+    isCurrentPanel(segment, panel) {
         segment = segment || Util.routeFirstSegment(Util.routePath())
-        let name = "CURRENT_PANEL_" + segment
-        let panel
-        if (nonreactive) {
-            Tracker.nonreactive(() => {
-                panel = Session.get(name)
-            })
-        }
-        else {
-            panel = Session.get(name)
-        }
-        return panel === "RIGHT"
+        let panelMap = Store.getState().iosState.panelMap || {}
+        return panel === panelMap[segment]
     },
 
     /**
@@ -794,16 +671,14 @@ UX = {
         if (Util.isRoutePath(routePath)) {
             return true
         }
-        let found
-        Tracker.nonreactive(() => {
-            let iosStack = Session.get("IOS_STACK") || []
-            iosStack.every((state) => {
-                if (state.path.indexOf(routePath) >= 0) {
-                    found = true
-                    return false
-                }
-                return true
-            })
+        let stack = UX.getIosStack()
+        let found = false
+        stack.every(state => {
+            if (state.path.indexOf(routePath) >= 0) {
+                found = true
+                return false
+            }
+            return true
         })
         return found
     },
@@ -943,12 +818,13 @@ UX = {
      */
     waitSubscriptions(handles, callback) {
         try {
+            if (UX.areSubscriptionsReady(handles)) {
+                OLog.debug("ux.js waitSubscriptions immediately *ready* continue")
+                callback(null, { success: true })
+                return
+            }
             Tracker.autorun(computation => {
-                let subscriptionsReady = true
-                _.each(handles, handle => {
-                    subscriptionsReady = subscriptionsReady && handle.ready()
-                })
-                if (subscriptionsReady) {
+                if (UX.areSubscriptionsReady(handles)) {
                     OLog.debug("ux.js waitSubscriptions autorun *ready* stopping subscription wait computation and invoking callback")
                     computation.stop()
                     callback(null, { success: true })
@@ -960,6 +836,20 @@ UX = {
             OLog.error("ux.js waitSubscriptions unexpected error=" + error)
             return
         }
+    },
+
+    /**
+     * Determine whether all subscriptions within a supplied array are ready.
+     *
+     * @param {array} handles Array of subscription handles.
+     * @return {boolean} True if all subscriptions are ready.
+     */
+    areSubscriptionsReady(handles) {
+        let subscriptionsReady = true
+        _.each(handles, handle => {
+            subscriptionsReady = subscriptionsReady && handle.ready()
+        })
+        return subscriptionsReady
     },
 
     /**
@@ -1291,7 +1181,7 @@ UX = {
                 return false
             }
             if (component.state.error) {
-                 UX.notify({ success : false, icon : "TRIANGLE", key : "common.errors_on_form"})
+                UX.notify({ success : false, icon : "TRIANGLE", key : "common.errors_on_form"})
                 return false
             }
         }
@@ -1446,8 +1336,7 @@ UX = {
             return 0;
         })
         if (all) {
-            let allOption = Util.i18n("events.event_type_all")
-            codeArray.unshift({ code : allOption, localized : allOption })
+            codeArray.unshift({ code : "ALL", localized : Util.i18n("events.event_type_all") })
         }
         return codeArray
     },
@@ -1554,7 +1443,7 @@ UX = {
      */
     makeModifier(form) {
         let modifier = {}
-        _.each(form.components, (component) => {
+        _.each(form.components, component => {
             // If a custom update handle has been supplied, don't
             // set the value for this binding (update will happen later):
             if (component.props.updateHandler) {
@@ -1590,7 +1479,7 @@ UX = {
         let formProps = UX.getFormProps(component)
         OLog.debug("ux.js updateDatabase dynamic update " + formProps.collection._name + " _id=" + formProps._id +
             " modifier=" + OLog.debugString(modifier))
-        formProps.collection.update(formProps._id, modifier, (error) => {
+        formProps.collection.update(formProps._id, modifier, error => {
             if (error) {
                 OLog.error("ux.js updateDatabase error returned from dynamic field update=" + error)
                 UX.notifyForDatabaseError(error)
@@ -1667,7 +1556,7 @@ UX = {
         }
     },
 
-   /**
+    /**
      * Update the image URL in MongoDB.
      *
      * @param {object} collection Collection to update.
@@ -1676,7 +1565,7 @@ UX = {
      */
     updateImageUrl(collection, _id, $set) {
         OLog.debug("ux.js updateImageUrl " + collection._name + " $set=" + OLog.debugString($set))
-        collection.update(_id, { $set: $set }, (error) => {
+        collection.update(_id, { $set: $set }, error => {
             if (error) {
                 OLog.error("ux.js updateImageUrl MongoDB update error=" + error)
                 return
@@ -1743,20 +1632,23 @@ UX = {
         Meteor.setTimeout(() => {
             OLog.debug("ux.js iosMajorPush path=" + path + " panel=" + panel)
             animation = animation || "slideleft"
+            let iosState = Store.getState().iosState
             let state = {}
             state.major = true
-            state.majorLabel = UX.getCurrentMajorBackLabel(true)
-            state.minorLabel = UX.getCurrentMinorBackLabel(true)
+            state.majorLabel = iosState.majorBackLabel
+            state.minorLabel = iosState.minorBackLabel
             state.path = Util.routePath()
-            state.panel = UX.getCurrentPanel(Util.routePath(), true)
-            UX.iosPush(state)
+            state.panel = UX.getCurrentPanel(Util.routePath())
+            iosState.stack = iosState.stack || []
+            iosState.stack.push(state)
             UX.setLocked(["ios-button-bar"], true)
-            UX.setCurrentMajorBackLabel(majorLabel)
-            UX.setCurrentMinorBackLabel(minorLabel)
+            iosState.majorBackLabel = majorLabel
+            iosState.minorBackLabel = minorLabel
             UX.beforeAnimate()
             UX.setLayoutAnimation(animation)
             Meteor.setTimeout(() => {
-                UX.setCurrentPanel(path, panel)
+                UX.mutatePanelMap(iosState, path, panel)
+                Store.dispatch(setIosState(iosState))
                 FlowRouter.go(path)
             })
         })
@@ -1771,25 +1663,28 @@ UX = {
      * @param {string} animation Optional animation name.
      */
     iosMinorPush(minorLabel, panel, animation) {
-        if (!UX.isSlideMode(true)) {
+        if (!UX.isSlideMode()) {
             return
         }
         // Yield so buttons immediately turn gray:
         Meteor.setTimeout(() => {
             OLog.debug("ux.js iosMinorPush panel=" + panel)
             animation = animation || "slideleft"
+            let iosState = Store.getState().iosState
             let state = {}
             state.major = false
-            state.majorLabel = UX.getCurrentMajorBackLabel(true)
-            state.minorLabel = UX.getCurrentMinorBackLabel(true)
+            state.majorLabel = iosState.majorBackLabel
+            state.minorLabel = iosState.minorBackLabel
             state.path = Util.routePath()
-            state.panel = UX.getCurrentPanel(Util.routePath(), true)
-            UX.iosPush(state)
+            state.panel = UX.getCurrentPanel(Util.routePath())
+            iosState.stack = iosState.stack || []
+            iosState.stack.push(state)
             UX.setLocked(["ios-button-bar"], true)
-            UX.setCurrentMinorBackLabel(minorLabel)
+            iosState.minorBackLabel = minorLabel
             UX.setSlidePairAnimation(animation)
             UX.beforeAnimate()
-            UX.setCurrentPanel(Util.routePath(), panel)
+            UX.mutatePanelMap(iosState, Util.routePath(), panel)
+            Store.dispatch(setIosState(iosState))
         })
     },
 
@@ -1802,25 +1697,26 @@ UX = {
     iosPopAndGo(animation) {
         let state, path
         animation = animation || "slideright"
-        if (UX.getIosStack().length === 0) {
+        let iosState = Store.getState().iosState
+        if (!iosState.stack || iosState.stack.length === 0) {
             OLog.error("ux.js iosPopAndGo stack length is zero, cannot pop")
-            UX.initState()
+            UX.initStackAndBackLabels()
             UX.goDefault()
             return
         }
-        if (UX.isSlideMode(true)) {
-            state = UX.iosPop()
+        if (iosState.slideMode) {
+            state = iosState.stack.pop()
         }
         else {
             do {
-                state = UX.iosPop()
+                state = iosState.stack.pop()
             }
             while (state && !state.major)
         }
         // This should not be possible unless there is a bug:
         if (!state) {
             OLog.error("ux.js iosPopAndGo pop executed but no previous state exists on stack")
-            UX.initState()
+            UX.initStackAndBackLabels()
             UX.goDefault()
             return
         }
@@ -1828,8 +1724,8 @@ UX = {
         Meteor.setTimeout(() => {
             try {
                 UX.setLocked(["ios-button-bar"], true)
-                UX.setCurrentMajorBackLabel(state.majorLabel)
-                UX.setCurrentMinorBackLabel(state.minorLabel)
+                iosState.majorBackLabel = state.majorLabel
+                iosState.minorBackLabel = state.minorLabel
                 UX.beforeAnimate()
                 if (state.major) {
                     UX.setLayoutAnimation(animation)
@@ -1837,7 +1733,8 @@ UX = {
                 else {
                     UX.setSlidePairAnimation(animation)
                 }
-                UX.setCurrentPanel(state.path, state.panel)
+                UX.mutatePanelMap(iosState, state.path, state.panel)
+                Store.dispatch(setIosState(iosState))
                 // If the route path is unchanged, simply changing the panel
                 // and back labels will suffice:
                 path = Util.routePath()
@@ -1866,12 +1763,14 @@ UX = {
         UX.stopEditing(true)
         Meteor.setTimeout(() => {
             animation = animation || "crossfade"
+            let iosState = Store.getState().iosState
             UX.setLocked(["ios-button-bar"], true)
             UX.beforeAnimate()
             UX.setLayoutAnimation(animation)
-            UX.setCurrentMajorBackLabel(majorLabel)
-            UX.setCurrentMinorBackLabel(minorLabel)
-            UX.setCurrentPanel(path, panel)
+            iosState.majorBackLabel = majorLabel
+            iosState.minorBackLabel = minorLabel
+            UX.mutatePanelMap(iosState, path, panel)
+            Store.dispatch(setIosState(iosState))
             FlowRouter.go(path)
         })
     },
@@ -1898,12 +1797,15 @@ UX = {
     },
 
     /**
-     * Initialize UX state for example for a new route.
+     * Initialize stack and back labels, initializing for a new route or
+     * possibly resetting state after unexpected condition.
      */
-    initState() {
-        UX.setIosStack([])
-        UX.setCurrentMajorBackLabel(null)
-        UX.setCurrentMinorBackLabel(null)
+    initStackAndBackLabels() {
+        let iosState = Store.getState().iosState
+        iosState.stack = []
+        iosState.majorBackLabel = null
+        iosState.minorBackLabel = null
+        Store.dispatch(setIosState(iosState))
     },
 
     /**
@@ -2136,7 +2038,7 @@ UX = {
         return newChildren
     },
 
-   /**
+    /**
      * Given a form, construct a JSON object consisting of all of the
      * component values where the name is the dbName and the value is the value.
      *
@@ -2145,7 +2047,7 @@ UX = {
      */
     makeFormObject(form) {
         let formObject = {}
-        _.each(form.components, (component) => {
+        _.each(form.components, component => {
             let dbName = component.props.dbName || component.props.id
             let value = component.getValue()
             formObject[dbName] = value
@@ -2192,7 +2094,7 @@ UX = {
      * @param {boolean} lock True to lock.
      */
     setLocked(componentIdArray, locked) {
-        _.each(componentIdArray, (componentId) => {
+        _.each(componentIdArray, componentId => {
             let component = UX.findComponentById(componentId)
             if (!component) {
                 OLog.debug("ux.js setLocked unable to find componentId=" + componentId + " it may not exist")
@@ -2252,7 +2154,7 @@ UX = {
      * Go to the default page for this user.
      */
     goDefault() {
-        Meteor.call("getDefaultRoute", function(error, defaultRoute) {
+        Meteor.call("getDefaultRoute", (error, defaultRoute) => {
             FlowRouter.go(defaultRoute)
         })
     },
@@ -2287,7 +2189,7 @@ UX = {
                 UX.showLoading()
             }
             Meteor.defer(() => {
-                UX.initState()
+                UX.initStackAndBackLabels()
                 UX.go(href)
             })
         })

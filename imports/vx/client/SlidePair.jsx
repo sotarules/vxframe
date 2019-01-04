@@ -1,8 +1,8 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import TransitionGroup from "react-transition-group/TransitionGroup"
-import IOSButtonBarContainer from "/imports/layout/client/IOSButtonBarContainer.jsx"
-import SlidePanel from "/imports/vx/client/SlidePanel.jsx"
+import IOSButtonBarContainer from "/imports/layout/client/IOSButtonBarContainer"
+import SlidePanel from "/imports/vx/client/SlidePanel"
 
 export default class SlidePair extends Component {
 
@@ -13,7 +13,7 @@ export default class SlidePair extends Component {
         rightPanel : PropTypes.element.isRequired,
         leftColumnCount : PropTypes.number.isRequired,
         rightColumnCount : PropTypes.number.isRequired,
-        slideMode : PropTypes.bool
+        iosState : PropTypes.object.isRequired
     }
 
     static defaultProps = {
@@ -38,7 +38,7 @@ export default class SlidePair extends Component {
     }
 
     renderStandard() {
-        if (this.props.slideMode) {
+        if (this.props.iosState.slideMode) {
             return null
         }
         return (
@@ -49,10 +49,10 @@ export default class SlidePair extends Component {
                 <IOSButtonBarContainer/>
                 <div className="row conserve-space fill">
                     <div className={this.leftColumnClasses()}>
-                    {this.props.leftPanel}
+                        {this.props.leftPanel}
                     </div>
                     <div className={this.rightColumnClasses()}>
-                    {this.props.rightPanel}
+                        {this.props.rightPanel}
                     </div>
                 </div>
             </SlidePanel>
@@ -60,10 +60,12 @@ export default class SlidePair extends Component {
     }
 
     renderSlide() {
-        if (!this.props.slideMode) {
+        if (!this.props.iosState.slideMode) {
             return null
         }
-        if (this.props.panel === "LEFT") {
+        let routeSegmentFirst = Util.routeFirstSegment(Util.routePath())
+        let panel = this.props.iosState.panelMap ? this.props.iosState.panelMap[routeSegmentFirst] : "LEFT"
+        if (panel === "LEFT") {
             return (
                 <SlidePanel key="left-panel"
                     id="left-panel"
@@ -74,7 +76,7 @@ export default class SlidePair extends Component {
                 </SlidePanel>
             )
         }
-        if (this.props.panel === "RIGHT") {
+        if (panel === "RIGHT") {
             return (
                 <SlidePanel key="right-panel"
                     id="right-panel"

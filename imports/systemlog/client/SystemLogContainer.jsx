@@ -1,7 +1,9 @@
+import { connect } from "react-redux"
 import { withTracker } from "meteor/react-meteor-data"
-import SystemLog from "/imports/systemlog/client/SystemLog.jsx"
+import SystemLog from "/imports/systemlog/client/SystemLog"
+import { setPublishCurrentLog } from "/imports/vx/client/code/actions"
 
-export default withTracker(() => {
+const MeteorContainer = withTracker(props => {
 
     let result = VXApp.getSubscriptionParameters()
     if (!result.success) {
@@ -10,32 +12,26 @@ export default withTracker(() => {
     }
 
     let ready = new ReactiveVar(false)
-
-    let logLevel = Session.get("SELECTED_LOG_LEVEL") || "ALL"
-    let logRows = Session.get("SELECTED_LOG_ROWS") || 50
-    let logEndDate = Session.get("SELECTED_LOG_END_DATE")
-    let searchPhrase = Session.get("SEARCH_PHRASE")
-
     let criteria = {}
 
-    if (logLevel !== "ALL") {
-        criteria.severity = logLevel
+    if (props.selectedLogLevel !== "ALL") {
+        criteria.severity = props.selectedLogLevel
     }
 
-    if (logEndDate) {
-        criteria.date = { $lte: logEndDate }
+    if (props.selectedLogEndDate) {
+        criteria.date = { $lte: props.selectedLogEndDate }
     }
 
-    if (searchPhrase) {
-        criteria.message = searchPhrase
+    if (props.searchPhrase) {
+        criteria.message = props.searchPhrase
     }
 
     let options = {}
     options.sort = { date : -1, hrtime : -1 }
-    options.limit = logRows
+    options.limit = props.selectedLogRows
 
     let publishRequest = VXApp.makePublishingRequest("olog", result.subscriptionParameters, criteria, options)
-    Session.set("PUBLISH_CURRENT_LOG", publishRequest.server)
+    Store.dispatch(setPublishCurrentLog(publishRequest.server))
 
     let handles = []
     handles.push(Meteor.subscribe("olog", publishRequest.server))
@@ -46,17 +42,29 @@ export default withTracker(() => {
     })
 
     let timezone = Util.getUserTimezone(Meteor.userId())
-    OLog.debug("SystemLogContainer.jsx withTracker logEndDate=" + logEndDate + " timezone=" + timezone)
+    OLog.debug("SystemLogContainer.jsx withTracker logEndDate=" + props.selectedLogEndDate + " timezone=" + timezone)
 
     return {
         rowsArray : UX.makeRowsArray(),
         logLevels : UX.makeLogLevelsArray(true, false),
         ready : !!ready.get(),
-        logLevel : logLevel,
-        logRows : logRows,
-        logEndDate : logEndDate,
-        searchPhrase : searchPhrase,
+        logLevel : props.selectedLogLevel,
+        logRows : props.selectedLogRows,
+        logEndDate : props.selectedLogEndDate,
+        searchPhrase : props.searchPhrase,
         timezone : timezone
     }
 
 })(SystemLog)
+
+const mapStateToProps = state => {
+    let props = {
+        selectedLogLevel : state.selectedLogLevel,
+        selectedLogRows : state.selectedLogRows,
+        selectedLogEndDate : state.selectedLogEndDate,
+        searchPhrase : state.searchPhrase
+    }
+    return props
+}
+
+export default connect(mapStateToProps)(MeteorContainer)

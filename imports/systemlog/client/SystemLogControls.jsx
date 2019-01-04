@@ -4,6 +4,10 @@ import VXForm from "/imports/vx/client/VXForm.jsx"
 import VXSelect from "/imports/vx/client/VXSelect.jsx"
 import VXInput from "/imports/vx/client/VXInput.jsx"
 import VXDate from "/imports/vx/client/VXDate.jsx"
+import { setSelectedLogLevel } from "/imports/vx/client/code/actions"
+import { setSelectedLogRows } from "/imports/vx/client/code/actions"
+import { setSelectedLogEndDate } from "/imports/vx/client/code/actions"
+import { setSearchPhrase } from "/imports/vx/client/code/actions"
 
 export default class SystemLogControls extends Component {
 
@@ -63,23 +67,23 @@ export default class SystemLogControls extends Component {
 
     handleChangeLogLevel(event) {
         let logLevel = event.target.value
-        OLog.debug("SystemLogControls.jsx handleChangeLogLevel eventType=" + logLevel)
-        Session.set("SELECTED_LOG_LEVEL", logLevel)
+        OLog.debug("SystemLogControls.jsx handleChangeLogLevel logLevel=" + logLevel)
+        Store.dispatch(setSelectedLogLevel(logLevel))
     }
 
     handleChangeLogRows(event) {
         let logRows = parseInt(event.target.value);
-        OLog.debug("SystemLogControls.jsx handleChangeLogRows logRows=" + logRows);
-        Session.set("SELECTED_LOG_ROWS", logRows);
+        OLog.debug("SystemLogControls.jsx handleChangeLogRows logRows=" + logRows)
+        Store.dispatch(setSelectedLogRows(logRows))
     }
 
     handleChangeEndDate(event) {
-        OLog.debug("SystemLogControls.jsx handleChangeEndDate date=" + event.date);
-        Session.set("SELECTED_LOG_END_DATE", event.date ? event.date.toDate() : null);
+        OLog.debug("SystemLogControls.jsx handleChangeEndDate date=" + event.date)
+        Store.dispatch(setSelectedLogEndDate(event.date ? event.date.toDate() : null))
     }
 
     handleUpdateSearchPhrase(event) {
-        OLog.debug("SystemLogControls.jsx handleChangeSearchPhrase value=" + event.target.value);
-        Session.set("SEARCH_PHRASE", Util.getEmptyAsNull(event.target.value));
+        OLog.debug("SystemLogControls.jsx handleUpdateSearchPhrase value=" + event.target.value)
+        Store.dispatch(setSearchPhrase(Util.getEmptyAsNull(event.target.value)))
     }
 }

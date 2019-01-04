@@ -1,7 +1,8 @@
+import { connect } from "react-redux"
 import { withTracker } from "meteor/react-meteor-data"
-import TemplateViewRight from "/imports/templates/client/TemplateViewRight.jsx"
+import TemplateViewRight from "/imports/templates/client/TemplateViewRight"
 
-export default withTracker(( ) => {
+const MeteorContainer = withTracker(() => {
 
     let template = ContextMaker.templates()
     if (!template) {
@@ -17,3 +18,12 @@ export default withTracker(( ) => {
 
 })(TemplateViewRight)
 
+const mapStateToProps = state => {
+    return {
+        publishAuthoringTemplate : state.publishAuthoringTemplate
+    }
+}
+
+export default connect(
+    mapStateToProps
+)(MeteorContainer)

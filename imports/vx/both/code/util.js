@@ -177,13 +177,15 @@ Util = {
         if (_.isString(message)) {
             return message
         }
+
         let locale
         if (Meteor.isClient) {
-            locale = Session.get("CURRENT_LOCALE") || "en_US"
+            locale = Store.getState().currentLocale || "en_US"
         }
         else {
             locale = Meteor.locale || "en_US"
         }
+
         let _ref = locale.split("_")
         let language = _ref[0]
         let territory = _ref[1]

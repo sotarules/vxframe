@@ -7,7 +7,7 @@ export default class TenantView extends Component {
 
     render() {
         return (
-            <SlidePairContainer name="TenantView.jsx" leftPanel={(<TenantViewLeftContainer/>)}
+            <SlidePairContainer leftPanel={(<TenantViewLeftContainer/>)}
                 rightPanel={(<TenantViewRightContainer/>)}
                 leftColumnCount={5}
                 rightColumnCount={7}/>

@@ -1,7 +1,7 @@
 import { withTracker } from "meteor/react-meteor-data"
-import TenantViewLeft from "/imports/tenants/client/TenantViewLeft.jsx"
+import TenantViewLeft from "/imports/tenants/client/TenantViewLeft"
 
-export default withTracker(( ) => {
+export default withTracker(() => {
 
     return {
         tenants : VXApp.findTenantList(Meteor.userId())

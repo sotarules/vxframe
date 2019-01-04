@@ -1,9 +1,11 @@
 import { Component } from "react"
+import { Provider } from "react-redux"
+
 import PropTypes from "prop-types"
-import OffCanvasNavContainer from "/imports/layout/client/OffCanvasNavContainer.jsx"
-import TopBar from "/imports/layout/client/TopBar.jsx"
-import VXAnchor from "/imports/vx/client/VXAnchor.jsx"
-import NotAuthorizedPage from "/imports/notfound/client/NotAuthorizedPage.jsx"
+import OffCanvasNavContainer from "/imports/layout/client/OffCanvasNavContainer"
+import TopBar from "/imports/layout/client/TopBar"
+import VXAnchor from "/imports/vx/client/VXAnchor"
+import NotAuthorizedPage from "/imports/notfound/client/NotAuthorizedPage"
 
 export default class LayoutDiag extends Component {
 
@@ -16,25 +18,29 @@ export default class LayoutDiag extends Component {
 
         if (!this.props.isAuthorizedRoute) {
             return (
-                <div className="flexi-grow">
-                    <OffCanvasNavContainer/>
-                    <TopBar/>
-                    <div className="nav-canvas flexi-grow">
-                        <NotAuthorizedPage/>
+                <Provider store={Store}>
+                    <div className="flexi-grow">
+                        <OffCanvasNavContainer/>
+                        <TopBar/>
+                        <div className="nav-canvas flexi-grow">
+                            <NotAuthorizedPage/>
+                        </div>
                     </div>
-                </div>
+                </Provider>
             )
         }
 
         return (
-            <div className="background-black flexi-grow">
-                <OffCanvasNavContainer/>
-                <TopBar/>
-                <div className="nav-canvas notification-container diag-container flexi-grow">
-                    {this.props.content}
+            <Provider store={Store}>
+                <div className="background-black flexi-grow">
+                    <OffCanvasNavContainer/>
+                    <TopBar/>
+                    <div className="nav-canvas notification-container diag-container flexi-grow">
+                        {this.props.content}
+                    </div>
+                    <VXAnchor/>
                 </div>
-                <VXAnchor/>
-            </div>
+            </Provider>
         )
     }
 }

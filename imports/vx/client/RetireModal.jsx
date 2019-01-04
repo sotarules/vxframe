@@ -1,11 +1,11 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXModal from "/imports/vx/client/VXModal.jsx"
-import ModalHeaderSimple from "/imports/vx/client/ModalHeaderSimple.jsx"
-import ModalBody from "/imports/vx/client/ModalBody.jsx"
-import ModalFooterConfirm from "/imports/vx/client/ModalFooterConfirm.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXTextArea from "/imports/vx/client/VXTextArea.jsx"
+import VXModal from "/imports/vx/client/VXModal"
+import ModalHeaderSimple from "/imports/vx/client/ModalHeaderSimple"
+import ModalBody from "/imports/vx/client/ModalBody"
+import ModalFooterConfirm from "/imports/vx/client/ModalFooterConfirm"
+import VXForm from "/imports/vx/client/VXForm"
+import VXTextArea from "/imports/vx/client/VXTextArea"
 
 export default class RetireModal extends Component {
 
@@ -14,7 +14,7 @@ export default class RetireModal extends Component {
         collection : PropTypes.object.isRequired,
         _id : PropTypes.string.isRequired,
         retireMethod : PropTypes.string.isRequired,
-        sessionVariable : PropTypes.string.isRequired
+        publishSetAction : PropTypes.func.isRequired
     }
 
     render() {
@@ -43,12 +43,12 @@ export default class RetireModal extends Component {
 
     handleClickConfirm(callback) {
         let settings = UX.makeFormObject(this.form)
-        Session.set(this.props.sessionVariable, undefined)
         Meteor.call(this.props.retireMethod, this.props._id, settings.comment, (error, result) => {
             callback(true)
             UX.notify(result, error, true)
             if (!error && result && result.success) {
-                if (UX.isSlideMode(true)) {
+                Store.dispatch(this.props.publishSetAction(null))
+                if (UX.isSlideMode()) {
                     UX.iosPopAndGo()
                 }
             }

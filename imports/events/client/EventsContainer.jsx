@@ -1,7 +1,9 @@
+import { connect } from "react-redux"
 import { withTracker } from "meteor/react-meteor-data"
-import Events from "/imports/events/client/Events.jsx"
+import Events from "/imports/events/client/Events"
+import { setPublishCurrentEvents } from "/imports/vx/client/code/actions"
 
-export default withTracker(() => {
+const MeteorContainer = withTracker(props => {
 
     let result = VXApp.getSubscriptionParameters()
     if (!result.success) {
@@ -10,27 +12,22 @@ export default withTracker(() => {
     }
 
     let ready = new ReactiveVar(false)
-
-    let eventType = Session.get("SELECTED_EVENT_TYPE") || Util.i18n("events.event_type_all")
-    let eventRows = Session.get("SELECTED_EVENT_ROWS") || 50
-    let eventEndDate = Session.get("SELECTED_EVENT_END_DATE")
-
     let criteria = {}
 
-    if (eventType !== Util.i18n("events.event_type_all")) {
-        criteria.type = eventType
+    if (props.selectedEventType !== "ALL") {
+        criteria.type = props.selectedEventType
     }
 
-    if (eventEndDate) {
-        criteria.date = { $lte: eventEndDate }
+    if (props.selectedEventEndDate) {
+        criteria.date = { $lte: props.selectedEventEndDate }
     }
 
     let options = {}
     options.sort = { date : -1 }
-    options.limit = eventRows
+    options.limit = props.selectedEventRows
 
     let publishRequest = VXApp.makePublishingRequest("events", result.subscriptionParameters, criteria, options)
-    Session.set("PUBLISH_CURRENT_EVENTS", publishRequest.server)
+    Store.dispatch(setPublishCurrentEvents(publishRequest.server))
 
     let handles = []
     handles.push(Meteor.subscribe("events", publishRequest.server))
@@ -41,16 +38,27 @@ export default withTracker(() => {
     })
 
     let timezone = Util.getUserTimezone(Meteor.userId())
-    OLog.debug("EventsContainer.jsx withTracker eventEndDate=" + eventEndDate + " timezone=" + timezone)
+    OLog.debug("EventsContainer.jsx withTracker eventEndDate=" + props.selectedEventEndDate + " timezone=" + timezone)
 
     return {
         rowsArray : UX.makeRowsArray(),
         eventTypes : UX.makeEventTypesArray(true),
         ready : !!ready.get(),
-        eventType : eventType,
-        eventRows : eventRows,
-        eventEndDate : eventEndDate,
+        eventType : props.selectedEventType,
+        eventRows : props.selectedEventRows,
+        eventEndDate : props.selectedEventEndDate,
         timezone : timezone
     }
 
 })(Events)
+
+const mapStateToProps = state => {
+    let props = {
+        selectedEventType : state.selectedEventType,
+        selectedEventRows : state.selectedEventRows,
+        selectedEventDate : state.selectedEventDate
+    }
+    return props
+}
+
+export default connect(mapStateToProps)(MeteorContainer)

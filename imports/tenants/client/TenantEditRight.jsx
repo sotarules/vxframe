@@ -55,31 +55,31 @@ export default class TenantEditRight extends Component {
                             dynamic={true}
                             collection={Tenants}
                             _id={this.props.tenant._id}>
-                                <div className="row">
-                                    <div className="col-sm-12">
-                                        <table className="top-table">
-                                            <tbody>
-                                                <tr>
-                                                    <td className="top-left">
-                                                        <VXImage id="iconUrl"
-                                                            size="small"
-                                                            imageType="tenant"
-                                                            value={this.props.tenant.iconUrl}/>
-                                                    </td>
-                                                    <td className="top-center">
-                                                        <div className="top-input">
-                                                            <VXInput id="name"
-                                                                required={true}
-                                                                value={this.props.tenant.name}/>
-                                                            <VXInput id="description"
-                                                                value={this.props.tenant.description}/>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                            <div className="row">
+                                <div className="col-sm-12">
+                                    <table className="top-table">
+                                        <tbody>
+                                            <tr>
+                                                <td className="top-left">
+                                                    <VXImage id="iconUrl"
+                                                        size="small"
+                                                        imageType="tenant"
+                                                        value={this.props.tenant.iconUrl}/>
+                                                </td>
+                                                <td className="top-center">
+                                                    <div className="top-input">
+                                                        <VXInput id="name"
+                                                            required={true}
+                                                            value={this.props.tenant.name}/>
+                                                        <VXInput id="description"
+                                                            value={this.props.tenant.description}/>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
+                            </div>
                         </VXForm>
                     </RightHeaderBasic>
                     <EntityListHeader label={Util.i18n("my_tenants.label_domains_header")}/>

@@ -15,7 +15,7 @@ export default class SettingsNavList extends Component {
     }
 
     handleSelect(event) {
-        Session.set("SETTINGS_TAB", event.target.id)
+        this.props.setSettingsTab(event.target.id)
         UX.iosMinorPush("common.button_sections", "RIGHT")
     }
 }

@@ -7,6 +7,7 @@ import VXFieldBox from "/imports/vx/client/VXFieldBox.jsx"
 import EntityListHeader from "/imports/vx/client/EntityListHeader.jsx"
 import UserEntityList from "/imports/vx/client/UserEntityList.jsx"
 import RetireModal from "/imports/vx/client/RetireModal.jsx"
+import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
 
 export default class UserDomainViewRight extends Component {
 
@@ -58,28 +59,28 @@ export default class UserDomainViewRight extends Component {
                         <VXForm id="domain-user-view-right-form"
                             ref={(form) => { this.form = form }}
                             className="right-panel-form flexi-fixed">
-                                <div className="row">
-                                    <div className="col-xs-12">
-                                        <VXFieldBox label={Util.i18n("common.label_billing_address")}
-                                            value={this.props.domain.billingAddress1}/>
-                                    </div>
+                            <div className="row">
+                                <div className="col-xs-12">
+                                    <VXFieldBox label={Util.i18n("common.label_billing_address")}
+                                        value={this.props.domain.billingAddress1}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-12">
-                                        <VXFieldBox label={Util.i18n("common.label_billing_city")}
-                                            value={this.props.domain.billingCity}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-12">
+                                    <VXFieldBox label={Util.i18n("common.label_billing_city")}
+                                        value={this.props.domain.billingCity}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_billing_state")}
-                                            value={this.formatBillingState()}/>
-                                    </div>
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_billing_zip")}
-                                            value={this.props.domain.billingZip}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXFieldBox label={Util.i18n("common.label_billing_state")}
+                                        value={this.formatBillingState()}/>
                                 </div>
+                                <div className="col-xs-6">
+                                    <VXFieldBox label={Util.i18n("common.label_billing_zip")}
+                                        value={this.props.domain.billingZip}/>
+                                </div>
+                            </div>
                         </VXForm>
                     </RightHeader>
                     <EntityListHeader label={Util.i18n("my_domains.label_users_header")}/>
@@ -128,6 +129,6 @@ export default class UserDomainViewRight extends Component {
             collection={Domains}
             _id={this.props.domain._id}
             retireMethod="retireDomain"
-            sessionVariable="PUBLISH_AUTHORING_DOMAIN"/>)
+            publishSetAction={setPublishAuthoringDomain}/>)
     }
 }

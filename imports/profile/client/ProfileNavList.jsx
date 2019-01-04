@@ -1,6 +1,6 @@
 import { Component } from "react"
-import NavList from "/imports/vx/client/NavList.jsx"
-import NavItem from "/imports/vx/client/NavItem.jsx"
+import NavList from "/imports/vx/client/NavList"
+import NavItem from "/imports/vx/client/NavItem"
 
 export default class ProfileNavList extends Component {
 
@@ -17,12 +17,7 @@ export default class ProfileNavList extends Component {
     }
 
     handleSelect(event) {
-        // Perform this asynchronously so the UI is more responsive, the focus changes immediately
-        // upon touch, but the RHS might take several hundred milliseconds to redraw:
-        event.persist()
-        Meteor.setTimeout(()=>{
-            Session.set("PROFILE_TAB", event.target.id)
-            UX.iosMinorPush("common.button_sections", "RIGHT")
-        })
+        this.props.setProfileTab(event.target.id)
+        UX.iosMinorPush("common.button_sections", "RIGHT")
     }
 }

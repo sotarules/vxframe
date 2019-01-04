@@ -7,6 +7,7 @@ import VXForm from "/imports/vx/client/VXForm.jsx"
 import VXFieldBox from "/imports/vx/client/VXFieldBox.jsx"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel.jsx"
 import RetireModal from "/imports/vx/client/RetireModal.jsx"
+import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
 
 export default class TemplateViewRight extends Component {
 
@@ -104,7 +105,7 @@ export default class TemplateViewRight extends Component {
             collection={Templates}
             _id={this.props.template._id}
             retireMethod="retireTemplate"
-            sessionVariable="PUBLISH_AUTHORING_TEMPLATE"/>)
+            publishSetAction={setPublishAuthoringTemplate}/>)
     }
 
     handleClickSendTestEmail(callback) {

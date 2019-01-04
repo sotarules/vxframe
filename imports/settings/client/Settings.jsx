@@ -1,7 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import SlidePairContainer from "/imports/vx/client/SlidePairContainer.jsx"
-import SettingsNavList from "/imports/settings/client/SettingsNavList.jsx"
+import SettingsNavListContainer from "/imports/settings/client/SettingsNavListContainer.jsx"
 import SettingsPanelContainer from "/imports/settings/client/SettingsPanelContainer.jsx"
 
 export default class Settings extends Component {
@@ -16,7 +16,7 @@ export default class Settings extends Component {
 
     render() {
         return (
-            <SlidePairContainer leftPanel={(<SettingsNavList/>)}
+            <SlidePairContainer leftPanel={(<SettingsNavListContainer/>)}
                 rightPanel={(<SettingsPanelContainer {...this.props}/>)}
                 leftColumnCount={3}
                 rightColumnCount={9}/>

@@ -1,12 +1,12 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RightPanel from "/imports/vx/client/RightPanel.jsx"
-import RightBody from "/imports/vx/client/RightBody.jsx"
-import FooterCancelSave from "/imports/vx/client/FooterCancelSave.jsx"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXInput from "/imports/vx/client/VXInput.jsx"
-import VXSelect from "/imports/vx/client/VXSelect.jsx"
-import VXImage from "/imports/vx/client/VXImage.jsx"
+import RightPanel from "/imports/vx/client/RightPanel"
+import RightBody from "/imports/vx/client/RightBody"
+import FooterCancelSave from "/imports/vx/client/FooterCancelSave"
+import VXForm from "/imports/vx/client/VXForm"
+import VXInput from "/imports/vx/client/VXInput"
+import VXSelect from "/imports/vx/client/VXSelect"
+import VXImage from "/imports/vx/client/VXImage"
 
 export default class ProfileMain extends Component {
 

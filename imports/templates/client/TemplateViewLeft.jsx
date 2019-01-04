@@ -4,6 +4,7 @@ import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup.jsx"
 import RadioButton from "/imports/vx/client/RadioButton.jsx"
 import TemplateEntityList from "/imports/vx/client/TemplateEntityList.jsx"
 import BottomButton from "/imports/vx/client/BottomButton.jsx"
+import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
 
 export default class TemplateViewLeft extends Component {
 
@@ -34,11 +35,12 @@ export default class TemplateViewLeft extends Component {
             <div id={this.props.id}
                 className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-templates"
-                        activeButtonId="button-templates">
+                    activeButtonId="button-templates">
                     <RadioButton id="button-templates"
                         text={Util.i18n("common.label_templates")}/>
                 </RadioButtonGroup>
-                <TemplateEntityList templates={this.props.templates}
+                <TemplateEntityList id="template-view-left-list"
+                    templates={this.props.templates}
                     selectable={true}
                     chevrons={true}
                     onSelect={this.handleSelectEntity.bind(this)}/>
@@ -51,11 +53,11 @@ export default class TemplateViewLeft extends Component {
     }
 
     handleSelectEntity(event, component) {
-        let currentRequest = {}
-        currentRequest.criteria = { _id : component.props._id }
-        OLog.debug("TemplateViewLeft.jsx handleSelectEntity will select new template currentRequest=" + OLog.debugString(currentRequest))
-        Session.set("PUBLISH_AUTHORING_TEMPLATE", currentRequest)
-        if (UX.isSlideMode(true)) {
+        let publishAuthoringTemplate = {}
+        publishAuthoringTemplate.criteria = { _id : component.props._id }
+        OLog.debug("TemplateViewLeft.jsx handleSelectEntity will select new template publishAuthoringTemplate=" + OLog.debugString(publishAuthoringTemplate))
+        Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
+        if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_templates", "RIGHT")
         }
     }
@@ -70,7 +72,7 @@ export default class TemplateViewLeft extends Component {
                 UX.notifyForDatabaseError(error)
                 return
             }
-            if (UX.isSlideMode(true)) {
+            if (UX.isSlideMode()) {
                 UX.iosMajorPush("common.button_templates", "common.button_templates", "/template/" + templateId, "RIGHT")
             }
             else {

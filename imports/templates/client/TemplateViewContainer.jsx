@@ -1,5 +1,6 @@
 import { withTracker } from "meteor/react-meteor-data"
-import TemplateView from "/imports/templates/client/TemplateView.jsx"
+import TemplateView from "/imports/templates/client/TemplateView"
+import { setPublishCurrentTemplates } from "/imports/vx/client/code/actions"
 
 export default withTracker(() => {
 
@@ -11,16 +12,16 @@ export default withTracker(() => {
 
     let ready = new ReactiveVar(false)
     let subscriptionParameters = result.subscriptionParameters
-    let templatesPublishRequest = VXApp.makePublishingRequest("templates", subscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
-
-    Session.set("PUBLISH_CURRENT_TEMPLATES", templatesPublishRequest.client)
+    let publishRequest = VXApp.makePublishingRequest("templates", subscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
+    Store.dispatch(setPublishCurrentTemplates(publishRequest.client))
 
     let handles = []
-    handles.push(Meteor.subscribe("templates", templatesPublishRequest.server))
-    UX.waitSubscriptions(handles, function() {
+    handles.push(Meteor.subscribe("templates", publishRequest.server))
+    UX.waitSubscriptions(handles, () => {
         ready.set(true)
         UX.clearLoading()
     })
+
     return {
         ready : !!ready.get()
     }

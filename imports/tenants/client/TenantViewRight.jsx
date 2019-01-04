@@ -8,6 +8,8 @@ import VXCheck from "/imports/vx/client/VXCheck.jsx"
 import EntityListHeader from "/imports/vx/client/EntityListHeader.jsx"
 import DomainEntityList from "/imports/vx/client/DomainEntityList.jsx"
 import RetireModal from "/imports/vx/client/RetireModal.jsx"
+import { setPublishCurrentTenant } from "/imports/vx/client/code/actions"
+import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
 
 export default class TenantViewRight extends Component {
 
@@ -60,18 +62,18 @@ export default class TenantViewRight extends Component {
                         <VXForm id="tenant-view-right-form"
                             ref={(form) => { this.form = form }}
                             className="right-panel-form flexi-fixed">
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_your_email_address")}
-                                            value={this.props.userEmail}/>
-                                    </div>
-                                    <div className="col-xs-6 margin-top-26">
-                                        <VXCheck id="role-tenant-admin"
-                                            label={Util.i18n("common.label_tenant_admin")}
-                                            checked={this.props.isUserTenantAdmin}
-                                            disabled={true}/>
-                                    </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXFieldBox label={Util.i18n("common.label_your_email_address")}
+                                        value={this.props.userEmail}/>
                                 </div>
+                                <div className="col-xs-6 margin-top-26">
+                                    <VXCheck id="role-tenant-admin"
+                                        label={Util.i18n("common.label_tenant_admin")}
+                                        checked={this.props.isUserTenantAdmin}
+                                        disabled={true}/>
+                                </div>
+                            </div>
                         </VXForm>
                     </RightHeader>
                     <EntityListHeader label={Util.i18n("my_tenants.label_domains_header")}/>
@@ -103,15 +105,15 @@ export default class TenantViewRight extends Component {
             collection={Tenants}
             _id={this.props.tenant._id}
             retireMethod="retireTenant"
-            sessionVariable="PUBLISH_CURRENT_TENANT"/>)
+            publishSetAction={setPublishCurrentTenant}/>)
     }
 
     handleSelectDomain(event, component) {
         OLog.debug("TenantViewRight.jsx handleSelectDomain componentId=" + component.props._id)
-        let currentRequest = {}
-        currentRequest.criteria = { _id : component.props._id }
-        OLog.debug("TenantViewRight.jsx handleSelectDomain will select domain currentRequest=" + OLog.debugString(currentRequest))
-        Session.set("PUBLISH_CURRENT_DOMAIN", currentRequest)
+        let publishCurrentDomain = {}
+        publishCurrentDomain.criteria = { _id : component.props._id }
+        OLog.debug("TenantViewRight.jsx handleSelectDomain will select domain publishCurrentDomain=" + OLog.debugString(publishCurrentDomain))
+        Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
         UX.iosMajorPush("common.button_my_tenants", "common.button_my_domains", "/domains", "RIGHT")
     }
 }

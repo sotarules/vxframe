@@ -1,5 +1,5 @@
 import { withTracker } from "meteor/react-meteor-data"
-import TenantEditRight from "/imports/tenants/client/TenantEditRight.jsx"
+import TenantEditRight from "/imports/tenants/client/TenantEditRight"
 
 export default withTracker(( ) => {
 

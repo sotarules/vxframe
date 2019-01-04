@@ -1,15 +1,13 @@
-import { withTracker } from "meteor/react-meteor-data"
-import ProfilePanel from "/imports/profile/client/ProfilePanel.jsx"
+import { connect } from "react-redux"
 
-export default withTracker(props => {
+import ProfilePanel from "/imports/profile/client/ProfilePanel"
 
-    if (!Session.get("PROFILE_TAB")) {
-        Session.set("PROFILE_TAB", "profile");
-    }
-
+const mapStateToProps = state => {
     return {
-        tabName : Session.get("PROFILE_TAB"),
-        ...props
-    };
+        tabName : state.profileTab
+    }
+}
 
-})(ProfilePanel)
+export default connect(
+    mapStateToProps
+)(ProfilePanel)

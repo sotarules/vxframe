@@ -1,18 +1,12 @@
-import { withTracker } from "meteor/react-meteor-data"
-import SlidePair from "/imports/vx/client/SlidePair.jsx"
+import { connect } from "react-redux"
+import SlidePair from "/imports/vx/client/SlidePair"
 
-export default withTracker(props => {
-
-    const result = {
-        name : props.name,
-        leftPanel : props.leftPanel,
-        rightPanel : props.rightPanel,
-        leftColumnCount : props.leftColumnCount,
-        rightColumnCount : props.rightColumnCount,
-        slideMode : UX.isSlideMode(),
-        panel : UX.getCurrentPanel(Util.routePath())
+const mapStateToProps = state => {
+    return {
+        iosState : state.iosState
     }
+}
 
-    return result
-
-})(SlidePair)
+export default connect(
+    mapStateToProps
+)(SlidePair)

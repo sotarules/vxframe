@@ -1,8 +1,8 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import SlidePairContainer from "/imports/vx/client/SlidePairContainer.jsx"
-import ProfileNavList from "/imports/profile/client/ProfileNavList.jsx"
-import ProfilePanelContainer from "/imports/profile/client/ProfilePanelContainer.jsx"
+import SlidePairContainer from "/imports/vx/client/SlidePairContainer"
+import ProfileNavListContainer from "/imports/profile/client/ProfileNavListContainer"
+import ProfilePanelContainer from "/imports/profile/client/ProfilePanelContainer"
 
 export default class Profile extends Component {
 
@@ -21,7 +21,7 @@ export default class Profile extends Component {
 
     render() {
         return (
-            <SlidePairContainer leftPanel={(<ProfileNavList/>)}
+            <SlidePairContainer leftPanel={(<ProfileNavListContainer/>)}
                 rightPanel={(<ProfilePanelContainer {...this.props}/>)}
                 leftColumnCount={3}
                 rightColumnCount={9}/>

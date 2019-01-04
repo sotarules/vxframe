@@ -1,9 +1,7 @@
 import { withTracker } from "meteor/react-meteor-data"
-import Profile from "/imports/profile/client/Profile.jsx"
+import Profile from "/imports/profile/client/Profile"
 
 export default withTracker(() => {
-
-    Session.set("PUBLISH_CURRENT_USER", { criteria : { _id : Meteor.userId() } })
 
     let user = Util.fetchUserLimited(Meteor.userId())
 

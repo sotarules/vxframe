@@ -7,7 +7,7 @@ export default class UserDomainView extends Component {
 
     render() {
         return (
-            <SlidePairContainer name="UserDomainView.jsx" leftPanel={(<UserDomainViewLeftContainer/>)}
+            <SlidePairContainer leftPanel={(<UserDomainViewLeftContainer/>)}
                 rightPanel={(<UserDomainViewRightContainer/>)}
                 leftColumnCount={5}
                 rightColumnCount={7}/>

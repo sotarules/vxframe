@@ -5,6 +5,6 @@ export default withTracker(props => {
 
     return {
         content : props.content
-    };
+    }
 
 })(LayoutNone)

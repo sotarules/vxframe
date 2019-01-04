@@ -1,8 +1,11 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXForm from "/imports/vx/client/VXForm.jsx"
-import VXSelect from "/imports/vx/client/VXSelect.jsx"
-import VXDate from "/imports/vx/client/VXDate.jsx"
+import VXForm from "/imports/vx/client/VXForm"
+import VXSelect from "/imports/vx/client/VXSelect"
+import VXDate from "/imports/vx/client/VXDate"
+import { setSelectedEventType } from "/imports/vx/client/code/actions"
+import { setSelectedEventRows } from "/imports/vx/client/code/actions"
+import { setSelectedEventEndDate } from "/imports/vx/client/code/actions"
 
 export default class EventsControls extends Component {
 
@@ -53,18 +56,18 @@ export default class EventsControls extends Component {
 
     handleChangeEventType(event) {
         let eventType = event.target.value;
-        OLog.debug("EventsControls.jsx handleChangeEventType eventType=" + eventType);
-        Session.set("SELECTED_EVENT_TYPE", eventType);
+        OLog.debug("EventsControls.jsx handleChangeEventType eventType=" + eventType)
+        Store.dispatch(setSelectedEventType(eventType))
     }
 
     handleChangeEventRows(event) {
         let eventRows = parseInt(event.target.value);
-        OLog.debug("EventsControls.jsx handleChangeEventRows logRows=" + eventRows);
-        Session.set("SELECTED_EVENT_ROWS", eventRows);
+        OLog.debug("EventsControls.jsx handleChangeEventRows logRows=" + eventRows)
+        Store.dispatch(setSelectedEventRows(eventRows))
     }
 
     handleChangeEndDate(event) {
-        OLog.debug("EventsControls.jsx handleChangeEndDate date=" + event.date);
-        Session.set("SELECTED_EVENT_END_DATE", event.date ? event.date.toDate() : null);
+        OLog.debug("EventsControls.jsx handleChangeEndDate date=" + event.date)
+        Store.dispatch(setSelectedEventEndDate(event.date ? event.date.toDate() : null))
     }
 }

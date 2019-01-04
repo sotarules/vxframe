@@ -30,7 +30,7 @@ Meteor.startup(() => {
     // Capture and log the client version:
     Accounts.onLogin(() => {
         console.log("startup.js Accounts onLogin *fire*")
-        Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, (error, result) => {
+        Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, error => {
             if (error) {
                 console.log("startup.js Accounts onClientLogin callback error=" + error)
                 return

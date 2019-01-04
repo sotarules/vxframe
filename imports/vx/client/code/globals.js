@@ -6,3 +6,4 @@ this.UXState = {}
 this.ContextMaker = {}
 this.ReactTestUtils = {}
 this.VXSubs = {}
+this.Store = {}

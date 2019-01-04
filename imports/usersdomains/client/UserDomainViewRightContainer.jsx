@@ -1,7 +1,8 @@
+import { connect } from "react-redux"
 import { withTracker } from "meteor/react-meteor-data"
-import UserDomainViewRight from "/imports/usersdomains/client/UserDomainViewRight.jsx"
+import UserDomainViewRight from "/imports/usersdomains/client/UserDomainViewRight"
 
-export default withTracker(() => {
+const MeteorContainer = withTracker(() => {
 
     let user = ContextMaker["users-domains"]()
     if (!user) {
@@ -19,4 +20,15 @@ export default withTracker(() => {
     }
 
 })(UserDomainViewRight)
+
+const mapStateToProps = state => {
+    return {
+        publishAuthoringUser : state.publishAuthoringUser
+    }
+}
+
+export default connect(
+    mapStateToProps
+)(MeteorContainer)
+
 

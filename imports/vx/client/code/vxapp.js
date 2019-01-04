@@ -1,6 +1,20 @@
 "use strict";
 
 import { mount } from "react-mounter"
+import { setCurrentDomainId } from "/imports/vx/client/code/actions"
+import { setCurrentLocale } from "/imports/vx/client/code/actions"
+import { setCurrentUserId } from "/imports/vx/client/code/actions"
+import { setCurrentPublishingMode } from "/imports/vx/client/code/actions"
+import { setPublishingModeClient } from "/imports/vx/client/code/actions"
+import { setPublishingModeServer } from "/imports/vx/client/code/actions"
+import { setSubscriptionParameters } from "/imports/vx/client/code/actions"
+import { setPublishCurrentTenants } from "/imports/vx/client/code/actions"
+import { setPublishCurrentDomains } from "/imports/vx/client/code/actions"
+import { setPublishCurrentUsers } from "/imports/vx/client/code/actions"
+import { setPublishCurrentTenant } from "/imports/vx/client/code/actions"
+import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
+import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
+import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
 
 VXApp = _.extend(VXApp || {}, {
 
@@ -22,9 +36,6 @@ VXApp = _.extend(VXApp || {}, {
         if (!userId) {
             OLog.debug("vxapp.js mount no userId clearing session settings")
             VXApp.clearUserSessionSettings()
-            let originalPath = Util.routePath()
-            OLog.debug("vxapp.js mount capturing original path=" + originalPath)
-            Session.set("ROUTE_ORIGINAL_PATH", originalPath)
             OLog.debug("vxapp.js mount redirecting to signin")
             FlowRouter.go("/")
             return
@@ -166,9 +177,9 @@ VXApp = _.extend(VXApp || {}, {
      * @param {function} Mandatory callback.
      */
     globalSubscriptions(newSubscriptionParameters, callback) {
-        let oldSubscriptionParameters = Session.get("SUBSCRIPTION_PARAMETERS")
-        let oldPublishingModeClient = Session.get("PUBLISHING_MODE_CLIENT")
-        let oldPublishingModeServer = Session.get("PUBLISHING_MODE_SERVER")
+        let oldSubscriptionParameters = Store.getState().subscriptionParameters
+        let oldPublishingModeClient = Store.getState().publishingModeClient
+        let oldPublishingModeServer = Store.getState().publishingModeServer
         let newPublishingModeClient = VXApp.getPublishingMode("client", newSubscriptionParameters)
         let newPublishingModeServer = VXApp.getPublishingMode("server", newSubscriptionParameters)
         let oldSubscriptionParametersString = JSON.stringify(oldSubscriptionParameters)
@@ -190,31 +201,31 @@ VXApp = _.extend(VXApp || {}, {
         //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " newPublishingModeServer=" + newPublishingModeServer)
         if (newSubscriptionParametersString !== oldSubscriptionParametersString) {
             //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " subscription parameters have *changed*")
-            Session.set("SUBSCRIPTION_PARAMETERS", newSubscriptionParameters)
+            Store.dispatch(setSubscriptionParameters(newSubscriptionParameters))
         }
-        let tenantsPublishRequest, domainsPublishRequest, usersPublishRequest
+        let publishCurrentTenants, publishCurrentDomains, publishCurrentUsers
         if (VXSubs._cacheList.length === 0 ||
             newSubscriptionParametersString !== oldSubscriptionParametersString ||
             oldPublishingModeClient !== newPublishingModeClient) {
             OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " client subscription mode has *changed*")
-            Session.set("PUBLISHING_MODE_CLIENT", newPublishingModeClient)
-            tenantsPublishRequest = VXApp.makePublishingRequest("current_tenants", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
-            Session.set("PUBLISH_CURRENT_TENANTS", tenantsPublishRequest.client)
-            domainsPublishRequest = VXApp.makePublishingRequest("current_domains", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
-            Session.set("PUBLISH_CURRENT_DOMAINS", domainsPublishRequest.client)
-            usersPublishRequest = VXApp.makePublishingRequest("current_users", newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
-            Session.set("PUBLISH_CURRENT_USERS", usersPublishRequest.client)
+            Store.dispatch(setPublishingModeClient(newPublishingModeClient))
+            publishCurrentTenants = VXApp.makePublishingRequest("current_tenants", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+            Store.dispatch(setPublishCurrentTenants(publishCurrentTenants.client))
+            publishCurrentDomains = VXApp.makePublishingRequest("current_domains", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+            Store.dispatch(setPublishCurrentDomains(publishCurrentDomains.client))
+            publishCurrentUsers = VXApp.makePublishingRequest("current_users", newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
+            Store.dispatch(setPublishCurrentUsers(publishCurrentUsers.client))
         }
         if (VXSubs._cacheList.length === 0 ||
             newSubscriptionParametersString !== oldSubscriptionParametersString ||
             oldPublishingModeServer !== newPublishingModeServer) {
             OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " server subscription mode has *changed*")
-            Session.set("PUBLISHING_MODE_SERVER", newPublishingModeServer)
+            Store.dispatch(setPublishingModeServer(newPublishingModeServer))
             let handles = []
             handles.push(VXSubs.subscribe("config"))
-            handles.push(VXSubs.subscribe("current_tenants", tenantsPublishRequest.server))
-            handles.push(VXSubs.subscribe("current_domains", domainsPublishRequest.server))
-            handles.push(VXSubs.subscribe("current_users", usersPublishRequest.server))
+            handles.push(VXSubs.subscribe("current_tenants", publishCurrentTenants.server))
+            handles.push(VXSubs.subscribe("current_domains", publishCurrentDomains.server))
+            handles.push(VXSubs.subscribe("current_users", publishCurrentUsers.server))
             UX.waitSubscriptions(handles, callback)
             return
         }
@@ -242,32 +253,31 @@ VXApp = _.extend(VXApp || {}, {
         }
         let tenantId = Util.getCurrentTenantId(userId)
         let domainId = Util.getCurrentDomainId(userId)
-        let sessionDomainId = Session.get("CURRENT_DOMAINID")
+        let currentDomainId = Store.getState().currentDomainId
         let publishingMode = VXApp.getPublishingMode(tenantId, domainId, "client", userId)
-        let sessionPublishingMode = Session.get("CURRENT_PUBLISHING_MODE")
-        if (domainId !== sessionDomainId || publishingMode !== sessionPublishingMode) {
+        let currentPublishingMode = Store.getState().currentPublishingMode
+        if (domainId !== currentDomainId || publishingMode !== currentPublishingMode) {
             OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " detected domain or publishing mode change:" +
                 " domain=" + Util.fetchDomainName(domainId) + " mode=" + publishingMode +
                 " *clearing* session variables")
             // Experimental.  This should handle Make Current domain:
-            Session.set("PUBLISH_CURRENT_TENANT", { criteria: { _id: tenantId } })
-            Session.set("PUBLISH_CURRENT_DOMAIN", { criteria: { _id: domainId } })
-            Session.set("PUBLISH_AUTHORING_USER", null)
-            Session.set("PUBLISH_AUTHORING_DOMAIN", null)
-            Session.set("PUBLISH_CURRENT_USER", null)
-            Session.set("CURRENT_DOMAINID", domainId)
-            Session.set("CURRENT_PUBLISHING_MODE", publishingMode)
+            Store.dispatch(setPublishCurrentTenant({ criteria: { _id: tenantId } }))
+            Store.dispatch(setPublishCurrentDomain({ criteria: { _id: tenantId } }))
+            Store.dispatch(setPublishAuthoringUser(null))
+            Store.dispatch(setPublishAuthoringDomain(null))
+            Store.dispatch(setCurrentDomainId(domainId))
+            Store.dispatch(setCurrentPublishingMode(publishingMode))
             // Set session variables that piggy back on existing subscriptions:
             VXApp.setSessionVariables(userId)
         }
-        let sessionUserId = Session.get("CURRENT_USERID")
-        if (userId !== sessionUserId) {
+        let currentUserId = Store.getState().currentUserId
+        if (userId !== currentUserId) {
             if (email && domainId) {
                 OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " domain " + Util.fetchDomainName(domainId))
-                Session.set("CURRENT_USERID", userId)
-                Session.set("CURRENT_EMAIL", email)
-                Session.set("CURRENT_LOCALE", Util.getProfileValue("locale"))
-                OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " i18n locale=" + Session.get("CURRENT_LOCALE"))
+                Store.dispatch(setCurrentUserId(currentUserId))
+                let currentLocale = Util.getProfileValue("locale")
+                Store.dispatch(setCurrentLocale(currentLocale))
+                OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " i18n currentLocale=" + currentLocale)
                 // Set the user's default timezone if it hasn't already been established:
                 if (!Util.getProfileValue("timezone", userId)) {
                     let detectedTimezone = TimezonePicker.detectedZone()
@@ -282,28 +292,23 @@ VXApp = _.extend(VXApp || {}, {
             }
         }
         else {
-            OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " *matching* userId=" + userId + " sessionUserId=" + sessionUserId)
+            OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " *matching* userId=" + userId + " currentUserId=" + currentUserId)
         }
         if (Util.routePath() && UXState.previousBefore === Util.routePath()) {
             OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " route is unchanged from previous=" + UXState.previousBefore + ", before action will be suppressed")
             return
         }
         UXState.previousBefore = Util.routePath()
-        // Lingering search phrase across routes has caused confusion on more than on occasion:
-        //Session.set("SEARCH_PHRASE", null)
         return
     },
 
     /**
      * Set session variables that "piggy back" on previously-set subscriptions.
      *
-     * @param {string} Current user ID.
+     * @param {string} userId Current user ID.
      */
     setSessionVariables(userId) {
-        let myNotificationsRequest = {}
-        myNotificationsRequest.criteria = { recipientId: userId }
-        myNotificationsRequest.options = {}
-        Session.set("PUBLISH_MY_NOTIFICATIONS", myNotificationsRequest)
+        // Template function (override in VXApps)
     },
 
     /**
@@ -365,25 +370,25 @@ VXApp = _.extend(VXApp || {}, {
     /**
      * Fetch data context for current route.
      *
-     * @param {boolean} reactiveRoute True to enable reactive checking of routes.
-     * @param {boolean} iosButtonBar True to return context for iOS button bar.
-     * @return {object} Data context based on route.
+     * @param {boolean} iosButtonBar True to return "quick" context for iOS button bar (performance).
+     * @return {object} Data context based on route or true if route not declared
      */
-    dataContext(reactiveRoute, iosButtonBar) {
-        let path = Util.routePath(reactiveRoute)
+    dataContext(iosButtonBar) {
+        let path = Util.routePath(true)
         if (path === "/") {
             OLog.debug("vxapp.js dataContext path=" + path + " never has a data context")
             return
         }
-        let functionName = Util.routeFirstSegment(path)
-        let func = ContextMaker[functionName]
+        let routeFirstSegment = Util.routeFirstSegment(path)
+        let func = ContextMaker[routeFirstSegment]
         if (!func) {
-            OLog.debug("vxapp.js dataContext path=" + path + " route=" + functionName +
-                " reactiveRoute=" + !!reactiveRoute + " iosButtonBar=" + !!iosButtonBar + " no function in ContextMaker")
-            return
+            OLog.debug("vxapp.js dataContext routeFirstSegment=" + routeFirstSegment +
+                " iosButtonBar=" + !!iosButtonBar + " no corresponding function in ContextMaker, returning true")
+            return true
         }
         let dataContext = func(iosButtonBar)
-        //OLog.debug("vxapp.js dataContext path="+path+" route="+functionName+" viewName="+viewName+" reactiveRoute="+!!reactiveRoute+" dataContext="+dataContext)
+        OLog.debug("vxapp.js dataContext routeFirstSegment=" + routeFirstSegment +
+            " iosButtonBar=" + !!iosButtonBar + " dataContext=" + dataContext)
         return dataContext
     },
 
@@ -492,14 +497,14 @@ VXApp = _.extend(VXApp || {}, {
      * @return {array} Array of users.
      */
     findUserList() {
-        let usersRequest = Session.get("PUBLISH_CURRENT_USERS")
-        if (!usersRequest) {
+        let publishCurrentUsers = Store.getState().publishCurrentUsers
+        if (!publishCurrentUsers) {
             return
         }
         // Do not include retired records:
-        usersRequest.criteria["profile.dateRetired"] = { $exists: false }
-        //OLog.debug("vxapp.js findUserList adjusted usersRequest=" + OLog.debugString(usersRequest))
-        return Meteor.users.find(usersRequest.criteria, usersRequest.options).fetch()
+        publishCurrentUsers.criteria["profile.dateRetired"] = { $exists: false }
+        //OLog.debug("vxapp.js findUserList adjusted publishCurrentUsers=" + OLog.debugString(publishCurrentUsers))
+        return Meteor.users.find(publishCurrentUsers.criteria, publishCurrentUsers.options).fetch()
     },
 
     /**
@@ -508,13 +513,13 @@ VXApp = _.extend(VXApp || {}, {
      * @return {array} Array of domains.
      */
     findDomainList() {
-        let domainsRequest = Session.get("PUBLISH_CURRENT_DOMAINS")
-        if (!domainsRequest) {
+        let publishCurrentDomains = Store.getState().publishCurrentDomains
+        if (!publishCurrentDomains) {
             return
         }
         let domainIdsVisible = Util.getDomainIds(Meteor.userId())
         let domainArray = []
-        Domains.find(domainsRequest.criteria, domainsRequest.options).forEach(domain => {
+        Domains.find(publishCurrentDomains.criteria, publishCurrentDomains.options).forEach(domain => {
             if (!Util.isDomainActive(domain._id)) {
                 return
             }
@@ -601,11 +606,11 @@ VXApp = _.extend(VXApp || {}, {
         let newIndex = ui.item.index()
         let $domainContainer = ui.item.children(".entity-container-small")
         let domainId = $domainContainer.attr("data-mongo-id")
-        let currentUserRequest = Session.get("PUBLISH_AUTHORING_USER")
-        if (!currentUserRequest) {
+        let publishAuthoringUser = Store.getState().publishAuthoringUser
+        if (!publishAuthoringUser) {
             return
         }
-        let user = Meteor.users.findOne(currentUserRequest.criteria)
+        let user = Meteor.users.findOne(publishAuthoringUser.criteria)
         if (!user) {
             return
         }
@@ -686,11 +691,11 @@ VXApp = _.extend(VXApp || {}, {
     updateDomainUser(dropTarget, ui) {
         let $userContainer = ui.item.children(".entity-container-small")
         let userId = $userContainer.attr("data-mongo-id")
-        let domainRequest = Session.get("PUBLISH_AUTHORING_DOMAIN")
-        if (!domainRequest) {
+        let publishAuthoringDomain = Store.getState().publishAuthoringDomain
+        if (!publishAuthoringDomain) {
             return
         }
-        let domain = Domains.findOne(domainRequest.criteria)
+        let domain = Domains.findOne(publishAuthoringDomain.criteria)
         if (!domain) {
             return
         }
@@ -836,12 +841,12 @@ VXApp = _.extend(VXApp || {}, {
             if (error || (result && !result.success)) {
                 return
             }
-            let tenantRequest = {}
-            tenantRequest.criteria = { _id : result.tenantId }
-            Session.set("PUBLISH_CURRENT_TENANT", tenantRequest)
-            let domainRequest = {}
-            domainRequest.criteria = { _id : result.domainId }
-            Session.set("PUBLISH_CURRENT_DOMAIN", domainRequest)
+            let publishCurrentTenant = {}
+            publishCurrentTenant.criteria = { _id : result.tenantId }
+            Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
+            let publishCurrentDomain = {}
+            publishCurrentDomain.criteria = { _id : result.domainId }
+            Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
             UX.iosMajorPush(null, null, "/tenant/" + result.tenantId, "RIGHT", "crossfade")
         })
     },
@@ -853,16 +858,16 @@ VXApp = _.extend(VXApp || {}, {
      * @return {array} Array of tenants.
      */
     findTenantList(userId) {
-        let tenantsRequest = Session.get("PUBLISH_CURRENT_TENANTS")
-        if (!tenantsRequest) {
+        let publishCurrentTenants = Store.getState().publishCurrentTenants
+        if (!publishCurrentTenants) {
             return
         }
         if (userId) {
             let tenantIds = Util.getTenantIds(userId)
-            tenantsRequest.criteria._id = { $in: tenantIds }
+            publishCurrentTenants.criteria._id = { $in: tenantIds }
         }
-        //OLog.debug("vxapp.js findTenantList adjusted tenantsRequest=" + OLog.debugString(tenantsRequest))
-        return _.filter(Tenants.find(tenantsRequest.criteria, tenantsRequest.options).fetch(), tenant => {
+        OLog.debug("vxapp.js findTenantList adjusted publishCurrentTenants=" + OLog.debugString(publishCurrentTenants))
+        return _.filter(Tenants.find(publishCurrentTenants.criteria, publishCurrentTenants.options).fetch(), tenant => {
             return Util.isTenantActive(tenant._id)
         })
     },

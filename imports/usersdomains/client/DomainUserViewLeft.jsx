@@ -1,9 +1,10 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup.jsx"
-import RadioButton from "/imports/vx/client/RadioButton.jsx"
-import DomainEntityList from "/imports/vx/client/DomainEntityList.jsx"
-import BottomButton from "/imports/vx/client/BottomButton.jsx"
+import RadioButtonGroup from "/imports/vx/client/RadioButtonGroup"
+import RadioButton from "/imports/vx/client/RadioButton"
+import DomainEntityList from "/imports/vx/client/DomainEntityList"
+import BottomButton from "/imports/vx/client/BottomButton"
+import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
 
 export default class DomainUserViewLeft extends Component {
 
@@ -35,7 +36,7 @@ export default class DomainUserViewLeft extends Component {
             <div id={this.props.id}
                 className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-users-domains"
-                        activeButtonId={this.state.usersDomainsButton}>
+                    activeButtonId={this.state.usersDomainsButton}>
                     <RadioButton id="button-users"
                         text={Util.i18n("user_domain.label_users")}
                         onClick={this.handleClickUsers.bind(this)}/>
@@ -63,11 +64,11 @@ export default class DomainUserViewLeft extends Component {
     }
 
     handleSelectDomain(event, component) {
-        let currentRequest = {};
-        currentRequest.criteria = { _id : component.props._id };
-        OLog.debug("UserDomainViewLeft.jsx handleSelectDomain will select new domain currentRequest=" + OLog.debugString(currentRequest));
-        Session.set("PUBLISH_AUTHORING_DOMAIN", currentRequest);
-        if (UX.isSlideMode(true)) {
+        let publishAuthoringDomain = {};
+        publishAuthoringDomain.criteria = { _id : component.props._id }
+        OLog.debug("UserDomainViewLeft.jsx handleSelectDomain will select new domain publishAuthoringDomain=" + OLog.debugString(publishAuthoringDomain));
+        Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
+        if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_domains", "RIGHT");
         }
     }
@@ -84,7 +85,7 @@ export default class DomainUserViewLeft extends Component {
                 }
                 VXApp.refreshGlobalSubscriptions(false, () => {
                     callback()
-                    UX.iosMajorPush(null, null, "/domain/" + domainId, "RIGHT", "crossfade");
+                    UX.iosMajorPush(null, null, "/domain/" + domainId, "RIGHT", "crossfade")
                 })
             })
         })

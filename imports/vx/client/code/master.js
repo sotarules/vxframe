@@ -1,9 +1,21 @@
 "use strict";
 
-document.title = Util.i18n("master.page_title")
+import { applyMiddleware, createStore } from "redux"
+import ReduxThunk from "redux-thunk"
+import { createLogger } from "redux-logger"
+import allReducers from "/imports/vx/client/code/reducers/allReducers"
+import { setCurrentLocale } from "/imports/vx/client/code/actions"
+
+// Initialize Redux store with helpful middleware:
+const logger = createLogger()
+// TODO: DL--REINSTATE LOGGER ,logger
+const middleware = [ReduxThunk]
+Store = createStore(allReducers, {}, applyMiddleware(...middleware))
 
 ReactTestUtils = require("react-dom/test-utils")
 VXSubs = new SubsManager()
+
+document.title = Util.i18n("master.page_title")
 
 /**
  * General client-side error handler. Note that JQuery recommendation is NOT to use a JQuery error
@@ -48,7 +60,7 @@ Tracker.autorun(() => {
 Tracker.autorun(() => {
     let locale = Util.getProfileValue("locale")
     console.log("master.js autorun locale retrieved from profile=" + locale)
-    Session.set("CURRENT_LOCALE", locale)
+    Store.dispatch(setCurrentLocale(locale))
 })
 
 Tracker.autorun(function() {

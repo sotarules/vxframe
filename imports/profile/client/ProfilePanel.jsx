@@ -1,9 +1,9 @@
 import { Component } from "react"
-import ProfileMain from "/imports/profile/client/ProfileMain.jsx"
-import ProfileCredentials from "/imports/profile/client/ProfileCredentials.jsx"
-import ProfileNotifications from "/imports/profile/client/ProfileNotifications.jsx"
-import ProfilePreferences from "/imports/profile/client/ProfilePreferences.jsx"
-import ProfileReports from "/imports/profile/client/ProfileReports.jsx"
+import ProfileMain from "/imports/profile/client/ProfileMain"
+import ProfileCredentials from "/imports/profile/client/ProfileCredentials"
+import ProfileNotifications from "/imports/profile/client/ProfileNotifications"
+import ProfilePreferences from "/imports/profile/client/ProfilePreferences"
+import ProfileReports from "/imports/profile/client/ProfileReports"
 
 export default class ProfilePanel extends Component {
 

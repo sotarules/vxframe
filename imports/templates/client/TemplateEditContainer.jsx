@@ -1,5 +1,6 @@
 import { withTracker } from "meteor/react-meteor-data"
-import TemplateEdit from "/imports/templates/client/TemplateEdit.jsx"
+import TemplateEdit from "/imports/templates/client/TemplateEdit"
+import { setPublishCurrentTemplates } from "/imports/vx/client/code/actions"
 
 export default withTracker(() => {
 
@@ -11,14 +12,14 @@ export default withTracker(() => {
 
     let ready = new ReactiveVar(false)
     let subscriptionParameters = result.subscriptionParameters
-    let templatesPublishRequest = VXApp.makePublishingRequest("templates", subscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
+    let publishRequest = VXApp.makePublishingRequest("templates", subscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
 
-    Session.set("PUBLISH_CURRENT_TEMPLATES", templatesPublishRequest.client)
+    Store.dispatch(setPublishCurrentTemplates(publishRequest.client))
 
     let handles = []
-    handles.push(Meteor.subscribe("templates", templatesPublishRequest.server))
+    handles.push(Meteor.subscribe("templates", publishRequest.server))
 
-    UX.waitSubscriptions(handles, function() {
+    UX.waitSubscriptions(handles, () => {
         ready.set(true)
         UX.clearLoading()
     })

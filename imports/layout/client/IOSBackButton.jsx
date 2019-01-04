@@ -20,13 +20,10 @@ export default class IOSBackButton extends Component {
     }
 
     handleClickBack() {
-
         if (UX.iosIsDisabled(".ios-button-back.ios-button-link")) {
-            return;
+            return
         }
-
-        UX.iosDisable(".ios-button-back.ios-button-link");
-
-        UX.iosPopAndGo();
+        UX.iosDisable(".ios-button-back.ios-button-link")
+        UX.iosPopAndGo()
     }
 }
