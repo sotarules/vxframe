@@ -7,12 +7,12 @@
 meteor-base@1.4.0             # Packages every Meteor app needs to have
 mobile-experience@1.0.5       # Packages for a great mobile UX
 mongo@1.6.0                   # The database Meteor supports right now
-session@1.1.8                 # Client-side reactive dictionary for your app
+session@1.2.0                 # Client-side reactive dictionary for your app
 jquery@1.11.10                  # Helpful client-side library
 tracker@1.2.0                 # Meteor's client-side reactive programming library
 
 es5-shim@4.8.0                # ECMAScript 5 compatibility for older browsers.
-ecmascript@0.12.0              # Enable ECMAScript2015+ syntax in app code
+ecmascript@0.12.3              # Enable ECMAScript2015+ syntax in app code
 
 aldeed:collection2@2.10.0
 email@1.2.3
@@ -30,7 +30,7 @@ ejson@1.1.0
 
 lepozepo:accounting
 afruth:bootstrap-touchspin
-standard-minifier-css@1.5.0
+standard-minifier-css@1.5.2
 standard-minifier-js@2.4.0
 sacha:spin
 reactive-var@1.0.11
