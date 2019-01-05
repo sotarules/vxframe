@@ -262,7 +262,7 @@ VXApp = _.extend(VXApp || {}, {
                 " *clearing* session variables")
             // Experimental.  This should handle Make Current domain:
             Store.dispatch(setPublishCurrentTenant({ criteria: { _id: tenantId } }))
-            Store.dispatch(setPublishCurrentDomain({ criteria: { _id: tenantId } }))
+            Store.dispatch(setPublishCurrentDomain({ criteria: { _id: domainId } }))
             Store.dispatch(setPublishAuthoringUser(null))
             Store.dispatch(setPublishAuthoringDomain(null))
             Store.dispatch(setCurrentDomainId(domainId))

@@ -55,28 +55,28 @@ export default class DomainViewRight extends Component {
                         <VXForm id="domain-view-right-form"
                             ref={(form) => { this.form = form }}
                             className="right-panel-form flexi-fixed">
-                                <div className="row">
-                                    <div className="col-xs-12">
-                                        <VXFieldBox label={Util.i18n("common.label_billing_address")}
-                                            value={this.props.domain.billingAddress1}/>
-                                    </div>
+                            <div className="row">
+                                <div className="col-xs-12">
+                                    <VXFieldBox label={Util.i18n("common.label_billing_address")}
+                                        value={this.props.domain.billingAddress1}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-12">
-                                        <VXFieldBox label={Util.i18n("common.label_billing_city")}
-                                            value={this.props.domain.billingCity}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-12">
+                                    <VXFieldBox label={Util.i18n("common.label_billing_city")}
+                                        value={this.props.domain.billingCity}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_billing_state")}
-                                            value={this.props.domain.billingState}/>
-                                    </div>
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_billing_zip")}
-                                            value={this.props.domain.billingZip}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXFieldBox label={Util.i18n("common.label_billing_state")}
+                                        value={this.props.domain.billingState}/>
                                 </div>
+                                <div className="col-xs-6">
+                                    <VXFieldBox label={Util.i18n("common.label_billing_zip")}
+                                        value={this.props.domain.billingZip}/>
+                                </div>
+                            </div>
                         </VXForm>
                     </RightHeader>
                     <EntityListHeader label={Util.i18n("my_domains.label_users_header")}/>
@@ -92,10 +92,12 @@ export default class DomainViewRight extends Component {
         return this.props.domain._id !== this.props.currentDomainId
     }
 
-    handleMakeCurrent(callback) {
+    handleMakeCurrent() {
         Meteor.call("setCurrentDomain", this.props.domain._id, (error, result) => {
-            callback()
-            UX.notify(result, error)
+            VXApp.refreshGlobalSubscriptions(true, () => {
+                //callback() - no need to invoke callback to stop ladda this because button is gone
+                UX.notify(result, error)
+            })
         })
     }
 }

@@ -1,7 +1,8 @@
+import { connect } from "react-redux"
 import { withTracker } from "meteor/react-meteor-data"
 import DomainViewRight from "/imports/domains/client/DomainViewRight"
 
-export default withTracker(( ) => {
+const MeteorContainer = withTracker(( ) => {
 
     let tenant = ContextMaker.domains()
     if (!(tenant && tenant.domain)) {
@@ -21,3 +22,13 @@ export default withTracker(( ) => {
 
 })(DomainViewRight)
 
+const mapStateToProps = state => {
+    return {
+        publishCurrentTenant : state.publishCurrentTenant,
+        publishCurrentDomain : state.publishCurrentDomain
+    }
+}
+
+export default connect(
+    mapStateToProps
+)(MeteorContainer)
