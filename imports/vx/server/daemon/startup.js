@@ -22,8 +22,6 @@ console.log("startup.js (vx) " + CX.SYSTEM_NAME + " " + Meteor.appVersion.versio
 
 Meteor.startup(() => {
 
-    process.env.MAIL_URL = CX.MAIL_URL
-
     // Watch for ad-hoc changes in the system configuration:
     Config.find("1").observeChanges({
 

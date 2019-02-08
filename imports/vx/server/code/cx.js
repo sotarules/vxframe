@@ -2,7 +2,6 @@
 
 CX.DEFAULT_PASSWORD = "vxframe"
 
-CX.MAIL_URL = process.env.MAIL_URL
 CX.MAILGUN_API = "https://api.mailgun.net/v2"
 
 CX.MAILGUN_PRIVATE_API_KEY = process.env.MAILGUN_PRIVATE_API_KEY

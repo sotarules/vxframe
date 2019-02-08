@@ -17,7 +17,7 @@
     "ladda": "^1.0.6",
     "lodash": "^4.17.11",
     "node-sass": "^4.10.0",
-    "pkgcloud": "^1.4.0",
+    "pkgcloud": "^1.7.0",
     "prop-types": "^15.6.2",
     "react": "^15.6.2",
     "react-addons-create-fragment": "^15.6.2",
