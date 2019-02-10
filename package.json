@@ -4,6 +4,10 @@
   "description": "VXFrame",
   "author": "SOTA",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sotarules/vxframe.git"
+  },
   "dependencies": {
     "@babel/runtime": "^7.1.5",
     "ajv": "^6.5.5",
@@ -39,6 +43,13 @@
     "redux-actions": "^2.6.4",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.3.0"
+  },
+  "resolutions": {
+    "growl": "^1.10.2",
+    "minimatch": "^3.0.2",
+    "base64url": "^3.0.0",
+    "protobufjs": "^5.0.3",
+    "debug": "^2.6.9"
   },
   "devDependencies": {
     "@meteorjs/eslint-config-meteor": "^1.0.5",
