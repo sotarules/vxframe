@@ -307,6 +307,11 @@ Meteor.i18nMessages.common = {
         rx : "$Could not determine timezone of current user$"
     },
 
+    alert_transaction_fail_template_not_found : {
+        en : "Transaction failed, template not found, templateId={{templateId}}",
+        rx : "$Transaction failed, template not found, templateId={{templateId}}$"
+    },
+
     alert_report_send_success : {
         en : "{{reportName}} has been sent to {{email}}",
         rx : "${{reportName}} has been sent to {{email}}$"

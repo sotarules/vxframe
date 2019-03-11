@@ -94,7 +94,7 @@ export default class TemplateViewRight extends Component {
     handleClone(callback) {
         OLog.debug("TemplateViewRight.jsx handleClone")
         callback()
-        UX.setLocked("template-view-left", true)
+        UX.setLocked(["template-view-left"], true)
         VXApp.cloneTemplate(this.props.template._id)
     }
 

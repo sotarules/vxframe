@@ -46,7 +46,6 @@
   },
   "resolutions": {
     "growl": "^1.10.2",
-    "minimatch": "^3.0.2",
     "base64url": "^3.0.0",
     "protobufjs": "^5.0.3",
     "debug": "^2.6.9"

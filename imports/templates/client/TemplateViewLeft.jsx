@@ -66,7 +66,6 @@ export default class TemplateViewLeft extends Component {
         callback()
         UX.setLocked(["template-view-left", "template-view-right"], true)
         Templates.insert({ }, (error, templateId) => {
-            UX.setLocked(["template-view-left", "template-view-right"], false)
             if (error) {
                 OLog.error("TemplateViewLeft.jsx error attempting to create template=" + error)
                 UX.notifyForDatabaseError(error)

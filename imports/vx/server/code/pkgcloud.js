@@ -22,6 +22,8 @@ PkgCloud = {
             pkgcloud = require("pkgcloud")
             readableStream = require("readable-stream")
 
+            OLog.debug("pkgcloud.js putImage CX.PKGCLOUD_CLIENT_OPTIONS=" + OLog.debugString(CX.PKGCLOUD_CLIENT_OPTIONS))
+
             clientRackspace = pkgcloud.storage.createClient(CX.PKGCLOUD_CLIENT_OPTIONS)
 
             stripped = content.replace(/^data:image\/\w+;base64,/, "")
