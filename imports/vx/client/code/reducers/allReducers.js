@@ -1,4 +1,3 @@
-import { combineReducers } from "redux"
 import buttonUsersDomains from "/imports/vx/client/code/reducers/buttonUsersDomains"
 import currentDomainId from "/imports/vx/client/code/reducers/currentDomainId"
 import currentLocale from "/imports/vx/client/code/reducers/currentLocale"
@@ -28,8 +27,9 @@ import selectedEventEndDate from "/imports/vx/client/code/reducers/selectedEvent
 import selectedLogLevel from "/imports/vx/client/code/reducers/selectedLogLevel"
 import selectedLogRows from "/imports/vx/client/code/reducers/selectedLogRows"
 import selectedLogEndDate from "/imports/vx/client/code/reducers/selectedLogEndDate"
+import wizardState from "/imports/vx/client/code/reducers/wizardState"
 
-const allReducers = combineReducers({
+export default {
     buttonUsersDomains,
     currentDomainId,
     currentLocale,
@@ -58,7 +58,6 @@ const allReducers = combineReducers({
     selectedEventEndDate,
     selectedLogLevel,
     selectedLogRows,
-    selectedLogEndDate
-})
-
-export default allReducers
+    selectedLogEndDate,
+    wizardState
+}

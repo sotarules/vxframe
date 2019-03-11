@@ -45,6 +45,21 @@
         rx : "$Cancel$"
     },
 
+    button_previous : {
+        en : "< Previous",
+        rx : "$< Previous$"
+    },
+
+    button_next : {
+        en : "Next >",
+        rx : "$Next >$"
+    },
+
+    button_finish : {
+        en : "Finish",
+        rx : "$Finish$"
+    },
+
     button_yes : {
         en : "Yes",
         rx : "$Yes$"

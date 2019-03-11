@@ -1,16 +1,13 @@
 "use strict";
 
 import { applyMiddleware, createStore } from "redux"
+import { combineReducers } from "redux"
 import ReduxThunk from "redux-thunk"
-import { createLogger } from "redux-logger"
 import allReducers from "/imports/vx/client/code/reducers/allReducers"
 import { setCurrentLocale } from "/imports/vx/client/code/actions"
 
-// Initialize Redux store with helpful middleware:
-const logger = createLogger()
-// TODO: DL--REINSTATE LOGGER ,logger
 const middleware = [ReduxThunk]
-Store = createStore(allReducers, {}, applyMiddleware(...middleware))
+Store = createStore(combineReducers(allReducers), {}, applyMiddleware(...middleware))
 
 ReactTestUtils = require("react-dom/test-utils")
 VXSubs = new SubsManager()

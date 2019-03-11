@@ -22,7 +22,8 @@ PkgCloud = {
             pkgcloud = require("pkgcloud")
             readableStream = require("readable-stream")
 
-            OLog.debug("pkgcloud.js putImage CX.PKGCLOUD_CLIENT_OPTIONS=" + OLog.debugString(CX.PKGCLOUD_CLIENT_OPTIONS))
+            OLog.debug("pkgcloud.js putImage CX.PKGCLOUD_CLIENT_OPTIONS=" + OLog.debugString(CX.PKGCLOUD_CLIENT_OPTIONS) +
+                " CX.PKGCLOUD_CONTAINER=" + CX.PKGCLOUD_CONTAINER)
 
             clientRackspace = pkgcloud.storage.createClient(CX.PKGCLOUD_CLIENT_OPTIONS)
 

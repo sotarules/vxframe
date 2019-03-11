@@ -15,7 +15,7 @@ export default class VXTabFolder extends Component {
     }
 
     componentDidMount() {
-        _.each(this.props.children, child => {
+        React.Children.forEach(this.props.children, child => {
             $("#tab-" + child.props.id).on("shown.bs.tab", () => {
                 this.setState( { activeTabId : child.props.id } )
             })
@@ -23,7 +23,7 @@ export default class VXTabFolder extends Component {
     }
 
     componentWillUnmount() {
-        _.each(this.props.children, child => {
+        React.Children.forEach(this.props.children, child => {
             $("#tab-" + child.props.id).off("shown.bs.tab")
         })
     }
@@ -42,21 +42,21 @@ export default class VXTabFolder extends Component {
     }
 
     renderTabs() {
-        return this.props.children.map(child => (
+        return React.Children.map(this.props.children, child => (
             <li key={child.props.id}
                 role="presentation"
                 className={`tab-text ${child.props.id === this.state.activeTabId ? "active" : ""}`}>
                 <a id={`tab-${child.props.id}`}
                     role="tab"
                     data-toggle="tab">
-                {Parser(child.props.name)}
+                    {Parser(child.props.name)}
                 </a>
             </li>
         ))
     }
 
     renderTabPanels() {
-        return this.props.children.map(child => (
+        return React.Children.map(this.props.children, child => (
             <div id={child.props.id}
                 key={child.props.id}
                 role="tabpanel"

@@ -30,3 +30,4 @@ export const setSelectedEventEndDate = createAction("SET_SELECTED_EVENT_END_DATE
 export const setSelectedLogLevel = createAction("SET_SELECTED_LOG_LEVEL")
 export const setSelectedLogRows = createAction("SET_SELECTED_LOG_ROWS")
 export const setSelectedLogEndDate = createAction("SET_SELECTED_LOG_END_DATE")
+export const setWizardState = createAction("SET_WIZARD_STATE")

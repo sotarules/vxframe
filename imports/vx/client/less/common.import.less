@@ -1064,6 +1064,10 @@ legend.group-legend {
     margin-right: 10px;
 }
 
+.btn-margin-left {
+    margin-left: 10px;
+}
+
 .btn-bottom-container {
     padding-left: 0px;
     padding-right: 0px;
@@ -1594,13 +1598,6 @@ legend.group-legend {
     background-color: #FFFFFF;
 }
 
-.top-textbox-campaign-plan {
-    .top-textbox-white;
-    overflow-x: auto !important;
-    overflow-y: auto !important;
-    height: 454px;
-}
-
 .top-textbox-history {
     font-size: 10px;
     .top-textbox-white;
@@ -2015,24 +2012,12 @@ legend.group-legend {
     }
 }
 
-.modal-start-campaign-content {
-    max-width: 528px;
-}
-
 .modal-send-test-email-content {
     max-width: 400px;
 }
 
 .modal-report-parameters-content {
     max-width: 350px;
-}
-
-.modal-card-import-content {
-    max-width: 350px;
-}
-
-.modal-card-history-content {
-    max-width: 600px;
 }
 
 .modal-basic-content {
@@ -2244,51 +2229,6 @@ legend.group-legend {
     display: none;
 }
 
-.filter-controls {}
-
-.filter-select {
-    padding-left: 4px;
-    padding-right: 4px;
-}
-
-.filter-date {
-    padding-left: 8px;
-    padding-right: 8px;
-    text-align: center;
-}
-
-.filter-label {
-    font-size: 11px !important;
-    margin-top: 0px !important;
-    margin-bottom: 0px;
-    text-align: center;
-    width: 100%;
-}
-
-.filter-control-date {
-    max-width: 140px;
-    margin: auto;
-}
-
-.filter-control-campaign {
-    max-width: 250px;
-    margin: auto;
-}
-
-.filter-control-status {
-    max-width: 150px;
-    margin: auto;
-}
-
-.filter-control-per-page {
-    max-width: 60px;
-    margin: auto;
-}
-
-.btn-prospect-status {
-    width: 120px;
-}
-
 .notificationprefs-list {
     list-style-type: none;
     min-height: 60px;
@@ -2456,48 +2396,6 @@ legend.group-legend {
     .report-list-select;
 }
 
-.campaign-button-cell {
-    width: 150px;
-}
-
-.campaign-asset-description {
-    width: 125px;
-    height: 40px;
-}
-
-.campaign-activity-name {
-    width: 25%;
-    height: 40px;
-}
-
-.campaign-bar {
-    position: relative;
-    margin-bottom: 0px;
-    cursor: pointer;
-}
-
-.campaign-bar-white {
-    color: #FFFFFF;
-}
-
-.campaign-bar-black {
-    color: #000000;
-}
-
-.campaign-bar-value {
-    position: absolute;
-    right: 0;
-    left: 0;
-}
-
-.campaign-bar-text {
-    font-size: 12px;
-    line-height: 20px;
-    position: absolute;
-    right: 0;
-    left: 0;    
-}
-
 /* For Bootstrap tabs, activation sets display: block which is not right for Flexbox */
 .tab-content > .active {
     display: flex !important;
@@ -2520,3 +2418,52 @@ legend.group-legend {
     background-color: #FFFFFF;
     .border-radius(4px); 
 }
+
+.wizard-container {
+    .flex-display(flex);
+    .align-items(center);
+    .justify-content(center);
+    width: 100%;
+    height: 100%;
+}
+
+.wizard-panel {
+    flex: none; 
+    vertical-align: middle;
+    width: 600px;
+    max-width: 600px;   
+    margin-bottom: 0px;
+    background-color: #F5F5F5 !important;   
+    border: 1px solid #e3e3e3;
+    .border-radius(4px);
+    .box-shadow(0 0 6px 1px #C7C7C7);
+}
+
+.wizard-body {
+    margin-top: 20px;
+    margin-bottom: 20px;    
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.wizard-body-no-margin-top {
+    margin-top: 0px;
+    margin-bottom: 20px;    
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.wizard-form {
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.wizard-footer {
+    margin-top: 0px;
+    margin-bottom: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
