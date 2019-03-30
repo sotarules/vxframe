@@ -117,19 +117,19 @@ export default class VXButton extends Component {
     render() {
         return (
             <button
-            {...UX.omit(this.props, OMITTED_PROPS)}
-            type="button"
-            className={`ladda-button ${this.props.className || ""}`}
-            ref={(node) => {this.node = node}}
-            title={this.props.tooltip}
-            data-spinner-color={this.dataSpinnerColor()}
-            onClick={this.handleClick.bind(this)}>
-            <span className="ladda-label">
-                {this.props.iconClass &&
-                    <i className={this.iconClassName()}></i>
-                }
-                {UX.parseHtml(this.props.children)}
-            </span>
+                {...UX.omit(this.props, OMITTED_PROPS)}
+                type="button"
+                className={`ladda-button ${this.props.className || ""}`}
+                ref={(node) => {this.node = node}}
+                title={this.props.tooltip}
+                data-spinner-color={this.dataSpinnerColor()}
+                onClick={this.handleClick.bind(this)}>
+                <span className="ladda-label">
+                    {this.props.iconClass &&
+                        <i className={this.iconClassName()}></i>
+                    }
+                    {UX.parseHtml(this.props.children)}
+                </span>
             </button>
         )
     }

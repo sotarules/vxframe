@@ -28,6 +28,7 @@ import selectedLogLevel from "/imports/vx/client/code/reducers/selectedLogLevel"
 import selectedLogRows from "/imports/vx/client/code/reducers/selectedLogRows"
 import selectedLogEndDate from "/imports/vx/client/code/reducers/selectedLogEndDate"
 import wizardState from "/imports/vx/client/code/reducers/wizardState"
+import formData from "/imports/vx/client/code/reducers/formData"
 
 export default {
     buttonUsersDomains,
@@ -59,5 +60,6 @@ export default {
     selectedLogLevel,
     selectedLogRows,
     selectedLogEndDate,
-    wizardState
+    wizardState,
+    formData
 }

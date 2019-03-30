@@ -4,6 +4,7 @@ import ReactDOM from "react-dom"
 import Parser from "html-react-parser"
 
 import { setIosState } from "/imports/vx/client/code/actions"
+import { setFormData } from "/imports/vx/client/code/actions"
 
 /**
  * User interface utility functions.
@@ -956,6 +957,9 @@ UX = {
             if (UX.isFormDynamic(component)) {
                 UX.updateDatabase(component)
             }
+            if (UX.isFormRedux(component)) {
+                UX.updateRedux(component)
+            }
         }
         else {
             if (component.props.invalidHandler) {
@@ -1574,6 +1578,23 @@ UX = {
     },
 
     /**
+     * Update the redux store with form data.
+     *
+     * @param {object} component Component.
+     */
+    updateRedux(component) {
+        let formProps = UX.getFormProps(component)
+        let value = component.getValue()
+        let dbName = component.props.dbName || component.props.id
+        OLog.debug("ux.js updateRedux formId=" + formProps.id + " dbName=" + dbName)
+        let formData = Store.getState().formData
+        let currentFormValues = formData[formProps.id] || {}
+        currentFormValues[dbName] = value
+        formData[formProps.id] = currentFormValues
+        Store.dispatch(setFormData(formData))
+    },
+
+    /**
      * Clone an object (data) omitting certain properties.
      *
      * @param {object} data Data object to be cloned.
@@ -1903,6 +1924,22 @@ UX = {
             return false
         }
         return formProps.receiveProps
+    },
+
+    /**
+     * Determine whether a given component (within a form) should automatically
+     * update the redux store.
+     *
+     * @param {object} component Component to be evaluated.
+     * @return {boolean} True if component should receive props.
+     */
+    isFormRedux(component) {
+        let formProps = UX.getFormProps(component)
+        if (!formProps) {
+            OLog.error("ux.js isFormRedux unable to find form of component id=" + component.props.id)
+            return false
+        }
+        return formProps.redux
     },
 
     /**

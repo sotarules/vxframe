@@ -26,6 +26,7 @@ export default class WizardFooter extends Component {
                                 <VXButton id="button-previous"
                                     className="btn btn-primary btn-custom btn-bottom btn-margin-left"
                                     onClick={this.handleClickPrevious.bind(this)}>
+                                    <span className="fa fa-chevron-left wizard-button-chevron-left"></span>
                                     {Util.i18n("common.button_previous")}
                                 </VXButton>
                             }
@@ -34,6 +35,7 @@ export default class WizardFooter extends Component {
                                     className="btn btn-primary btn-custom btn-bottom btn-margin-left"
                                     onClick={this.handleClickNext.bind(this)}>
                                     {Util.i18n("common.button_next")}
+                                    <span className="fa fa-chevron-right wizard-button-chevron-right"></span>
                                 </VXButton>
                             }
                             {this.props.isVisibleFinish() &&

@@ -14,7 +14,9 @@ export default class VXForm extends Component {
         dynamic : PropTypes.bool,
         elementType : PropTypes.string,
         popoverContainer : PropTypes.string,
-        receiveProps : PropTypes.bool
+        receiveProps : PropTypes.bool,
+        redux : PropTypes.bool,
+        settings : PropTypes.object
     }
 
     static defaultProps = {
@@ -39,10 +41,31 @@ export default class VXForm extends Component {
                 autoComplete={this.props.autoComplete}
                 style={this.props.style}
                 onSubmit={()=>false}>
-                {this.props.children}
+                {this.makeChildren(this.props.children)}
                 {this.renderPopover()}
             </FormElement>
         )
+    }
+
+    makeChildren(children) {
+        if (!this.props.redux) {
+            return children
+        }
+        let newChildren = React.Children.map(children, child => {
+            if (!React.isValidElement(child)) {
+                return child
+            }
+            let value = this.props.settings[child.props.id]
+            if (value) {
+                child = React.cloneElement(child, { value : value })
+            }
+            if (child.props.children) {
+                let newChildren = this.makeChildren(child.props.children)
+                child = React.cloneElement(child, { children : newChildren })
+            }
+            return child
+        })
+        return newChildren
     }
 
     renderPopover() {
@@ -58,7 +81,7 @@ export default class VXForm extends Component {
                 target={component.inputElement}
                 container={this.popoverContainer()}>
                 <Popover id="popover-contained">
-                {this.popoverText(component)}
+                    {this.popoverText(component)}
                 </Popover>
             </Overlay>
         )

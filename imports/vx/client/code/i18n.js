@@ -46,13 +46,13 @@
     },
 
     button_previous : {
-        en : "< Previous",
-        rx : "$< Previous$"
+        en : "Previous",
+        rx : "$Previous$"
     },
 
     button_next : {
-        en : "Next >",
-        rx : "$Next >$"
+        en : "Next",
+        rx : "$Next$"
     },
 
     button_finish : {
