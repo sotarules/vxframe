@@ -226,6 +226,12 @@ VXApp = _.extend(VXApp || {}, {
             handles.push(VXSubs.subscribe("current_tenants", publishCurrentTenants.server))
             handles.push(VXSubs.subscribe("current_domains", publishCurrentDomains.server))
             handles.push(VXSubs.subscribe("current_users", publishCurrentUsers.server))
+
+            if (VXApp.getAppGlobalSubscriptions) {
+                OLog.debug("vxapp.js getAppGlobalSubscriptions detected, application-level subscriptions will be honored")
+                handles = handles.concat(VXApp.getAppGlobalSubscriptions(newSubscriptionParameters))
+            }
+
             UX.waitSubscriptions(handles, callback)
             return
         }

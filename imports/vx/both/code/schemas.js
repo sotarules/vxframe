@@ -277,6 +277,22 @@ Schema.Domains = new SimpleSchema({
         type : String,
         optional: true
     },
+    billingAddress1 : {
+        type : String,
+        optional: true
+    },
+    billingCity : {
+        type : String,
+        optional: true
+    },
+    billingState : {
+        type : String,
+        optional: true
+    },
+    billingZip : {
+        type : String,
+        optional: true
+    },
     mailgunTest : {
         type : Boolean,
         optional : true
