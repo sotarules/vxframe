@@ -278,13 +278,14 @@ fieldset[disabled] .form-control {
     background-color: #FFFFFF;
     color: #C0C0C0;
     opacity: 1;
-    font-style: italic;
 }
 
 .form-group > label {
+    display: block;
     font-size: 11px;
     font-weight: normal;
-    margin-top: 10px;
+    margin-top: 11px;
+    margin-bottom: 4px;
 }
 
 .modal-content {
@@ -943,10 +944,6 @@ legend.group-legend {
     overflow-x: auto;
 }
 
-.btn-custom {
-    min-width: 100px;
-}
-
 .scroll-inner-fix {
     width: calc(~'(100% + 1px)');
 }
@@ -1009,11 +1006,10 @@ legend.group-legend {
 
 .span-readonly-text {
     display: inline-block;
-    font-size: 14px;
-    text-align: center;     
     vertical-align: top;
     padding-right: 2px;
     padding-left: 2px;
+    width: 100%;
 }
 
 .span-editable-text {
@@ -1159,7 +1155,7 @@ legend.group-legend {
     border-right-style: none;
 }
 
-.dropzone-container-large .list-group-item:first-child {
+.dropzone-container-large > .list-group-item:first-child {
     border-top-style: none;
 }
 
@@ -1198,7 +1194,8 @@ legend.group-legend {
 
 .empty-rhs {
     text-align: center;
-    margin: 0 auto;
+    margin: 0;
+    width: 100%;
     max-width: 100%;
     padding-left: 15px;
     padding-right: 15px;
@@ -1257,6 +1254,10 @@ legend.group-legend {
     margin-bottom: 20px;    
     margin-left: 20px;
     margin-right: 20px;
+}
+
+.right-body-no-margin {
+    margin: 0;
 }
 
 .right-body-no-margin-top {
@@ -1504,7 +1505,7 @@ legend.group-legend {
 
 .top-input {
     margin-left: 20px;
-    margin-right: 0px;
+    margin-right: 20px;
 }
 
 .top-text {
@@ -2438,17 +2439,17 @@ legend.group-legend {
 }
 
 .wizard-body {
-    margin-top: 20px;
-    margin-bottom: 20px;    
-    margin-left: 20px;
-    margin-right: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;    
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
 .wizard-body-no-margin-top {
     margin-top: 0px;
-    margin-bottom: 20px;    
-    margin-left: 20px;
-    margin-right: 20px;
+    margin-bottom: 10px;    
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
 .wizard-form {

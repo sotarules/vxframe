@@ -14,12 +14,15 @@ export default class VXInput extends Component {
         star : PropTypes.bool,
         tooltip : PropTypes.string,
         required : PropTypes.bool,
+        disabled : PropTypes.bool,
         value : PropTypes.oneOfType([ PropTypes.string, PropTypes.number ]),
         supplementalValues : PropTypes.array,
         rule : PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]),
         format : PropTypes.object,
         popoverPlacement : PropTypes.string,
         bindingType : PropTypes.string,
+        style : PropTypes.object,
+        labelStyle : PropTypes.object,
         extra : PropTypes.array,
         supplement : PropTypes.array,
         siblings : PropTypes.array,
@@ -35,6 +38,7 @@ export default class VXInput extends Component {
     }
 
     static defaultProps = {
+        disabled : false,
         popoverPlacement : "bottom",
         format : FX.trim
     }
@@ -71,11 +75,14 @@ export default class VXInput extends Component {
         return (
             <div className={"form-group" + (this.state.error ? " " + CX.CLASS_HAS_ERROR : "")}>
                 {this.props.label &&
-                    <label htmlFor={this.props.id} className="control-label"  title={this.props.tooltip}>
-                    {this.props.label}{" "}
-                    {this.props.star &&
-                        <span className="fa fa-star-o icon-required"></span>
-                    }
+                    <label htmlFor={this.props.id}
+                        className="control-label"
+                        style={this.props.labelStyle}
+                        title={this.props.tooltip}>
+                        {this.props.label}{" "}
+                        {this.props.star &&
+                            <span className="fa fa-star-o icon-required"></span>
+                        }
                     </label>
                 }
                 <input
@@ -85,7 +92,9 @@ export default class VXInput extends Component {
                     type={this.props.type || "text"}
                     className={`form-control ${this.props.className || ""}`}
                     placeholder={this.props.placeholder}
+                    disabled={this.props.disabled}
                     value={this.state.value}
+                    style={this.props.style}
                     onChange={this.handleChange.bind(this)}
                     onBlur={this.handleBlur.bind(this)}
                     onKeyPress={this.handleKeyPress.bind(this)}

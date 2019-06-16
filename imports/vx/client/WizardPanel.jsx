@@ -7,7 +7,13 @@ export default class WizardPanel extends Component {
     static propTypes = {
         children: PropTypes.node,
         className: PropTypes.string,
-        finishText : PropTypes.string
+        finishText : PropTypes.string,
+        isVisiblePrevious : PropTypes.func.isRequired,
+        isVisibleNext : PropTypes.func.isRequired,
+        isVisibleFinish : PropTypes.func.isRequired,
+        onPrevious : PropTypes.func,
+        onNext : PropTypes.func,
+        onFinish : PropTypes.func
     }
 
     render() {
@@ -15,23 +21,14 @@ export default class WizardPanel extends Component {
             <div  className={`wizard-panel ${this.props.className || ""}`}>
                 {this.props.children}
                 <WizardFooter wizardState={this.props.wizardState}
-                    isVisiblePrevious={this.isVisiblePrevious.bind(this)}
-                    isVisibleNext={this.isVisibleNext.bind(this)}
-                    isVisibleFinish={this.isVisibleFinish.bind(this)}
-                    finishText={this.props.finishText}/>
+                    isVisiblePrevious={this.props.isVisiblePrevious}
+                    isVisibleNext={this.props.isVisibleNext}
+                    isVisibleFinish={this.props.isVisibleFinish}
+                    finishText={this.props.finishText}
+                    onNext={this.props.onNext}
+                    onPrevious={this.props.onPrevious}
+                    onFinish={this.props.onFinish} />
             </div>
         )
-    }
-
-    isVisiblePrevious() {
-        return this.props.wizardState.currentIndex > 0
-    }
-
-    isVisibleNext() {
-        return this.props.wizardState.currentIndex < (this.props.wizardState.panelCount - 1)
-    }
-
-    isVisibleFinish() {
-        return this.props.wizardState.currentIndex === (this.props.wizardState.panelCount - 1)
     }
 }

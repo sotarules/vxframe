@@ -45,7 +45,7 @@ export default class TextArea extends Component {
 
     constructor(props) {
         super(props)
-        this.state = { value : "", error : false, popoverText : null, modified : false, cr : false }
+        this.state = { value : "", error : false, popoverText : null, modified : false, cr : false, editing : false }
     }
 
     reset() {
@@ -76,10 +76,10 @@ export default class TextArea extends Component {
             <div className={`form-group ${this.state.error ? " " + CX.CLASS_HAS_ERROR : ""} ${this.props.formGroupClassName || ""}`}>
                 {this.props.label &&
                     <label htmlFor={this.props.id} className="control-label"  title={this.props.tooltip}>
-                    {this.props.label}{" "}
-                    {this.props.star &&
-                        <span className="fa fa-star-o icon-required"></span>
-                    }
+                        {this.props.label}{" "}
+                        {this.props.star &&
+                            <span className="fa fa-star-o icon-required"></span>
+                        }
                     </label>
                 }
                 <textarea

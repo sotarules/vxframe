@@ -162,9 +162,34 @@ Meteor.i18nMessages.common = {
         rx : "$Invalid email address$"
     },
 
+    invalid_credit_card_number : {
+        en : "Invalid card number, must consist only of digits 0-9 (may contain separator spaces which will be ignored)",
+        rx : "$Invalid card number, must consist only of digits 0-9 (may contain separator spaces which will be ignored)$"
+    },
+
+    invalid_expiration_date : {
+        en : "Invalid card expiration date, must be four digits (MMYY) month 01-12 and year 00-99 (may contain separator spaces which will be ignored)",
+        rx : "$Invalid card expiration date, must be four digits (MMYY) month 01-12 and year 00-99 (may contain separator spaces which will be ignored)$"
+    },
+
+    invalid_cvv : {
+        en : "Invalid card verification number (CVV) must be three digits 000-999",
+        rx : "$Invalid card verification number (CVV) must be three digits 000-999$"
+    },
+
     invalid_ip_address : {
         en : "Invalid IP address (must be four numbers separated by periods)",
         rx : "$Invalid IP address (must be four numbers separated by periods)$"
+    },
+
+    invalid_balance : {
+        en : "Invalid balance (must be an integer or decimal number)",
+        rx : "$Invalid balance (must be an integer or decimal number)$"
+    },
+
+    invalid_money : {
+        en : "Invalid currency amount (must be an integer or decimal number)",
+        rx : "$Invalid currency amount (must be an integer or decimal number)$"
     },
 
     invalid_url: {

@@ -1,12 +1,10 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import VXButton from "/imports/vx/client/VXButton"
-import { setWizardState } from "/imports/vx/client/code/actions"
 
 export default class WizardFooter extends Component {
 
     static propTypes = {
-        wizardState : PropTypes.object.isRequired,
         isVisiblePrevious : PropTypes.func.isRequired,
         isVisibleNext : PropTypes.func.isRequired,
         isVisibleFinish : PropTypes.func.isRequired,
@@ -55,24 +53,18 @@ export default class WizardFooter extends Component {
     handleClickPrevious(laddaCallback) {
         OLog.debug("WizardFooter.jsx handleClickPrevious user=" + Util.getUserEmail() + " wizardState=" + OLog.debugString(this.props.wizardState))
         laddaCallback()
-        let wizardState = Object.assign({}, this.props.wizardState)
-        wizardState.currentIndex -= 1
         this.setAnimation("slideright")
-        Store.dispatch(setWizardState(wizardState))
         if (this.props.onPrevious) {
-            this.props.onPrevious()
+            this.props.onPrevious(laddaCallback)
         }
     }
 
     handleClickNext(laddaCallback) {
         OLog.debug("WizardFooter.jsx handleClickNext user=" + Util.getUserEmail() + " wizardState=" + OLog.debugString(this.props.wizardState))
         laddaCallback()
-        let wizardState = Object.assign({}, this.props.wizardState)
-        wizardState.currentIndex += 1
         this.setAnimation("slideleft")
-        Store.dispatch(setWizardState(wizardState))
         if (this.props.onNext) {
-            this.props.onNext()
+            this.props.onNext(laddaCallback)
         }
     }
 
@@ -80,9 +72,8 @@ export default class WizardFooter extends Component {
         OLog.debug("WizardFooter.jsx handleClickFinish user=" + Util.getUserEmail() + " wizardState=" + OLog.debugString(this.props.wizardState))
         laddaCallback()
         this.setAnimation("crossfade")
-        Store.dispatch(setWizardState({}))
         if (this.props.onFinish) {
-            this.props.onFinish()
+            this.props.onFinish(laddaCallback)
         }
     }
 

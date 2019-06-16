@@ -13,11 +13,14 @@ export default class VXSelect extends Component {
         star : PropTypes.bool,
         tooltip : PropTypes.string,
         required : PropTypes.bool,
+        disabled : PropTypes.bool,
         value : PropTypes.oneOfType([ PropTypes.string, PropTypes.number ]),
         rule : PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]),
-        format : PropTypes.func,
+        format : PropTypes.object,
         popoverPlacement : PropTypes.string,
         bindingType : PropTypes.string,
+        style : PropTypes.object,
+        labelStyle : PropTypes.object,
         extra : PropTypes.array,
         supplement : PropTypes.func,
         siblings : PropTypes.array,
@@ -31,7 +34,9 @@ export default class VXSelect extends Component {
     }
 
     static defaultProps = {
-        popoverPlacement : "bottom"
+        disabled : false,
+        popoverPlacement : "bottom",
+        style : {paddingLeft: "4px", paddingRight: "4px"}
     }
 
     constructor(props) {
@@ -56,9 +61,15 @@ export default class VXSelect extends Component {
     }
 
     componentWillReceiveProps(newProps) {
-        if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug("VXSelect.jsx componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
-            this.setValue(newProps.value)
+        if (UX.isFormReceiveProps(this)) {
+            if (newProps.hasOwnProperty("value")) {
+                //OLog.debug(`VXSelect.jsx componentWillReceiveProps componentId=${this.props.id} value=${newProps.value} *update*`)
+                this.setValue(newProps.value)
+            }
+            if (newProps.hasOwnProperty("codeArray")) {
+                //OLog.debug(`VXSelect.jsx componentWillReceiveProps componentId=${this.props.id} codeArray=${OLog.debugString(newProps.codeArray)} *update*`)
+                this.setCodeArray(newProps.codeArray)
+            }
         }
     }
 
@@ -86,11 +97,14 @@ export default class VXSelect extends Component {
         return (
             <div className={`form-group ${this.state.error ? " " + CX.CLASS_HAS_ERROR : ""} ${this.props.className || ""}`}>
                 {this.props.label &&
-                    <label htmlFor={this.props.id} className="control-label" title={this.props.tooltip}>
-                    {this.props.label}{" "}
-                    {this.props.star &&
-                        <span className="fa fa-star-o icon-required"></span>
-                    }
+                    <label htmlFor={this.props.id}
+                        className="control-label"
+                        title={this.props.tooltip}
+                        style={this.props.labelStyle}>
+                        {this.props.label}{" "}
+                        {this.props.star &&
+                            <span className="fa fa-star-o icon-required"></span>
+                        }
                     </label>
                 }
                 {!this.state.loading ? (
@@ -98,8 +112,9 @@ export default class VXSelect extends Component {
                         name={this.props.id}
                         className={`form-control ${this.props.selectClass || ""}`}
                         value={this.state.value}
+                        disabled={this.props.disabled}
                         onChange={this.handleChange.bind(this)}
-                        style={{paddingLeft: "4px", paddingRight: "4px"}}
+                        style={this.props.style}
                         ref={inputElement => { this.inputElement = inputElement } }>
                         {this.renderOptions()}
                     </select>

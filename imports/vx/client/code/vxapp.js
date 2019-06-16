@@ -15,6 +15,7 @@ import { setPublishCurrentTenant } from "/imports/vx/client/code/actions"
 import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
 import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
 import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
+import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
 
 VXApp = _.extend(VXApp || {}, {
 
@@ -35,7 +36,7 @@ VXApp = _.extend(VXApp || {}, {
         let userId = Meteor.userId()
         if (!userId) {
             OLog.debug("vxapp.js mount no userId clearing session settings")
-            VXApp.clearUserSessionSettings()
+            VXApp.clearSessionSettings()
             OLog.debug("vxapp.js mount redirecting to signin")
             FlowRouter.go("/")
             return
@@ -207,7 +208,7 @@ VXApp = _.extend(VXApp || {}, {
         if (VXSubs._cacheList.length === 0 ||
             newSubscriptionParametersString !== oldSubscriptionParametersString ||
             oldPublishingModeClient !== newPublishingModeClient) {
-            OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " client subscription mode has *changed*")
+            OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " client subscription mode has *changed* to " + newPublishingModeClient)
             Store.dispatch(setPublishingModeClient(newPublishingModeClient))
             publishCurrentTenants = VXApp.makePublishingRequest("current_tenants", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
             Store.dispatch(setPublishCurrentTenants(publishCurrentTenants.client))
@@ -219,7 +220,7 @@ VXApp = _.extend(VXApp || {}, {
         if (VXSubs._cacheList.length === 0 ||
             newSubscriptionParametersString !== oldSubscriptionParametersString ||
             oldPublishingModeServer !== newPublishingModeServer) {
-            OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " server subscription mode has *changed*")
+            OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " server subscription mode has *changed* to " + newPublishingModeServer)
             Store.dispatch(setPublishingModeServer(newPublishingModeServer))
             let handles = []
             handles.push(VXSubs.subscribe("config"))
@@ -406,7 +407,7 @@ VXApp = _.extend(VXApp || {}, {
      */
     logout(callback) {
         OLog.debug("vxapp.js logout user=" + Util.getUserEmail(Meteor.userId()))
-        VXApp.clearUserSessionSettings()
+        VXApp.clearSessionSettings()
         VXSubs.clear()
         if (callback) {
             Meteor.setTimeout(() => {
@@ -429,8 +430,14 @@ VXApp = _.extend(VXApp || {}, {
     /**
      * Clear user session settings.
      */
-    clearUserSessionSettings() {
-        return
+    clearSessionSettings() {
+        OLog.debug("vxapp.js clearSessionSettings")
+        Store.dispatch(setPublishAuthoringDomain(null))
+        Store.dispatch(setPublishAuthoringUser(null))
+        Store.dispatch(setPublishAuthoringTemplate(null))
+        if (VXApp.clearAppSessionSettings) {
+            VXApp.clearAppSessionSettings()
+        }
     },
 
     /**

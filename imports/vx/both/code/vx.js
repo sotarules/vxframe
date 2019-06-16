@@ -339,6 +339,15 @@ VX.common = {
         return { success : true }
     },
 
+    money : (money) => {
+
+        if (!CX.REGEX_FLOAT.test(money)) {
+            return { success : false, icon : "TRIANGLE", key : "common.invalid_money" }
+        }
+
+        return { success : true }
+    },
+
     /**
      * Check for valid URL.
      *

@@ -6,13 +6,21 @@ export default class VXModal extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         contentClass : PropTypes.string,
+        backdrop : PropTypes.string
+    }
+
+    static defaultProps = {
+        backdrop : "true"
     }
 
     render() {
-        // DL--data-backdrop="false" to remove backdrop
         return (
-            <div className="modal fade modal-centered" id={this.props.id}
-                tabIndex="-1" role="dialog" aria-labelledby="modal-title"
+            <div id={this.props.id}
+                className="modal fade modal-centered"
+                tabIndex="-1"
+                role="dialog"
+                data-backdrop={this.props.backdrop}
+                aria-labelledby="modal-title"
                 aria-hidden="true">
                 <div className="modal-vertical-alignment-helper">
                     <div className="modal-dialog modal-vertical-align-center">

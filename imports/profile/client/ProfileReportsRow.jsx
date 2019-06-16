@@ -46,7 +46,7 @@ export default class ProfileReportsRow extends Component {
                                     <div className="report-list-right-set">
                                         <div className="report-list-button">
                                             <VXButton id={"button-send-now-" + this.props.reportType}
-                                                className="button-send-now btn btn-default btn-block ladda-button"
+                                                className="button-send-now btn btn-default btn-block"
                                                 tooltip={Util.i18n("profile.tooltip_send_now")}
                                                 iconClass="fa fa-lg fa-paper-plane-o"
                                                 onClick={this.handleClickSendReport.bind(this)}>

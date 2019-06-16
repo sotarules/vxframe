@@ -58,7 +58,7 @@ FX.money = {
 
     strip : function(money) {
 
-        if (!money) {
+        if (Util.isNullish(money)) {
             return null
         }
 
@@ -67,7 +67,7 @@ FX.money = {
 
     render : function(money) {
 
-        if (!money) {
+        if (Util.isNullish(money)) {
             return null
         }
 
@@ -111,7 +111,7 @@ FX.balance = {
 
     strip : function(balance) {
 
-        if (!balance) {
+        if (Util.isNullish(balance)) {
             return null
         }
 
@@ -119,6 +119,11 @@ FX.balance = {
     },
 
     render : function(balance) {
+
+        if (Util.isNullish(balance)) {
+            return null
+        }
+
         return Util.formatMoney(balance)
     }
 }

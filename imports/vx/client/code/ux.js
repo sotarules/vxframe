@@ -342,7 +342,6 @@ UX = {
         $cell.attr("contenteditable", true)
         $cell.addClass("selectable")
         $cell.trigger("focus")
-        //$cell.selectText()
     },
 
     /**
@@ -2000,17 +1999,21 @@ UX = {
      * Mount a React modal by rendering it into a pre-defined anchor element.
      *
      * @param {object} element React component definition.
+     * @param {object} anchorSelector Anchor jQuery selector.
      * @return {object} React component instantiated.
      */
-    mountModal(element) {
-        return ReactDOM.render(element, $("#vx-anchor")[0])
+    mountModal(element, anchorSelector) {
+        anchorSelector = anchorSelector || "#vx-anchor"
+        return ReactDOM.render(element, $(anchorSelector)[0])
     },
 
     /**
      * Unmount a React modal that is contained within a specified anchor element.
+
+     * @param {object} anchorSelector Anchor jQuery selector.
      */
-    unmountModal() {
-        let success = ReactDOM.unmountComponentAtNode($("#vx-anchor")[0])
+    unmountModal(anchorSelector) {
+        let success = ReactDOM.unmountComponentAtNode($(anchorSelector)[0])
         if (success) {
             OLog.debug("ux.js unmountModal ReactDOM.unmountComponentAtNode success=" + success)
         }
@@ -2023,29 +2026,32 @@ UX = {
      * Show a modal by mounting it into the vx-anchor element.
      *
      * @param {object} element React element representing modal.
+     * @param {object} anchorSelector Anchor jQuery selector.
      */
-    showModal(element) {
+    showModal(element, anchorSelector) {
         if (!React.isValidElement(element)) {
             OLog.error("ux.js showModal supplied parameter is not a React element")
             return
         }
-        UX.mountModal(element)
+        UX.mountModal(element, anchorSelector)
     },
 
     /**
      * Dismiss a modal.
      *
      * @param {string} componentId Modal ID or child component ID.
+     * @param {object} anchorSelector Anchor jQuery selector.
      */
-    dismissModal(componentId) {
+    dismissModal(componentId, anchorSelector) {
         let component = UX.findModal(componentId)
         if (!component) {
             OLog.error("ux.js dismissModal unable to find componentId=" + componentId)
             return
         }
+        anchorSelector = anchorSelector || "#vx-anchor"
         OLog.debug("ux.js dismissModal dismissing modal componentId=" + component.props.id)
         $("#" + component.props.id).one("hidden.bs.modal", () => {
-            UX.unmountModal()
+            UX.unmountModal(anchorSelector)
         })
         $("#" + component.props.id).modal("hide")
     },

@@ -52,6 +52,7 @@ const OMITTED_PROPS = [
 export default class VXButton extends Component {
 
     static propTypes = {
+        disabled: PropTypes.bool,
         children: PropTypes.node,
         className: PropTypes.string,
         tooltip: PropTypes.string,
@@ -123,6 +124,7 @@ export default class VXButton extends Component {
                 ref={(node) => {this.node = node}}
                 title={this.props.tooltip}
                 data-spinner-color={this.dataSpinnerColor()}
+                disabled={this.props.disabled}
                 onClick={this.handleClick.bind(this)}>
                 <span className="ladda-label">
                     {this.props.iconClass &&

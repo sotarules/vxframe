@@ -16,7 +16,7 @@ export default class WizardBody extends Component {
     render() {
         return (
             <div id={this.props.id} className={`wizard-body ${this.props.thinPaddingTop ? "wizard-body-thin-padding-top" : ""} ${this.props.className || ""}`}>
-                <div className="wizard-form">
+                <div className="wizard-wizard">
                     {this.props.children}
                 </div>
             </div>

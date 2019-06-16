@@ -56,12 +56,10 @@ Schema.checkEventId = function() {
 
 Schema.SubsystemStatus = new SimpleSchema({
     subsystem : {
-        type : String,
-        allowedValues : Util.getCodes("subsystemName")
+        type : String
     },
     status : {
-        type : String,
-        allowedValues : Util.getCodes("subsystemStatus")
+        type : String
     },
     date : {
         type : Date

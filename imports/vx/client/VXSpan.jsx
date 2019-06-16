@@ -1,5 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
+import Parser from "html-react-parser"
 
 export default class VXSpan extends Component {
 
@@ -38,7 +39,7 @@ export default class VXSpan extends Component {
     constructor(props) {
         super(props)
         let value = Util.getNullAsEmpty(Util.toString(UX.render(this, props.value, this.props.supplementalValues)))
-        this.state = { value : value, error : false, popoverText : null }
+        this.state = { value : value, error : false, popoverText : null, editing : false }
         this.originalState = Object.assign({}, this.state)
     }
 
@@ -72,7 +73,7 @@ export default class VXSpan extends Component {
                 onKeyPress={this.handleKeyPress.bind(this)}
                 onBlur={this.handleBlur.bind(this)}
                 ref={inputElement => {this.inputElement = inputElement }}>
-                {this.state.value}
+                {this.state.editing ? this.state.value : Parser(this.state.value)}
             </span>
         )
     }
@@ -95,7 +96,9 @@ export default class VXSpan extends Component {
             return
         }
         let $element = $(event.target)
-        UX.startEditing($element)
+        this.setState({ editing : true }, () => {
+            UX.startEditing($element)
+        })
     }
 
     handleKeyPress(event) {
@@ -116,10 +119,10 @@ export default class VXSpan extends Component {
         let $element = $(event.target)
         let value = $.trim($element.text())
         event.persist()
-        this.setState({value: value}, () => {
+        this.setState({value: value, editing : false}, () => {
             UX.validateComponent(this)
             if (this.props.onUpdate) {
-                this.props.onUpdate()
+                this.props.onUpdate(event, this.getValue(), this)
             }
         })
     }

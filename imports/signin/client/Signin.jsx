@@ -50,7 +50,7 @@ export default class Signin extends Component {
                                         onEnter={this.handleEnter.bind(this)}/>
                                     <div className="form-group">
                                         <VXButton id="signin-button"
-                                            className="btn btn-primary btn-custom btn-block ladda-button"
+                                            className="btn btn-primary btn-custom btn-block"
                                             data-style="zoom-in"
                                             onClick={this.handleClickSignin.bind(this)}>
                                             {Util.i18n("login.sign_in")}

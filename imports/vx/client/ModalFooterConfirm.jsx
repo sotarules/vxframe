@@ -6,11 +6,14 @@ export default class ModalFooterConfirm extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        onClickConfirm : PropTypes.func.isRequired
+        onClickConfirm : PropTypes.func.isRequired,
+        onClickCancel : PropTypes.func,
+        anchorSelector : PropTypes.string
     }
 
     static defaultProps = {
-        id : "modal-footer-confirm"
+        id : "modal-footer-confirm",
+        anchorSelector : "#vx-anchor"
     }
 
     constructor(props) {
@@ -21,20 +24,20 @@ export default class ModalFooterConfirm extends Component {
         return (
             <div id={this.props.id} className="modal-footer">
                 <div className="row">
-                   <div className="col-xs-6 modal-button">
+                    <div className="col-xs-6 modal-button">
                         <VXButton id="modal-button-cancel"
                             className="btn btn-block btn-default"
                             onClick={this.handleClickCancel.bind(this)}>
                             {Util.i18n("common.button_cancel")}
                         </VXButton>
-                   </div>
-                   <div className="col-xs-6 modal-button">
+                    </div>
+                    <div className="col-xs-6 modal-button">
                         <VXButton id="modal-button-confirm"
-                            className="btn btn-block btn-primary ladda-button"
+                            className="btn btn-block btn-primary"
                             onClick={this.handleClickConfirm.bind(this)}>
                             {Util.i18n("common.button_confirm")}
                         </VXButton>
-                   </div>
+                    </div>
                 </div>
             </div>
         )
@@ -42,14 +45,17 @@ export default class ModalFooterConfirm extends Component {
 
     handleClickCancel(callback) {
         callback()
-        UX.dismissModal(this.props.id)
+        UX.dismissModal(this.props.id, this.props.anchorSelector)
+        if (this.props.onClickCancel) {
+            this.props.onClickCancel()
+        }
     }
 
     handleClickConfirm(callback, event) {
-        this.props.onClickConfirm((success) => {
+        this.props.onClickConfirm(success => {
             callback()
             if (success) {
-                UX.dismissModal(this.props.id)
+                UX.dismissModal(this.props.id, this.props.anchorSelector)
             }
         }, event)
     }

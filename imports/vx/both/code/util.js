@@ -77,6 +77,28 @@ Util = {
     },
 
     /**
+     * Return a property from a specified code object.
+     *
+     * @param {string} codeSet Name of code set (e.g., timeUnit)
+     * @param {string} codeName Code (e.g., MINUTE).
+     * @param {string} propertyName Property Name (e.g., momentCode)
+     * @return {?} Value of specified property.
+     */
+    getCodeProperty(codeSet, codeName, propertyName) {
+        const codeSetObject = Meteor.i18nMessages.codes[codeSet]
+        if (!codeSetObject) {
+            OLog.error(`util.js getCodeProperty codeSet=${codeSet} is not defined`)
+            return
+        }
+        const codeObject = codeSetObject[codeName]
+        if (!codeObject) {
+            OLog.error(`util.js getCodeProperty codeSet=${codeSet} codeName=${codeName} is not defined`)
+            return
+        }
+        return codeObject[propertyName]
+    },
+
+    /**
      * Return the value of a system configuration field.
      *
      * @param {string} fieldName Name of configuration field to fetch.
@@ -109,17 +131,11 @@ Util = {
     /**
      * Return the name of a given function.
      *
-     * @param {function} fun Function to test.
-     * @return {string} Name of function or undefined if an error occurs.
+     * @param {function} funktion Function whose name is to be returned.
+     * @return {string} Name of function or undefined.
      */
-    functionName(fun) {
-        if (!_.isFunction(fun)) {
-            return undefined
-        }
-        let ret = fun.toString()
-        ret = ret.substr("function ".length)
-        ret = ret.substr(0, ret.indexOf("("))
-        return ret
+    functionName(funktion) {
+        return funktion.name
     },
 
     /**
@@ -758,18 +774,33 @@ Util = {
     },
 
     /**
-     * Test whether the current route path begins with the specified string.
+     * Test whether the current route path begins with the specified string or
+     * any of an array of strings.
      *
-     * @param {string} testString String to use to test.
+     * @param {?} stringOrArray String or array of route prefixes.
      * @param {boolean} reactive True to enable reactivity.
      * @return {boolean} True if the current route path begins with the specified string.
      */
-    isRoutePath(testString, reactive) {
+    isRoutePath(stringOrArray, reactive) {
         let path = Util.routePath(reactive)
-        if (!testString || !path) {
+        if (!stringOrArray || !path) {
             return false
         }
-        return path.indexOf(testString) === 0
+        if (_.isString(stringOrArray)) {
+            return path.indexOf(stringOrArray) === 0
+        }
+        if (_.isArray(stringOrArray)) {
+            let found = false
+            _.every(stringOrArray, routePrefix => {
+                if (path.indexOf(routePrefix) === 0) {
+                    found = true
+                    return false
+                }
+                return true
+            })
+            return found
+        }
+        return false
     },
 
     /**
@@ -2309,5 +2340,28 @@ Util = {
             array.splice(rowIndex, 1)
         }
         return array
+    },
+
+    /**
+     * Deep clone object.
+     *
+     * @param {object} input Input object.
+     * @return {object} Cloned object.
+     */
+    clone(input) {
+        return EJSON.parse(EJSON.stringify(input))
+    },
+
+    /**
+     * Deep compare objects.
+     *
+     * @param {object} objectOne Input object.
+     * @param {object} objectTwo Input object.
+     * @return {boolean} True if objects are deeply equivalent.
+     */
+    deepCompare(objectOne, objectTwo) {
+        const objectOneString = EJSON.stringify(objectOne)
+        const objectTwoString = EJSON.stringify(objectTwo)
+        return objectOneString === objectTwoString
     }
 }
