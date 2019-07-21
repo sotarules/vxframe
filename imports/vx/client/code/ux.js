@@ -924,14 +924,16 @@ UX = {
                 return { success : false, icon : "TRIANGLE", key : "common.required_fields_incomplete" }
             }
         }
-        else if (!Util.isNullish(validateArgs[0]) && component.props.rule) {
-            if (_.isString(component.props.rule)) {
-                OLog.debug("ux.js validateInstance invoking server-side rule " + component.props.rule)
-                result = await UX.call("validateServerSide", component.props.rule, validateArgs)
-                OLog.debug("ux.js validateInstance server-side result=" + OLog.debugString(result))
-            }
-            else {
-                result = component.props.rule.apply(this, validateArgs)
+        else if (!Util.isNullish(validateArgs[0])) {
+            if (component.props.rule) {
+                if (_.isString(component.props.rule)) {
+                    OLog.debug("ux.js validateInstance invoking server-side rule " + component.props.rule)
+                    result = await UX.call("validateServerSide", component.props.rule, validateArgs)
+                    OLog.debug("ux.js validateInstance server-side result=" + OLog.debugString(result))
+                }
+                else {
+                    result = component.props.rule.apply(component, validateArgs)
+                }
             }
         }
         UX.validateFinish(component, validateArgs, result)
@@ -2279,6 +2281,7 @@ UX = {
      *
      * @param {string} method Method name.
      * @param {?} parameters Parameters.
+     * @return {object} Promise representing Meteor method call.
      */
     async call(method, ...parameters) {
         return new Promise((resolve, reject) => {
@@ -2293,5 +2296,17 @@ UX = {
                 resolve(result)
             })
         })
+    },
+
+    /**
+     * Invoke HTTP call returning promise.
+     *
+     * @param {string} method Method (e.g., GET or POST).
+     * @param {string} url URL to retrieve.
+     * @param {object} options Optional options.
+     * @return {object} Promise representing HTTP request.
+     */
+    async http(method, url, options) {
+        return await UX.call("http", method, url, options)
     }
 }

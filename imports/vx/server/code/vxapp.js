@@ -524,7 +524,7 @@ VXApp = _.extend(VXApp || {}, {
             let domainId = VXApp.createDomainRecord( { userId: userId, tenantId: tenantId } )
             VXApp.addUserToDomain(userId, domainId, false, true)
             VXApp.createEvent("TENANT_CREATE", domainId, { tenantId : tenantId, adminId: userId },
-             { adminName : Util.fetchFullName(userId) } )
+                { adminName : Util.fetchFullName(userId) } )
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", tenantId: tenantId, domainId: domainId }
         }
         catch (error) {
@@ -744,5 +744,54 @@ VXApp = _.extend(VXApp || {}, {
             OLog.error("vxapp.js sendTestEmail unexpected error=" + error)
             return { success: false, icon: "TRIANGLE", key: "common.alert_send_test_email_fail", variables: { error: error.toString() } }
         }
+    },
+
+    /**
+     * Invoke server-side HTTP request.
+
+     * @param {string} method Method (e.g., GET or POST).
+     * @param {string} url URL to retrieve.
+     * @param {object} options Optional options.
+     * @return {object} Promise representing HTTP request.
+     */
+    http(method, url, options) {
+        const fut = new Future()
+        HTTP.call(method, url, options, (error, response) => {
+            fut.return({ error: error, response: response })
+        })
+        let result = fut.wait()
+        if (result.error) {
+            const errorString = VXApp.httpTruncate(result.error)
+            OLog.error(`vxapp.js http method=${method} url=${url} error=${errorString}`)
+            return { success: false, icon: "TRIANGLE", key: "common.alert_http_unexpected_error", variables: { error: errorString }, error : result.error }
+        }
+        if (!result.response) {
+            OLog.error(`vxapp.js http method=${method} url=${url} API error no response object`)
+            return { success: false, icon: "TRIANGLE", key: "common.alert_http_no_response_object" }
+        }
+        if (result.response.statusCode !== 200) {
+            OLog.error(`vxapp.js http method=${method} url=${url} unexpected HTTP status (not 200) statusCode=${result.response.statusCode}`)
+            return { success: false, icon: "TRIANGLE", key: "common.alert_http_unexpected_http_status_code", variables : { statusCode : result.response.statusCode } }
+        }
+        if (!result.response.content) {
+            OLog.error(`vxapp.js http method=${method} url=${url} API error no response content object`);
+            return { success: false, icon: "TRIANGLE", key: "common.alert_http_no_content", variables: { result: VXApp.httpTruncate(JSON.stringify(result.response)) } };
+        }
+        OLog.debug(`vxapp.js http method ${method} url=${url} *success* response=${OLog.debugString(result.response)}`)
+        return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", response: result.response }
+    },
+
+    /**
+     * Truncate HTTP string.
+     *
+     * @param {object) input HTTP input (error or response).
+     * @return {string} HTTP string truncated to reasonable length.
+     */
+    httpTruncate(input) {
+        const httpString = input.toString()
+        if (httpString.length > 100) {
+            return `${httpString.substring(0, 100)}...`
+        }
+        return httpString
     }
 })

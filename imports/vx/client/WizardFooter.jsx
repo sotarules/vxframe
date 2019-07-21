@@ -71,7 +71,6 @@ export default class WizardFooter extends Component {
     handleClickFinish(laddaCallback) {
         OLog.debug("WizardFooter.jsx handleClickFinish user=" + Util.getUserEmail() + " wizardState=" + OLog.debugString(this.props.wizardState))
         laddaCallback()
-        this.setAnimation("crossfade")
         if (this.props.onFinish) {
             this.props.onFinish(laddaCallback)
         }

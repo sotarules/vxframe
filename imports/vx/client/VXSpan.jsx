@@ -57,9 +57,7 @@ export default class VXSpan extends Component {
     }
 
     componentWillReceiveProps(newProps) {
-        //OLog.debug("VXSpan.jsx componentWillReceiveProps newProps=" + OLog.debugString(newProps))
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug("VXSpan.jsx componentWillReceiveProps value=" + newProps.value + " *update*")
             this.setValue(newProps.value)
         }
     }
@@ -73,7 +71,7 @@ export default class VXSpan extends Component {
                 onKeyPress={this.handleKeyPress.bind(this)}
                 onBlur={this.handleBlur.bind(this)}
                 ref={inputElement => {this.inputElement = inputElement }}>
-                {this.state.editing ? this.state.value : Parser(this.state.value)}
+                {this.state.editing ? this.state.value : Parser(this.state.value.toString())}
             </span>
         )
     }

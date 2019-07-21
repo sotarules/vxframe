@@ -1,7 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import TransitionGroup from "react-transition-group/TransitionGroup"
-import SlidePanel from "/imports/vx/client/SlidePanel"
 
 export default class Wizard extends Component {
 
@@ -22,19 +21,9 @@ export default class Wizard extends Component {
         return (
             <div id={this.props.id} className="flexi-grow">
                 <TransitionGroup component="div" className="flexi-grow">
-                    {this.renderPanels()}
+                    {this.props.children}
                 </TransitionGroup>
             </div>
-        )
-    }
-
-    renderPanels() {
-        return (
-            <SlidePanel id="wizard-slide-panel"
-                className="wizard-container animation-panel not-selectable flexi-grow"
-                getAnimation={this.getAnimation.bind(this)}>
-                {this.props.children}
-            </SlidePanel>
         )
     }
 

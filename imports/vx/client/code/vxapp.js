@@ -88,17 +88,17 @@ VXApp = _.extend(VXApp || {}, {
      */
     mountRender(layout, content, templateSubscription, specialFunction) {
         try {
-            if (layout && content) {
-                OLog.debug("vxapp.js mountRender mounting React component")
-                mount(layout, { content : content })
-            }
             if (_.isFunction(specialFunction)) {
                 OLog.debug("vxapp.js mountRender invoking special function")
                 specialFunction()
             }
+            if (layout && content) {
+                OLog.debug("vxapp.js mountRender mounting React component")
+                mount(layout, { content : content })
+            }
         }
         catch (error) {
-            OLog.error("vxapp.js mountRender error=" + OLog.errorString(error))
+            OLog.error("vxapp.js mountRender error=" + error)
         }
         finally {
             if (templateSubscription) {

@@ -5,6 +5,7 @@ import WizardFooter from "/imports/vx/client/WizardFooter"
 export default class WizardPanel extends Component {
 
     static propTypes = {
+        id : PropTypes.string.isRequired,
         children: PropTypes.node,
         className: PropTypes.string,
         finishText : PropTypes.string,
@@ -18,7 +19,8 @@ export default class WizardPanel extends Component {
 
     render() {
         return (
-            <div  className={`wizard-panel ${this.props.className || ""}`}>
+            <div id={this.props.id}
+                className={`wizard-panel ${this.props.className || ""}`}>
                 {this.props.children}
                 <WizardFooter wizardState={this.props.wizardState}
                     isVisiblePrevious={this.props.isVisiblePrevious}

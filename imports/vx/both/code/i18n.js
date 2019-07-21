@@ -262,31 +262,6 @@ Meteor.i18nMessages.common = {
         rx : "$Unexpected error: bad parameter(s) were passed to a domain function, consult log for details.$"
     },
 
-    alert_http_unexpected_error : {
-        en : "{{error}}",
-        rx : "${{error}}$"
-    },
-
-    alert_http_no_response_object : {
-        en : "Unexpected HTTP problem: no response object",
-        rx : "$Unexpected HTTP problem: no response object$"
-    },
-
-    alert_http_no_content : {
-        en : "Unexpected HTTP problem: no content returned result={{result}}",
-        rx : "$Unexpected HTTP problem: no content returned result={{result}}$"
-    },
-
-    alert_http_unable_to_parse_content : {
-        en : "Unexpected HTTP problem: unable to parse content result={{result}}",
-        rx : "$Unexpected HTTP problem: unable to parse content result={{result}}$"
-    },
-
-    alert_http_unexpected_http_status_code : {
-        en : "Unexpected HTTP status code={{statusCode}}",
-        rx : "$Unexpected HTTP status code={{statusCode}}$"
-    },
-
     alert_security_check_failed : {
         en : "{{system_name}} security has prevented this transaction.",
         rx : "${{system_name}} security has prevented this transaction.$"
@@ -430,6 +405,31 @@ Meteor.i18nMessages.common = {
     alert_send_test_email_fail : {
         en : "Send email test failed - {{error}}",
         rx : "$Send email test failed - {{error}}$"
+    },
+
+    alert_http_unexpected_error : {
+        en : "{{error}}",
+        rx : "${{error}}$"
+    },
+
+    alert_http_no_response_object : {
+        en : "Unexpected HTTP problem: no response object",
+        rx : "$Unexpected HTTP problem: no response object$"
+    },
+
+    alert_http_no_content : {
+        en : "Unexpected HTTP problem: no content returned result={{result}}",
+        rx : "$Unexpected HTTP problem: no content returned result={{result}}$"
+    },
+
+    alert_http_unable_to_parse_content : {
+        en : "Unexpected HTTP problem: unable to parse content result={{result}}",
+        rx : "$Unexpected HTTP problem: unable to parse content result={{result}}$"
+    },
+
+    alert_http_unexpected_http_status_code : {
+        en : "Unexpected HTTP status code={{statusCode}}",
+        rx : "$Unexpected HTTP status code={{statusCode}}$"
     },
 
     message_loading : {
