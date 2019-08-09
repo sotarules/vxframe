@@ -29,9 +29,7 @@ export default class EntityItem extends Component {
         return (
             <li tabIndex={this.props.selectable ? "0" : null}
                 className="list-group-item entity-control-container chevron-list-group-item"
-                onClick={this.handleClick.bind(this)}
                 onFocus={this.handleFocus.bind(this)}
-                onTouchStart={this.handleTouchStart.bind(this)}
                 ref={node => {this.node = node}}>
                 <div className="entity-container-small" data-mongo-id={this.props._id}>
                     <table className="entity-table">
@@ -94,17 +92,9 @@ export default class EntityItem extends Component {
         )
     }
 
-    handleClick() {
-        // Click function now NO-OP due to improvements in React 16 (focus will suffice)
-    }
-
     handleFocus(event) {
+        OLog.debug("EntityItem.jsx handleFocus *focus*")
         this.props.onSelect(event, this)
-    }
-
-    handleTouchStart() {
-        UX.armTouchClick(event)
-        this.node.focus()
     }
 
     handleClickControl(event) {
