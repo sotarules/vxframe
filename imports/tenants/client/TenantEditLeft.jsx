@@ -6,7 +6,7 @@ import TenantEntityList from "/imports/vx/client/TenantEntityList"
 
 export default class TenantEditLeft extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         tenants : PropTypes.array.isRequired
     }
 

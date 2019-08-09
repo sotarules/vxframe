@@ -5,7 +5,7 @@ import EntityItem from "/imports/vx/client/EntityItem";
 
 export default class TenantEntityList extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         tenants : PropTypes.array.isRequired,
         selectable : PropTypes.bool,
         chevrons : PropTypes.bool,

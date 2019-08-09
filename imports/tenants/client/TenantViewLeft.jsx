@@ -8,7 +8,7 @@ import { setPublishCurrentTenant } from "/imports/vx/client/code/actions"
 
 export default class TenantViewLeft extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         tenants : PropTypes.array.isRequired
     }

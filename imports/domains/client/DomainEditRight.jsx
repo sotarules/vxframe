@@ -55,63 +55,63 @@ export default class DomainEditRight extends Component {
                             dynamic={true}
                             collection={Domains}
                             _id={this.props.domain._id}>
-                                <div className="row">
-                                    <div className="col-sm-12">
-                                        <table className="top-table">
-                                            <tbody>
-                                                <tr>
-                                                    <td className="top-left">
-                                                        <VXImage id="iconUrl"
-                                                            size="small"
-                                                            imageType="domain"
-                                                            value={this.props.domain.iconUrl}/>
-                                                    </td>
-                                                    <td className="top-center">
-                                                        <div className="top-input">
-                                                            <VXInput id="name"
-                                                                required={true}
-                                                                value={this.props.domain.name}/>
-                                                            <VXInput id="description"
-                                                                value={this.props.domain.description}/>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                            <div className="row">
+                                <div className="col-sm-12">
+                                    <table className="top-table">
+                                        <tbody>
+                                            <tr>
+                                                <td className="top-left">
+                                                    <VXImage id="iconUrl"
+                                                        size="small"
+                                                        imageType="domain"
+                                                        value={this.props.domain.iconUrl}/>
+                                                </td>
+                                                <td className="top-center">
+                                                    <div className="top-input">
+                                                        <VXInput id="name"
+                                                            required={true}
+                                                            value={this.props.domain.name}/>
+                                                        <VXInput id="description"
+                                                            value={this.props.domain.description}/>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-12">
-                                        <VXInput id="billingAddress1"
-                                            label={Util.i18n("common.label_billing_address")}
-                                            value={this.props.domain.billingAddress1}
-                                            rule={VX.common.address1}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-12">
+                                    <VXInput id="billingAddress1"
+                                        label={Util.i18n("common.label_billing_address")}
+                                        value={this.props.domain.billingAddress1}
+                                        rule={VX.common.address1}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-12">
-                                        <VXInput id="billingCity"
-                                            label={Util.i18n("common.label_billing_city")}
-                                            value={this.props.domain.billingCity}
-                                            rule={VX.common.city}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-12">
+                                    <VXInput id="billingCity"
+                                        label={Util.i18n("common.label_billing_city")}
+                                        value={this.props.domain.billingCity}
+                                        rule={VX.common.city}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXSelect id="billingState"
-                                            codeArray={UX.addBlankSelection(this.props.states)}
-                                            label={Util.i18n("common.label_billing_state")}
-                                            value={this.props.domain.billingState}
-                                            rule={VX.common.state}/>
-                                   </div>
-                                    <div className="col-xs-6">
-                                        <VXInput id="billingZip"
-                                            label={Util.i18n("common.label_billing_zip")}
-                                            value={this.props.domain.billingZip}
-                                            supplementalValues={[ "US" ]}
-                                            rule={VX.common.zip}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXSelect id="billingState"
+                                        codeArray={UX.addBlankSelection(this.props.states)}
+                                        label={Util.i18n("common.label_billing_state")}
+                                        value={this.props.domain.billingState}
+                                        rule={VX.common.state}/>
                                 </div>
+                                <div className="col-xs-6">
+                                    <VXInput id="billingZip"
+                                        label={Util.i18n("common.label_billing_zip")}
+                                        value={this.props.domain.billingZip}
+                                        supplementalValues={[ "US" ]}
+                                        rule={VX.common.zip}/>
+                                </div>
+                            </div>
                         </VXForm>
                     </RightHeaderBasic>
                     <EntityListHeader label={Util.i18n("user_domain.label_users_header")}/>

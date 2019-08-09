@@ -8,7 +8,7 @@ import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
 
 export default class DomainUserViewLeft extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         domains : PropTypes.array.isRequired
     }

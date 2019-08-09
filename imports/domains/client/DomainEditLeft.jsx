@@ -6,7 +6,7 @@ import UserEntityList from "/imports/vx/client/UserEntityList"
 
 export default class DomainEditLeft extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         users : PropTypes.array.isRequired
     }
 

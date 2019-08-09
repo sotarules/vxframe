@@ -17,7 +17,8 @@ let logLevel = config.logLevel
 
 OLog.setLogLevel(logLevel)
 
-console.log("startup.js (vx) " + CX.SYSTEM_NAME + " " + Meteor.appVersion.version + " Node.js " + process.version + " Meteor " + Meteor.release +
+console.log("startup.js (vx) " + CX.SYSTEM_NAME + " " + Meteor.appVersion.version +
+    " Node.js " + process.version + " Meteor " + Meteor.release +
     " port=" + port + " environment=" + environment + " nobatch=" + nobatch + " logLevel=" + logLevel)
 
 Meteor.startup(() => {

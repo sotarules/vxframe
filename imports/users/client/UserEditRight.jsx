@@ -54,55 +54,55 @@ export default class UserEditRight extends Component {
                             collection={Meteor.users}
                             dynamic={true}
                             _id={this.props.user._id}>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXInput id="email"
-                                            label={Util.i18n("common.label_email")}
-                                            rule="VX.login.email"
-                                            supplementalValues={[ null, this.props.user._id ]}
-                                            type="email"
-                                            updateHandler={this.updateEmail.bind(this)}
-                                            value={Util.getUserEmail(this.props.user)}/>
-                                    </div>
-                                    <div className="col-xs-6 margin-top-30">
-                                        {this.isShowEnrollmentEmailButton() &&
-                                            <VXButton id="button-send-enrollment-email"
-                                                className="btn btn-primary btn-custom btn-block"
-                                                onClick={this.handleClickSendEnrollmentEmail.bind(this)}>
-                                                {Util.i18n("user_domain.label_send_enrollment_email")}
-                                            </VXButton>
-                                        }
-                                        {this.isShowSendResetPasswordButton() &&
-                                            <VXButton id="button-send-reset-password-email"
-                                                className="btn btn-primary btn-custom btn-block"
-                                                onClick={this.handleClickSendResetPasswordEmail.bind(this)}>
-                                                {Util.i18n("user_domain.label_send_reset_password_email")}
-                                            </VXButton>
-                                        }
-                                    </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXInput id="email"
+                                        label={Util.i18n("common.label_email")}
+                                        rule="VX.login.email"
+                                        supplementalValues={[ null, this.props.user._id ]}
+                                        type="email"
+                                        updateHandler={this.updateEmail.bind(this)}
+                                        value={Util.getUserEmail(this.props.user)}/>
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXInput id="phone"
-                                            label={Util.i18n("common.label_phone")}
-                                            value={Util.fetchUserPhone(this.props.user)}
-                                            supplementalValues={[ "US" ]}
-                                            rule={VX.common.phone}
-                                            format={FX.phoneUS}
-                                            dbName={"profile.phone"}/>
-                                    </div>
+                                <div className="col-xs-6 margin-top-30">
+                                    {this.isShowEnrollmentEmailButton() &&
+                                        <VXButton id="button-send-enrollment-email"
+                                            className="btn btn-primary btn-custom btn-block"
+                                            onClick={this.handleClickSendEnrollmentEmail.bind(this)}>
+                                            {Util.i18n("user_domain.label_send_enrollment_email")}
+                                        </VXButton>
+                                    }
+                                    {this.isShowSendResetPasswordButton() &&
+                                        <VXButton id="button-send-reset-password-email"
+                                            className="btn btn-primary btn-custom btn-block"
+                                            onClick={this.handleClickSendResetPasswordEmail.bind(this)}>
+                                            {Util.i18n("user_domain.label_send_reset_password_email")}
+                                        </VXButton>
+                                    }
                                 </div>
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXInput id="mobile"
-                                            label={Util.i18n("common.label_mobile")}
-                                            value={Util.fetchUserMobile(this.props.user)}
-                                            supplementalValues={[ "US" ]}
-                                            rule={VX.common.mobile}
-                                            format={FX.phoneUS}
-                                            dbName={"profile.mobile"}/>
-                                    </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXInput id="phone"
+                                        label={Util.i18n("common.label_phone")}
+                                        value={Util.fetchUserPhone(this.props.user)}
+                                        supplementalValues={[ "US" ]}
+                                        rule={VX.common.phone}
+                                        format={FX.phoneUS}
+                                        dbName={"profile.phone"}/>
                                 </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-xs-6">
+                                    <VXInput id="mobile"
+                                        label={Util.i18n("common.label_mobile")}
+                                        value={Util.fetchUserMobile(this.props.user)}
+                                        supplementalValues={[ "US" ]}
+                                        rule={VX.common.mobile}
+                                        format={FX.phoneUS}
+                                        dbName={"profile.mobile"}/>
+                                </div>
+                            </div>
                         </VXForm>
                     </RightHeader>
                     <EntityListHeader label={Util.i18n("user_domain.label_domains_header")}/>

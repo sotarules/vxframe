@@ -6,7 +6,7 @@ import EntityListRoleCheckboxes from "/imports/vx/client/EntityListRoleCheckboxe
 
 export default class UserEntityList extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         users : PropTypes.array.isRequired,
         selectable : PropTypes.bool,

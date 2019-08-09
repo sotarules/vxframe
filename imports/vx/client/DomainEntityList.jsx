@@ -6,7 +6,7 @@ import EntityListRoleCheckboxes from "/imports/vx/client/EntityListRoleCheckboxe
 
 export default class DomainEntityList extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         domains : PropTypes.array.isRequired,
         currentDomainId : PropTypes.string,

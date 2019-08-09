@@ -206,12 +206,6 @@ Meteor.users.deny({
                 }
             }
 
-            if (modifier.$push["profile.tenantHistory"]) {
-                if (!Serv.isUserAdmin(userId, modifier.$push["profile.tenantHistory"], "Meteor.users.deny update", doc, "$push['profile.tenantHistory']")) {
-                    return true
-                }
-            }
-
             if (modifier.$push["profile.domains"]) {
 
                 if (modifier.$push["profile.domains"].$each && modifier.$push["profile.domains"].$each.length > 0 && modifier.$push["profile.domains"].$each[0].domainId) {
@@ -222,13 +216,6 @@ Meteor.users.deny({
                 }
                 else {
                     OLog.error("allow.js Meteor.users.deny update *denied* userId=" + userId + " has attempted to $push domain without properly-formatted $each operator")
-                    return true
-                }
-            }
-
-            if (modifier.$push["profile.domainHistory"]) {
-
-                if (!Serv.isUserAdmin(userId, Util.getTenantId(modifier.$push["profile.domainHistory"]), "Meteor.users.deny update", doc, "$push['profile.domainHistory']")) {
                     return true
                 }
             }

@@ -1,15 +1,14 @@
 "use strict";
 
-import { applyMiddleware, createStore } from "redux"
+import { createStore } from "redux"
 import { combineReducers } from "redux"
-import ReduxThunk from "redux-thunk"
 import allReducers from "/imports/vx/client/code/reducers/allReducers"
 import { setCurrentLocale } from "/imports/vx/client/code/actions"
 
-const middleware = [ReduxThunk]
-Store = createStore(combineReducers(allReducers), {}, applyMiddleware(...middleware))
+React = require("react")
+ReactDOM = require("react-dom")
+Store = createStore(combineReducers(allReducers))
 
-ReactTestUtils = require("react-dom/test-utils")
 VXSubs = new SubsManager()
 
 document.title = Util.i18n("master.page_title")

@@ -43,8 +43,8 @@ kadira:flow-router
 meteorhacks:picker
 joshowens:timezone-picker
 dynamic-import@0.5.1
-react
 mrt:jquery-ui-sortable
 static-html
 
 underscore@1.0.10
+react-meteor-data

@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 
 export default class RadioButtonGroup extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         activeButtonId : PropTypes.string
     }

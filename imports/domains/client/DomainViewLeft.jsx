@@ -7,7 +7,7 @@ import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
 
 export default class DomainViewLeft extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         domains : PropTypes.array.isRequired,
         currentDomainId : PropTypes.string.isRequired

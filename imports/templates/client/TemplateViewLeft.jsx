@@ -8,7 +8,7 @@ import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
 
 export default class TemplateViewLeft extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         templates : PropTypes.array.isRequired
     }

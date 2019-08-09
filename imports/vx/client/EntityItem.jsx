@@ -94,12 +94,8 @@ export default class EntityItem extends Component {
         )
     }
 
-    handleClick(event) {
-        if (UX.isTouchClick(event)) {
-            OLog.debug("EntityItem.jsx handleClick *touchclick* ignored")
-            return
-        }
-        this.node.focus()
+    handleClick() {
+        // Click function now NO-OP due to improvements in React 16 (focus will suffice)
     }
 
     handleFocus(event) {

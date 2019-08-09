@@ -616,9 +616,7 @@ VXApp = _.extend(VXApp || {}, {
             return
         }
         user.profile.tenants = user.profile.tenants || []
-        user.profile.tenantHistory = user.profile.tenantHistory || []
         user.profile.domains = user.profile.domains || []
-        user.profile.domainHistory = user.profile.domainHistory || []
         if (!_.findWhere(user.profile.tenants, { tenantId : domain.tenant })) {
             let tenantRoles = powerUser ? [ "TENANTADMIN" ] : []
             let tenantObject = { tenantId: domain.tenant, roles: tenantRoles }

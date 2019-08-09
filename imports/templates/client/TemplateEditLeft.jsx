@@ -6,7 +6,7 @@ import TemplateEntityList from "/imports/vx/client/TemplateEntityList"
 
 export default class TemplateEditLeft extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         templates : PropTypes.array.isRequired
     }
 

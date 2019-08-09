@@ -6,7 +6,7 @@ import DomainEntityList from "/imports/vx/client/DomainEntityList"
 
 export default class UserEditLeft extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         domains : PropTypes.array.isRequired
     }
 
@@ -14,7 +14,7 @@ export default class UserEditLeft extends Component {
         return (
             <div className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-domains"
-                        activeButtonId="button-domains">
+                    activeButtonId="button-domains">
                     <RadioButton id="button-domains"
                         text={Util.i18n("common.label_domains")}/>
                 </RadioButtonGroup>

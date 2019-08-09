@@ -32,6 +32,7 @@ UX = {
      * @param {object} result Standard server result object.
      * @param {object} error Optional server error object.
      * @param {boolean} nomessage True to suppress notification if result is successful.
+     * @param {boolean} defer True to defer execution.
      */
     notify(result, error, nomessage) {
         if (error) {
@@ -1259,17 +1260,20 @@ UX = {
      */
     findComponentById(id) {
         let dom = document.getElementById(id)
-        for (let key in dom) {
-            if (key.startsWith("__reactInternalInstance$")) {
-                let compInternals = dom[key]._currentElement
-                if (!compInternals) return null
-                let compWrapper = compInternals._owner
-                if (!compWrapper) return null
-                let comp = compWrapper._instance
-                return comp
-            }
+        if (!dom) {
+            return null
         }
-        return null
+        let key = Object.keys(dom).find(key => key.startsWith("__reactInternalInstance$"));
+        let internalInstance = dom[key];
+        if (internalInstance == null) {
+            return null
+        }
+        if (internalInstance.return) { // react 16+
+            return internalInstance._debugOwner ?
+                internalInstance._debugOwner.stateNode :
+                internalInstance.return.stateNode
+        }
+        return internalInstance._currentElement._owner._instance;
     },
 
     /**
@@ -1650,9 +1654,8 @@ UX = {
      * @param {string} animation Optional animation name.
      */
     iosMajorPush(majorLabel, minorLabel, path, panel, animation) {
-        // Yield so buttons immediately turn gray:
+        // Yield to let UI complete animations before transitions:
         Meteor.setTimeout(() => {
-            OLog.debug("ux.js iosMajorPush path=" + path + " panel=" + panel)
             animation = animation || "slideleft"
             let iosState = Store.getState().iosState
             let state = {}
@@ -1661,6 +1664,7 @@ UX = {
             state.minorLabel = iosState.minorBackLabel
             state.path = Util.routePath()
             state.panel = UX.getCurrentPanel(Util.routePath())
+            OLog.debug(`ux.js iosMajorPush *push* old state=${OLog.debugString(state)}`)
             iosState.stack = iosState.stack || []
             iosState.stack.push(state)
             UX.setLocked(["ios-button-bar"], true)
@@ -1670,6 +1674,7 @@ UX = {
             UX.setLayoutAnimation(animation)
             Meteor.setTimeout(() => {
                 UX.mutatePanelMap(iosState, path, panel)
+                OLog.debug(`ux.js iosMajorPush new iosState=${OLog.debugString(iosState)}`)
                 Store.dispatch(setIosState(iosState))
                 FlowRouter.go(path)
             })
@@ -1688,9 +1693,8 @@ UX = {
         if (!UX.isSlideMode()) {
             return
         }
-        // Yield so buttons immediately turn gray:
+        // Yield to let UI complete animations before transitions:
         Meteor.setTimeout(() => {
-            OLog.debug("ux.js iosMinorPush panel=" + panel)
             animation = animation || "slideleft"
             let iosState = Store.getState().iosState
             let state = {}
@@ -1699,6 +1703,7 @@ UX = {
             state.minorLabel = iosState.minorBackLabel
             state.path = Util.routePath()
             state.panel = UX.getCurrentPanel(Util.routePath())
+            OLog.debug(`ux.js iosMinorPush *push* old state=${OLog.debugString(state)}`)
             iosState.stack = iosState.stack || []
             iosState.stack.push(state)
             UX.setLocked(["ios-button-bar"], true)
@@ -1706,6 +1711,7 @@ UX = {
             UX.setSlidePairAnimation(animation)
             UX.beforeAnimate()
             UX.mutatePanelMap(iosState, Util.routePath(), panel)
+            OLog.debug(`ux.js iosMinorPush new iosState=${OLog.debugString(iosState)}`)
             Store.dispatch(setIosState(iosState))
         })
     },
@@ -1717,12 +1723,12 @@ UX = {
      * @param {string} animation Optional animation name.
      */
     iosPopAndGo(animation) {
-        let state, path
         animation = animation || "slideright"
+        let state
+        const path = Util.routePath()
         let iosState = Store.getState().iosState
         if (!iosState.stack || iosState.stack.length === 0) {
             OLog.error("ux.js iosPopAndGo stack length is zero, cannot pop")
-            UX.initStackAndBackLabels()
             UX.goDefault()
             return
         }
@@ -1738,11 +1744,10 @@ UX = {
         // This should not be possible unless there is a bug:
         if (!state) {
             OLog.error("ux.js iosPopAndGo pop executed but no previous state exists on stack")
-            UX.initStackAndBackLabels()
             UX.goDefault()
             return
         }
-        OLog.debug("ux.js iosPopAndGo state=" + OLog.debugString(state))
+        OLog.debug(`ux.js iosPopAndGo stack *pop* new state=${OLog.debugString(state)}`)
         Meteor.setTimeout(() => {
             try {
                 UX.setLocked(["ios-button-bar"], true)
@@ -1757,13 +1762,11 @@ UX = {
                 }
                 UX.mutatePanelMap(iosState, state.path, state.panel)
                 Store.dispatch(setIosState(iosState))
-                // If the route path is unchanged, simply changing the panel
-                // and back labels will suffice:
-                path = Util.routePath()
-                OLog.debug("ux.js iosPopAndGo state path=" + state.path + " new path=" + path)
                 if (path === state.path) {
+                    OLog.debug(`ux.js iosPopAndGo original path=${path} state.path=${state.path} *same* stay on this route`)
                     return
                 }
+                OLog.debug(`ux.js iosPopAndGo original path=${path} state.path=${state.path} *different* FlowRouter go ${state.path}`)
                 FlowRouter.go(state.path)
             }
             catch (error) {
@@ -1821,12 +1824,15 @@ UX = {
     /**
      * Initialize stack and back labels, initializing for a new route or
      * possibly resetting state after unexpected condition.
+     *
+     * @param {string} routePath Path to route coming up next.
      */
-    initStackAndBackLabels() {
-        let iosState = Store.getState().iosState
+    initStackAndBackLabels(routePath) {
+        const iosState = Store.getState().iosState
         iosState.stack = []
         iosState.majorBackLabel = null
         iosState.minorBackLabel = null
+        UX.mutatePanelMap(iosState, routePath, "LEFT")
         Store.dispatch(setIosState(iosState))
     },
 
@@ -2200,6 +2206,7 @@ UX = {
      */
     goDefault() {
         Meteor.call("getDefaultRoute", (error, defaultRoute) => {
+            UX.initStackAndBackLabels(defaultRoute)
             FlowRouter.go(defaultRoute)
         })
     },
@@ -2234,7 +2241,7 @@ UX = {
                 UX.showLoading()
             }
             Meteor.defer(() => {
-                UX.initStackAndBackLabels()
+                UX.initStackAndBackLabels(href)
                 UX.go(href)
             })
         })

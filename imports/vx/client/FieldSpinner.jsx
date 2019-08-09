@@ -1,5 +1,5 @@
 import { Component } from "react"
-import ReactSpinner from "react-spinjs"
+import ReactSpinner from "/imports/vx/client/ReactSpinner"
 
 export default class FieldSpinner extends Component {
 

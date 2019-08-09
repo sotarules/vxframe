@@ -1,6 +1,6 @@
 "use strict";
 
-import { mount } from "react-mounter"
+import domready from "domready"
 import { setCurrentDomainId } from "/imports/vx/client/code/actions"
 import { setCurrentLocale } from "/imports/vx/client/code/actions"
 import { setCurrentUserId } from "/imports/vx/client/code/actions"
@@ -94,7 +94,7 @@ VXApp = _.extend(VXApp || {}, {
             }
             if (layout && content) {
                 OLog.debug("vxapp.js mountRender mounting React component")
-                mount(layout, { content : content })
+                VXApp.mountInternal(layout, { content : content })
             }
         }
         catch (error) {
@@ -108,6 +108,45 @@ VXApp = _.extend(VXApp || {}, {
                 UX.clearLoading()
             }
         }
+    },
+
+    /**
+     * Mount internals stolen shamelessly from react-mounter. Out of respect for Arounoda,
+     * this is because the peerDependencies were limited to React 15. The code is fine.
+     *
+     * @param {object} layoutClass Layout React class.
+     * @param {object} props Properties must supply content as { content: <component> }.
+     */
+    mountInternal(layoutClass, props) {
+        UXState.isDomReady = false
+        VXApp.mountInternalReady(() => {
+            const rootNode = VXApp.mountInternalGetRootNode("react-root")
+            OLog.debug("vxapp.js mountInternalReady *fire*")
+            const element = React.createElement(layoutClass, props)
+            ReactDOM.render(element, rootNode)
+        })
+    },
+
+    mountInternalReady(callback) {
+        if (UXState.isDomReady) {
+            return callback()
+        }
+        domready(() => {
+            UXState.isDomReady = true
+            setTimeout(callback, 10)
+        })
+    },
+
+    mountInternalGetRootNode(rootId) {
+        const rootNode = document.getElementById(rootId)
+        if (rootNode) {
+            return rootNode
+        }
+        const rootNodeHtml = `<div id="${rootId}"></div>`
+        OLog.debug(`vxapp.js mountInternalGetRootNode rootNodeHtml=${rootNodeHtml}`)
+        const body = document.getElementsByTagName("body")[0]
+        body.insertAdjacentHTML("beforeend", rootNodeHtml)
+        return document.getElementById(rootId)
     },
 
     /**
@@ -372,31 +411,6 @@ VXApp = _.extend(VXApp || {}, {
             return "TEXAS"
         }
         return "DOMAIN"
-    },
-
-    /**
-     * Fetch data context for current route.
-     *
-     * @param {boolean} iosButtonBar True to return "quick" context for iOS button bar (performance).
-     * @return {object} Data context based on route or true if route not declared
-     */
-    dataContext(iosButtonBar) {
-        let path = Util.routePath(true)
-        if (path === "/") {
-            OLog.debug("vxapp.js dataContext path=" + path + " never has a data context")
-            return
-        }
-        let routeFirstSegment = Util.routeFirstSegment(path)
-        let func = ContextMaker[routeFirstSegment]
-        if (!func) {
-            OLog.debug("vxapp.js dataContext routeFirstSegment=" + routeFirstSegment +
-                " iosButtonBar=" + !!iosButtonBar + " no corresponding function in ContextMaker, returning true")
-            return true
-        }
-        let dataContext = func(iosButtonBar)
-        OLog.debug("vxapp.js dataContext routeFirstSegment=" + routeFirstSegment +
-            " iosButtonBar=" + !!iosButtonBar + " dataContext=" + dataContext)
-        return dataContext
     },
 
     /**
@@ -669,9 +683,6 @@ VXApp = _.extend(VXApp || {}, {
             let modifier = {}
             modifier.$push = {}
             modifier.$push["profile.domains"] = { $each: [ { domainId : domainId, roles : [ ] } ], $position: newIndex }
-            if (!_.contains(user.profile.domainHistory, domainId)) {
-                modifier.$push["profile.domainHistory"] = domainId
-            }
             let tenantId = Util.getTenantId(domainId)
             if (!tenantId) {
                 OLog.error("vxapp.js updateUserDomain cannot find tenant of domainId=" + domainId)
@@ -680,9 +691,6 @@ VXApp = _.extend(VXApp || {}, {
             if (!_.findWhere(tenants, { tenantId: tenantId })) {
                 OLog.debug("vxapp.js updateUserDomain " + Util.fetchFullName(user._id) + " will get tenant " + Util.fetchTenantName(tenantId))
                 modifier.$push["profile.tenants"] = { tenantId: tenantId, roles : [ ]  }
-                if (!_.contains(user.profile.tenantHistory, tenantId)) {
-                    modifier.$push["profile.tenantHistory"] = tenantId
-                }
             }
             OLog.debug("vxapp.js updateUserDomain " + Util.fetchFullName(user._id) + " modifier=" + OLog.debugString(modifier))
             Meteor.users.update(user._id, modifier, error => {
@@ -728,15 +736,9 @@ VXApp = _.extend(VXApp || {}, {
         // Each operator is supplied even when immaterial to simplify schema validation rules:
         modifier.$push["profile.domains"] = { $each: [ { domainId : domain._id, roles : [ ] } ] }
         OLog.debug("vxapp.js updateDomainUser add domain " + Util.fetchDomainName(domain._id) + " to " + Util.fetchFullName(userId))
-        if (!_.contains(user.profile.domainHistory, domain._id)) {
-            modifier.$push["profile.domainHistory"] = domain._id
-        }
         if (!_.findWhere(tenants, { tenantId: domain.tenant })) {
             OLog.debug("vxapp.js updateDomainUser add tenant " + Util.fetchTenantName(domain.tenant) + " to " + Util.fetchFullName(user._id))
             modifier.$push["profile.tenants"] = { tenantId: domain.tenant, roles : [ ]  }
-            if (!_.contains(user.profile.tenantHistory, domain.tenant)) {
-                modifier.$push["profile.tenantHistory"] = domain.tenant
-            }
         }
         OLog.debug("vxapp.js updateDomainUser modifier=" + OLog.debugString(modifier))
         Meteor.users.update( { _id: userId }, modifier, error => {
@@ -885,10 +887,7 @@ VXApp = _.extend(VXApp || {}, {
         })
     },
 
-    isEditVisible(data) {
-        if (!data) {
-            return false
-        }
+    isEditVisible() {
         if (Util.isRoutePath("/templates") ) {
             return Util.isUserAdmin()
         }
@@ -904,10 +903,7 @@ VXApp = _.extend(VXApp || {}, {
         return false
     },
 
-    isCloneVisible(data) {
-        if (!data) {
-            return false
-        }
+    isCloneVisible() {
         if (Util.isRoutePath("/templates") ) {
             return Util.isUserAdmin()
         }
@@ -920,10 +916,7 @@ VXApp = _.extend(VXApp || {}, {
         return false
     },
 
-    isDeleteVisible(data) {
-        if (!data) {
-            return false
-        }
+    isDeleteVisible() {
         if (Util.isRoutePath("/templates") ) {
             return Util.isUserAdmin()
         }
@@ -936,6 +929,14 @@ VXApp = _.extend(VXApp || {}, {
         if (Util.isRoutePath("/tenants")) {
             return Util.isUserSuperAdmin()
         }
+        return false
+    },
+
+    isUndoVisible() {
+        return false
+    },
+
+    isRedoVisible() {
         return false
     },
 
@@ -1016,6 +1017,30 @@ VXApp = _.extend(VXApp || {}, {
                 return
             }
             UX.iosMajorPush(null, null, "/template/" + templateId, "RIGHT", "crossfade")
+        })
+    },
+
+    /**
+     * Perform undo on the specified collection.
+     *
+     * @param {object} collection Collection.
+     * @param {object} doc Document current state.
+     */
+    undo(collection, doc) {
+        Meteor.call("undo", collection._name, doc, (error, result) => {
+            UX.notify(result, error, true)
+        })
+    },
+
+    /**
+     * Perform redo on the specified collection.
+     *
+     * @param {object} collection Collection.
+     * @param {object} doc Document current state.
+     */
+    redo(collection, doc) {
+        Meteor.call("redo", collection._name, doc, (error, result) => {
+            UX.notify(result, error, true)
         })
     }
 })

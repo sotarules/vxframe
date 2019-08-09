@@ -6,7 +6,7 @@ import EntityItem from "/imports/vx/client/EntityItem";
 
 export default class TemplateEntityList extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         templates : PropTypes.array.isRequired,
         selectable : PropTypes.bool,

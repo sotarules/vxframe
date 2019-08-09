@@ -1,23 +1,22 @@
-import { mount } from "react-mounter"
+import DomainEdit from "/imports/domains/client/DomainEdit"
+import DomainUserView from "/imports/usersdomains/client/DomainUserView"
+import DomainView from "/imports/domains/client/DomainView"
+import EventsContainer from "/imports/events/client/EventsContainer"
+import LayoutDiagContainer from "/imports/layout/client/LayoutDiagContainer"
 import LayoutNone from "/imports/layout/client/LayoutNone"
-import NotFoundPage from "/imports/notfound/client/NotFoundPage"
 import LayoutNoneContainer from "/imports/layout/client/LayoutNoneContainer"
 import LayoutStandardContainer from "/imports/layout/client/LayoutStandardContainer"
-import LayoutDiagContainer from "/imports/layout/client/LayoutDiagContainer"
-import SigninContainer from "/imports/signin/client/SigninContainer"
+import NotFoundPage from "/imports/notfound/client/NotFoundPage"
 import ProfileContainer from "/imports/profile/client/ProfileContainer"
 import SettingsContainer from "/imports/settings/client/SettingsContainer"
-import TenantView from "/imports/tenants/client/TenantView"
-import TenantEdit from "/imports/tenants/client/TenantEdit"
-import DomainView from "/imports/domains/client/DomainView"
-import DomainEdit from "/imports/domains/client/DomainEdit"
-import UserDomainView from "/imports/usersdomains/client/UserDomainView"
-import DomainUserView from "/imports/usersdomains/client/DomainUserView"
-import UserEdit from "/imports/users/client/UserEdit"
-import EventsContainer from "/imports/events/client/EventsContainer"
+import SigninContainer from "/imports/signin/client/SigninContainer"
 import SystemLogContainer from "/imports/systemlog/client/SystemLogContainer"
-import TemplateViewContainer from "/imports/templates/client/TemplateViewContainer"
 import TemplateEditContainer from "/imports/templates/client/TemplateEditContainer"
+import TemplateViewContainer from "/imports/templates/client/TemplateViewContainer"
+import TenantEdit from "/imports/tenants/client/TenantEdit"
+import TenantView from "/imports/tenants/client/TenantView"
+import UserDomainView from "/imports/usersdomains/client/UserDomainView"
+import UserEdit from "/imports/users/client/UserEdit"
 
 FlowRouter.route("/", {
     action : () => {
@@ -139,6 +138,6 @@ FlowRouter.route("/template/:_id", {
 
 FlowRouter.notFound = {
     action : () => {
-        mount(LayoutNone, { content : <NotFoundPage/> })
+        VXApp.mountInternal(LayoutNone, { content : <NotFoundPage/> })
     }
 }

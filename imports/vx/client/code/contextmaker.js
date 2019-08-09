@@ -54,26 +54,33 @@ ContextMaker = {
 
     user() {
         let publishAuthoringUser = {}
-        publishAuthoringUser.criteria = { _id : UX.getParam("_id") }
-        Store.dispatch(setPublishAuthoringTemplate(publishAuthoringUser))
-        let user = Meteor.users.findOne(publishAuthoringUser.criteria, publishAuthoringUser.options)
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] user selected, data ready=" + OLog.debugString(publishAuthoringUser) + " user=" + OLog.debugString(user))
-        return user
+        if (Util.isRoutePath("/user/")) {
+            publishAuthoringUser.criteria = { _id : UX.getParam("_id") }
+            OLog.debug(`contextmaker.js route [user] *correct* publishAuthoringUser=${OLog.debugString(publishAuthoringUser)}`)
+            Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
+        }
+        else {
+            publishAuthoringUser = Store.getState().publishAuthoringUser
+            OLog.debug(`contextmaker.js route [user] *incorrect* publishAuthoringUser=${OLog.debugString(publishAuthoringUser)}`)
+        }
+        return Meteor.users.findOne(publishAuthoringUser.criteria)
     },
 
     domain() {
         let publishAuthoringDomain = {}
-        publishAuthoringDomain.criteria = { _id : UX.getParam("_id") }
-        Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
-        let domain = Domains.findOne(publishAuthoringDomain.criteria, publishAuthoringDomain.options)
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] domain selected, data ready=" + OLog.debugString(publishAuthoringDomain) + " user=" + OLog.debugString(domain))
-        return domain
+        if (Util.isRoutePath("/domain/")) {
+            publishAuthoringDomain.criteria = { _id : UX.getParam("_id") }
+            OLog.debug(`contextmaker.js route [domain] *correct* publishAuthoringDomain=${OLog.debugString(publishAuthoringDomain)}`)
+            Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
+        }
+        else {
+            publishAuthoringDomain = Store.getState().publishAuthoringDomain
+            OLog.debug(`contextmaker.js route [domain] *incorrect* publishAuthoringDomain=${OLog.debugString(publishAuthoringDomain)}`)
+        }
+        return Domains.findOne(publishAuthoringDomain.criteria)
     },
 
-    tenants(iosButtonBar) {
-        if (iosButtonBar) {
-            return true
-        }
+    tenants() {
         let tenantIds = Util.getTenantIds(Meteor.userId())
         let publishCurrentTenant = Store.getState().publishCurrentTenant
         if (!publishCurrentTenant) {
@@ -97,23 +104,21 @@ ContextMaker = {
         return tenant
     },
 
-    tenant(iosButtonBar) {
-        if (iosButtonBar) {
-            return true
-        }
+    tenant() {
         let publishCurrentTenant = {}
-        publishCurrentTenant.criteria = { _id : UX.getParam("_id") }
-        publishCurrentTenant.options = {}
-        Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
-        let tenant = Tenants.findOne(publishCurrentTenant.criteria)
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] selected, data ready=" + OLog.debugString(publishCurrentTenant) + " tenant=" + OLog.debugString(tenant))
-        return tenant
+        if (Util.isRoutePath("/tenant/")) {
+            publishCurrentTenant.criteria = { _id : UX.getParam("_id") }
+            OLog.debug(`contextmaker.js route [tenant] *correct* publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
+            Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
+        }
+        else {
+            publishCurrentTenant = Store.getState().publishCurrentTenant
+            OLog.debug(`contextmaker.js route [tenant] *incorrect* publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
+        }
+        return Tenants.findOne(publishCurrentTenant.criteria)
     },
 
-    domains(iosButtonBar) {
-        if (iosButtonBar) {
-            return true
-        }
+    domains() {
         let tenantIds = Util.getTenantIds(Meteor.userId())
         let publishCurrentTenant = Store.getState().publishCurrentTenant
         if (!publishCurrentTenant) {
@@ -157,10 +162,7 @@ ContextMaker = {
         return tenant
     },
 
-    templates(iosButtonBar) {
-        if (iosButtonBar) {
-            return true
-        }
+    templates() {
         let publishAuthoringTemplate = Store.getState().publishAuthoringTemplate
         if (!publishAuthoringTemplate) {
             let templateArray = VXApp.findTemplateList()
@@ -184,10 +186,15 @@ ContextMaker = {
 
     template() {
         let publishAuthoringTemplate = {}
-        publishAuthoringTemplate.criteria = { _id : UX.getParam("_id") }
-        Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
-        let template = Templates.findOne(publishAuthoringTemplate.criteria)
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] publishAuthoringTemplate=" + OLog.debugString(publishAuthoringTemplate))
-        return template
+        if (Util.isRoutePath("/template/")) {
+            publishAuthoringTemplate.criteria = { _id : UX.getParam("_id") }
+            OLog.debug(`contextmaker.js route [template] *correct* publishAuthoringTemplate=${OLog.debugString(publishAuthoringTemplate)}`)
+            Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
+        }
+        else {
+            publishAuthoringTemplate = Store.getState().publishAuthoringTemplate
+            OLog.debug(`contextmaker.js route [template] *incorrect* publishAuthoringTemplate=${OLog.debugString(publishAuthoringTemplate)}`)
+        }
+        return Templates.findOne(publishAuthoringTemplate.criteria)
     }
 }

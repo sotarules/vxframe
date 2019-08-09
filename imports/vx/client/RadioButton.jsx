@@ -4,7 +4,7 @@ import Parser from "html-react-parser"
 
 export default class RadioButton extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         id : PropTypes.string.isRequired,
         text : PropTypes.string.isRequired,
         onClick : PropTypes.func

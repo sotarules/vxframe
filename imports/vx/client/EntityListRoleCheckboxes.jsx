@@ -5,9 +5,9 @@ import VXCheck from "/imports/vx/client/VXCheck"
 
 export default class EntityListRoleCheckboxes extends Component {
 
-    static PropTypes = {
+    static propTypes = {
         _id : PropTypes.string.isRequired,
-        collection : PropTypes.object.isRequired,
+        collection : PropTypes.object,
         rolesChecked : PropTypes.array.isRequired,
         roleCheckboxesDisabled : PropTypes.bool,
         tenantRoles : PropTypes.bool.isRequired,
