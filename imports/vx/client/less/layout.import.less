@@ -370,7 +370,7 @@
     line-height: 28px;
     font-family: "Oswald", "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
     text-transform: uppercase;
-    font-weight: 200;    
+    font-weight: 400;    
 }
 
 .nav-cell-status {
@@ -390,7 +390,7 @@
     margin: 0px;
     font-family: "Oswald", "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
     text-transform: uppercase;
-    font-weight: 200;
+    font-weight: 400;
     cursor: pointer;
 }
 
@@ -457,7 +457,18 @@
     padding-left: 12px;
 }
 
-@media (max-width : 768px) {
+@media (max-width: @screen-md-min) {
+
+    .modal-common-confirm-content {
+        width: 95%;
+    }  
+    
+    .modal-layout-about-content {
+        width: 95%;
+    }       
+}
+
+@media (max-width : @screen-sm-min) {
 
     .container {
         margin-top: 0px;
@@ -504,7 +515,7 @@
     }      
 }
 
-@media (max-width : 479px) {
+@media (max-width : @screen-xs-min) {
 
     .container {
         margin-top: 0px;
@@ -669,14 +680,6 @@
        font-size: 12px;
        padding: 5px 10px 5px 10px;
     }  
-
-    .modal-common-confirm-content {
-        max-width: 95%;
-    }  
-    
-	.modal-layout-about-content {
-	    max-width: 95%;
-	}  
 
     .wizard-panel {
         .box-shadow(none);

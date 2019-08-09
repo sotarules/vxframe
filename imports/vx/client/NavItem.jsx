@@ -14,29 +14,19 @@ export default class NavItem extends Component {
         return (
             <li tabIndex="0" id={this.props.id}
                 className="list-group-item nav-list-container"
-                onClick={this.handleClick.bind(this)}
                 onFocus={this.handleFocus.bind(this)}
-                onTouchStart={this.handleTouchStart.bind(this)}
-                ref={node=>{this.node = node}}>
+                ref={node => {this.node = node}}>
                 <span className={this.iconClasses()}></span>
                 <span className="list-group-text">{this.props.text}</span>
             </li>
-        );
+        )
     }
 
     iconClasses() {
         return "fa fa-fw " + (this.props.iconClass ? " " + this.props.iconClass : "")
     }
 
-    handleClick() {
-        this.node.focus()
-    }
-
     handleFocus(event) {
         this.props.onSelect(event)
-    }
-
-    handleTouchStart() {
-        this.node.focus()
     }
 }
