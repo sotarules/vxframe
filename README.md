@@ -40,11 +40,11 @@ Although Atmosphere is considered "legacy" now, it is still a very convenient wa
 | aldeed:collection2  | Must-have package allows you to define a MongoDB schema. Creating a production system without this is suicide. |
 | dsyko:holder  | Holder.js package allows the VXImage component to render a "stand-in" image when the real image has not yet been specified.  |
 | ecmascript  | Must-have compiler plugin that supports ES2015+ in all .js files. You want this, trust me. |
+| dynamic-import  | Runtime support for Meteor 1.5 dynamic import syntax |
 | email   | Very convenient way of sending emails (in VXFrame the basic email package is used together with Mailgun).  |
 | es5-shim  | Shim and polyfills to improve ECMAScript 5 support.  |
 | http | Must-have package to make HTTP calls to remote servers. Enough said.  |
 | joshowens:timezone-picker  | VXFrame uses this package not for the picker but to do automatic timezone detection. |
-| kadira:blaze-layout  | Layout Manager for Blaze (works well with FlowRouter).  |
 | kadira:flow-router   | Carefully Designed Client Side Router for Meteor. |
 | kidovate:pnotify   | Beautiful and modern desktop and in-browser notifications.  VXFrame absolutely relies on this.  |
 | lepozepo:accounting  | Accounting.js -  number, money and currency formatting - fully localizable, zero dependencies. |
@@ -57,7 +57,7 @@ Although Atmosphere is considered "legacy" now, it is still a very convenient wa
 | mrt:moment-timezone  | Must-have package that fully supports user timezones (sister of Moment.js). |
 | pcel:loading  | A beautiful loading splash screen (please-wait + spinkit bundle), VXFrame uses this package to display animation whenever the user chooses a new route (i.e., subsystem) via the off-canvas navigation fly-out.  |
 | random   | Random number generator and utilities  |
-| react  | Everything you need to use React with Meteor.  |
+| react-meteor-data  | React higher-order component for reactively tracking Meteor data  |
 | reactive-var  | Reactive variables are very handy, particularly in Meteor/React high-level containers.  |
 | sacha:spin  | Simple spinner package for Meteor. |
 | static-html  | Define static page content in .html files  |
@@ -69,23 +69,26 @@ Best practices for Meteor suggest that whenever possible you use raw NPM package
 
 | Package  | Description |
 | --- | --- |
-| babel-runtime | The compiler for writing next generation JavaScript. |
 | bcrypt | Superb library to hash passwords, used by Meteor accounts subsystem. |
 | core-js |  Polyfills for ECMAScript 5, ECMAScript 6: promises, symbols and collections. |
+| domready | Simple function that invokes your callback when DOM is loaded. Needed for our hand-crafted React mount functions. |
 | fibers | Support for Fibers and Futures, gives JavaScript the ability to block on the server side, making code look almost normal. Must-have for Meteor applications. |
 | html-react-parser | Makes it possible to include HTML tags in dynamically-created strings and have them parsed as honest-to-god React components.  Very useful, particularly for i18n bundles that contain HTML elements for fancy formatting. |
 | ladda | Allows buttons to have an operations-in-progress spinner that looks very similar to the one used in iOS.  Gives unambiguous feedback on touch devices where it can sometimes be unclear whether a button has been pressed.  VXFrame uses Ladda-style buttons across the board for consistency. |
 | node-sass | Supports lookback:emails package, allowing the system to render and send HTML email reports which are initially rendered on the server side.  Very cool technology.  The report templates have CSS layout rules expressed in SASS; thus VXFrame uses both LESS (Bootstrap front end) and SASS (reports back end).  Call it job security. |
 | pkgcloud | Very useful package for uploading files (typically images) to all popular cloud file buckets (e.g., Amazon S3, Rackspace Files).  The developers have made a simple API that works across-the-board, making it much easier to move a VXFrame-based system from one cloud provider to another.  This package is far superior to the original approach Knox, which works only with S3.  We had to move to PkgCloud when one of our partners migrated from AWS to Rackspace. |
 | prop-types | React property types metadata, key to allowing components to declare "schemas" which clearly define their property input expections. This allows you to implement design-by-contract-style pre-conditions, incredibly helpful. I've lived without it (painfully) under Blaze, and I'm never going back. |
-| react-addons-transition-group | State-of-the-art package for implementing animations on React. It took a lot of time to master this package, but now it handles VXFrame slide and cross-fade animations. Hats off to the developers, they clearly worked their butts off on this package, and I can see that this generalized approach can handle most animation requirements. |
+| react | React is perhaps the best way to develop modern responsive web applications, at least at the time of this writing. |
 | react-bootstrap | React component wrappers for Bootstrap widgets. Used by VXFrame to deal with overlays such as Bootstrap popovers.  |
+| react-contextify | Gives you no-bullshit context menus in React. |
+| react-dom | Important part of React. |
 | react-fastclick | Gets rid of annoying 350ms delay on touch devices, definitely a must-have package. |
-| react-spinjs | General purpose spinner that can be used for any purpose, typically to animate pages while waiting for subscriptions to become ready. |
-| redux | Predictable state container, works hand-in-glove with Meteor tracker to control local state. |
+| react-helmet | Gives you convenient access to HTML header elements with simple React components. |
+| react-redux | Official React bindings for Redux. |
+| react-transition-group | State-of-the-art package for implementing animations on React. It took a lot of time to master this package, but now it handles VXFrame slide and cross-fade animations. Hats off to the developers, they clearly worked their butts off on this package, and I can see that this generalized approach can handle most animation requirements. |
+| redux | Over-engineered and overly-complex browser state management, loved by propeller-heads and barely tolerated by regular developers, works hand-in-glove with Meteor tracker to control local state. |
 | redux-actions | Flux Standard Action utilities for Redux. |
-| redux-logger | Helpful logger middleware for Redux - makes debugging easier by logging all state changes. |
-| redux-thunk | Thunk middleware for Redux. |
+| spin.js | General purpose spinner that can be used for any purpose, typically to animate pages while waiting for subscriptions to become ready. |
 ## NPM Developer Dependencies
 
 These NPMs are developer dependencies, particularly for dealing with JSLint in your text editor of choice (see below). 
