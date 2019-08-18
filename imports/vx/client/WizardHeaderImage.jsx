@@ -1,11 +1,11 @@
-import { Component } from "react";
-import PropTypes from "prop-types";
+import { Component } from "react"
+import PropTypes from "prop-types"
 
 export default class WizardHeaderImage extends Component {
 
     static propTypes = {
-        imageUrl : PropTypes.string.isRequired,
-        heading : PropTypes.string.isRequired,
+        imageUrl : PropTypes.string,
+        heading : PropTypes.string,
         subheading : PropTypes.string,
         className : PropTypes.string
     }
@@ -35,6 +35,6 @@ export default class WizardHeaderImage extends Component {
                     </div>
                 </div>
             </div>
-        );
+        )
     }
 }

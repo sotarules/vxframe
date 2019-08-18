@@ -43,9 +43,9 @@ export default class VXMultiSelect extends Component {
         UX.unregister(this)
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug("VXMultiSelect.jsx componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
+            //OLog.debug("VXMultiSelect.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
             this.setValue(newProps.value)
         }
     }

@@ -120,6 +120,15 @@ Serv = {
     /**
      * Allow/Deny rules support.
      */
+    isAssertionTrue(assertion, operation, doc, modifier) {
+        if (assertion) {
+            OLog.debug(`serv.js isAssertionTrue ${operation} *granted* doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+            return true
+        }
+        OLog.debug(`serv.js isAssertionTrue ${operation} *denied* doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+        return false
+    },
+
     isUserSuperAdmin(userId, operation, doc, modifier) {
         if (Util.isUserSuperAdmin(userId)) {
             OLog.debug("serv.js isUserSuperAdmin " + operation + " *granted* userId=" + userId + " is super administrator doc=" + OLog.debugString(doc) + " modifier=" + OLog.debugString(modifier))

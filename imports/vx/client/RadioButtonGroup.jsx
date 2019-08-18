@@ -13,7 +13,7 @@ export default class RadioButtonGroup extends Component {
         this.state = { activeButtonId : props.activeButtonId }
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         this.setState( { activeButtonId : newProps.activeButtonId } )
     }
 

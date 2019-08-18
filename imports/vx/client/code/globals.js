@@ -8,3 +8,4 @@ this.UXState = {}
 this.ContextMaker = {}
 this.VXSubs = {}
 this.Store = {}
+this.Persistor = {}

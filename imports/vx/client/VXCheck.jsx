@@ -34,9 +34,9 @@ export default class VXCheck extends Component {
         UX.unregister(this)
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("checked")) {
-            //OLog.debug("VXCheck.jsx componentWillReceiveProps checked=" + newProps.checked + " *update*")
+            //OLog.debug("VXCheck.jsx UNSAFE_componentWillReceiveProps checked=" + newProps.checked + " *update*")
             this.setValue(!!newProps.checked)
         }
     }
@@ -53,12 +53,12 @@ export default class VXCheck extends Component {
         return (
             <div className={`checkbox ${this.props.className || ""}`}>
                 <label title={this.props.tooltip} className={this.props.labelClass}>
-                   <input id={this.props.id}
-                    type="checkbox"
-                    checked={this.state.checked}
-                    disabled={this.props.disabled}
-                    onChange={this.handleChange.bind(this)}/>
-                   {this.props.label}
+                    <input id={this.props.id}
+                        type="checkbox"
+                        checked={this.state.checked}
+                        disabled={this.props.disabled}
+                        onChange={this.handleChange.bind(this)}/>
+                    {this.props.label}
                 </label>
             </div>
         )

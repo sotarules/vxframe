@@ -122,7 +122,7 @@ export default class VXForm extends Component {
         }
         let index = this.components.indexOf(component)
         if (index < 0) {
-            OLog.debug("VXForm.jsx unregister componentId=" + component.props.id + " is not registered")
+            // OLog.debug("VXForm.jsx unregister componentId=" + component.props.id + " is not registered")
             return
         }
         this.components.splice(index, 1)

@@ -68,14 +68,14 @@ export default class VXSwitch extends Component {
         UX.unregister(this)
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         let selector = this.getSelector()
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("disabled")) {
-            //OLog.debug("VXSwitch.jsx componentWillReceiveProps componentId=" + this.props.id + " disabled=" + newProps.disabled + " *update*")
+            //OLog.debug("VXSwitch.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " disabled=" + newProps.disabled + " *update*")
             $(selector).bootstrapSwitch("disabled", newProps.disabled)
         }
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("checked")) {
-            //OLog.debug("VXSwitch.jsx componentWillReceiveProps componentId=" + this.props.id + " checked=" + newProps.checked + " *update*")
+            //OLog.debug("VXSwitch.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " checked=" + newProps.checked + " *update*")
             this.setValue(newProps.value)
         }
     }

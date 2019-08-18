@@ -79,9 +79,9 @@ export default class VXDate extends Component {
         }.bind(this))
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug("VXDate.jsx componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
+            //OLog.debug("VXDate.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
             this.setValue(newProps.value)
         }
     }

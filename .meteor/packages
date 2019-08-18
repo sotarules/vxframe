@@ -30,8 +30,6 @@ ejson@1.1.0
 
 lepozepo:accounting
 afruth:bootstrap-touchspin
-standard-minifier-css@1.5.3
-standard-minifier-js@2.4.1
 sacha:spin
 reactive-var@1.0.11
 random@1.1.0
@@ -48,3 +46,5 @@ static-html
 
 underscore@1.0.10
 react-meteor-data
+standard-minifier-js
+standard-minifier-css

@@ -7,7 +7,7 @@
   "repository": "https://github.com/sotarules/vxframe",
   "dependencies": {
     "bcrypt": "^3.0.6",
-    "core-js": "^3.1.4",
+    "core-js": "^3.2.1",
     "domready": "^1.0.8",
     "fibers": "^4.0.1",
     "html-react-parser": "^0.9.1",
@@ -25,6 +25,7 @@
     "react-transition-group": "^4.2.2",
     "redux": "^4.0.4",
     "redux-actions": "^2.6.5",
+    "redux-persist": "^5.10.0",
     "spin.js": "2.3.2"
   },
   "devDependencies": {

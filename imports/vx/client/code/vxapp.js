@@ -124,6 +124,9 @@ VXApp = _.extend(VXApp || {}, {
             OLog.debug("vxapp.js mountInternalReady *fire*")
             const element = React.createElement(layoutClass, props)
             ReactDOM.render(element, rootNode)
+            Meteor.setTimeout(() => {
+                VXApp.routeAfter()
+            })
         })
     },
 
@@ -152,15 +155,41 @@ VXApp = _.extend(VXApp || {}, {
     /**
      * Determine if this route is exempt from subscription and before-route processing.
      *
+     * @param {string} path Optional Route path (defaults to current path).
      * @return {boolean} True if route is exempt from standard processing.
      */
-    isExemptRoute() {
-        let exemptRoutes = ["/signin", "/enroll-account", "/reset-password"]
-        let path = Util.routePath()
+    isExemptRoute(path) {
+        const exemptRoutes = ["/signin", "/enroll-account", "/reset-password"]
+        path = path || Util.routePath()
         if (path === "/") {
             return true
         }
-        return Util.startsWith(exemptRoutes, path)
+        if (Util.startsWith(exemptRoutes, path)) {
+            return true
+        }
+        if (VXApp.isAppExemptRoute) {
+            return VXApp.isAppExemptRoute(path)
+        }
+        return false
+    },
+
+    /**
+     * Determine the initial panel for a given route.
+     *
+     * @param {string} Route path for which initial panel should be determined.
+     * @return {string} Initial panel (i.e., LEFT, RIGHT, BOTH)
+     */
+    getInitialPanel(routePath) {
+        let panel
+        if (VXApp.getAppInitialPanel) {
+            panel = VXApp.getAppInitialPanel(routePath)
+        }
+        // VXFrame base system doesn't use BasicPair so return LEFT to accommodate SlidePair.
+        if (!panel) {
+            panel = "LEFT"
+        }
+        OLog.debug(`vxapp.js getInitialPanel routePath=${routePath} panel=${panel}`)
+        return panel
     },
 
     /**
@@ -169,9 +198,9 @@ VXApp = _.extend(VXApp || {}, {
      * @return {boolean} True if the current user is authorized for the current route.
      */
     isAuthorizedRoute() {
-        let superAdminRoutes = ["/log", "/events" ]
-        let systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/"]
-        let path = Util.routePath(true)
+        const superAdminRoutes = ["/log", "/events" ]
+        const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/"]
+        const path = Util.routePath(true)
         if (Util.startsWith(superAdminRoutes, path)) {
             return Util.isUserSuperAdmin()
         }
@@ -263,6 +292,7 @@ VXApp = _.extend(VXApp || {}, {
             Store.dispatch(setPublishingModeServer(newPublishingModeServer))
             let handles = []
             handles.push(VXSubs.subscribe("config"))
+            handles.push(VXSubs.subscribe("clipboard"))
             handles.push(VXSubs.subscribe("current_tenants", publishCurrentTenants.server))
             handles.push(VXSubs.subscribe("current_domains", publishCurrentDomains.server))
             handles.push(VXSubs.subscribe("current_users", publishCurrentUsers.server))
@@ -349,6 +379,13 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
+     * Perform a variety functions post-mount.
+     */
+    routeAfter() {
+        OLog.debug(`vxapp.js routeAfter [${Util.routePath()}] *fire*`)
+    },
+
+    /**
      * Set session variables that "piggy back" on previously-set subscriptions.
      *
      * @param {string} userId Current user ID.
@@ -420,7 +457,7 @@ VXApp = _.extend(VXApp || {}, {
      * @param {function} callback Callback function.
      */
     logout(callback) {
-        OLog.debug("vxapp.js logout user=" + Util.getUserEmail(Meteor.userId()))
+        OLog.debug(`vxapp.js logout user=${Util.getUserEmail(Meteor.userId())}`)
         VXApp.clearSessionSettings()
         VXSubs.clear()
         if (callback) {
@@ -431,9 +468,11 @@ VXApp = _.extend(VXApp || {}, {
         OLog.debug("vxapp.js logout function was successful, redirecting to signin page and deferring logout")
         FlowRouter.go("/")
         Meteor.setTimeout(() => {
+            OLog.debug("vxapp.js logout purging redux persist store")
+            Persistor.purge()
             Meteor.logout(error => {
                 if (error) {
-                    OLog.error("vxapp.js logout function returned unexpected error=" + error)
+                    OLog.error(`vxapp.js logout function returned unexpected error=${error}`)
                     return
                 }
                 OLog.debug("vxapp.js logout was successful")
@@ -1042,5 +1081,42 @@ VXApp = _.extend(VXApp || {}, {
         Meteor.call("redo", collection._name, doc, (error, result) => {
             UX.notify(result, error, true)
         })
+    },
+
+    /**
+     * Set the contents of the clipboard.
+     *
+     * @param {string} clipboardType Type of clipboard (application-specific).
+     * @param {object} payload Payload object.
+     */
+    setClipboard(clipboardType, payload) {
+        const clipboard = Clipboard.findOne({ userId: Meteor.userId })
+        if (!clipboard) {
+            OLog.debug(`vxapp.js setClipboard initializing clipboard for user=${Meteor.userId()}`)
+            Clipboard.insert({ clipboardType, payload })
+            return
+        }
+        const modifier = {}
+        modifier.$set = {}
+        modifier.$set.clipboardType = clipboardType
+        modifier.$set.payload = payload
+        OLog.debug(`vxapp.js setClipboard clipboardId=${clipboard._id} user=${Meteor.userId()} modifier=${OLog.debugString(modifier)}`)
+        Clipboard.update(clipboard._id, modifier)
+    },
+
+    /**
+     * Get the contents of the clipboard.
+     *
+     * @param {string} clipboardType Optional type of clipboard desired.
+     * @return {object} Payload object or null if nothing in clipboard or wrong type.
+     */
+    getClipboard(clipboardType) {
+        const selector = {}
+        selector.userId = Meteor.userId()
+        const clipboard = Clipboard.findOne(selector)
+        if (!clipboard) {
+            return null
+        }
+        return clipboard.clipboardType === clipboardType ? clipboard.payload : null
     }
 })

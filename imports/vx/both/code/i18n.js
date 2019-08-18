@@ -312,6 +312,36 @@ Meteor.i18nMessages.common = {
         rx : "$Transaction failed, template not found, templateId={{templateId}}$"
     },
 
+    alert_transaction_fail_undo_transactions_not_found : {
+        en : "Undo failed transaction set not found",
+        rx : "$Undo failed transaction set not found$"
+    },
+
+    alert_transaction_fail_redo_transactions_not_found : {
+        en : "Redo failed transaction set not found",
+        rx : "$Redo failed transaction set not found$"
+    },
+
+    alert_transaction_fail_undo_no_eariler_state : {
+        en : "Cannot undo because you're at the beginning of the history",
+        rx : "$Cannot undo because you're at the beginning of the history$"
+    },
+
+    alert_transaction_fail_redo_no_later_state : {
+        en : "Cannot redo because you're at the end of the history",
+        rx : "$Cannot redo because you're at the end of the history$"
+    },
+
+    alert_transaction_fail_unable_to_update_record_state : {
+        en : "Transaction failed unable to update record state",
+        rx : "$Transaction failed unable to update record state$"
+    },
+
+    alert_transaction_fail_unable_to_update_transaction_history : {
+        en : "Transaction failed unable to update transaction history",
+        rx : "$Transaction failed unable to update transaction history$"
+    },
+
     alert_report_send_success : {
         en : "{{reportName}} has been sent to {{email}}",
         rx : "${{reportName}} has been sent to {{email}}$"

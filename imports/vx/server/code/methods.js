@@ -90,6 +90,18 @@ Meteor.methods({
         return VXApp.sendTestEmail(templateId)
     },
 
+    serverExecute(functionName, ...args) {
+        return VXApp.serverExecute(functionName, ...args)
+    },
+
+    undo(collectionName, doc) {
+        return VXApp.undo(collectionName, doc)
+    },
+
+    redo(collectionName, doc) {
+        return VXApp.redo(collectionName, doc)
+    },
+
     performanceSetCapture(capture) {
         return Performance.setCapture(capture)
     },

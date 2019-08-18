@@ -84,9 +84,9 @@ export default class VXSpin extends Component {
         UX.unregister(this)
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug("VXSpin.jsx componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
+            //OLog.debug("VXSpin.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
             this.setValue(newProps.value)
             let selector = this.getSelector()
             $(selector).val(newProps.value)

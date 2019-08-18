@@ -1,5 +1,6 @@
 import { Component } from "react"
 import { Provider } from "react-redux"
+import { PersistGate } from "redux-persist/integration/react"
 
 import PropTypes from "prop-types"
 import OffCanvasNavContainer from "/imports/layout/client/OffCanvasNavContainer"
@@ -19,27 +20,31 @@ export default class LayoutDiag extends Component {
         if (!this.props.isAuthorizedRoute) {
             return (
                 <Provider store={Store}>
-                    <div className="flexi-grow">
-                        <OffCanvasNavContainer/>
-                        <TopBar/>
-                        <div className="nav-canvas flexi-grow">
-                            <NotAuthorizedPage/>
+                    <PersistGate loading={null} persistor={Persistor}>
+                        <div className="flexi-grow">
+                            <OffCanvasNavContainer/>
+                            <TopBar/>
+                            <div className="nav-canvas flexi-grow">
+                                <NotAuthorizedPage/>
+                            </div>
                         </div>
-                    </div>
+                    </PersistGate>
                 </Provider>
             )
         }
 
         return (
             <Provider store={Store}>
-                <div className="background-black flexi-grow">
-                    <OffCanvasNavContainer/>
-                    <TopBar/>
-                    <div className="nav-canvas notification-container diag-container flexi-grow">
-                        {this.props.content}
+                <PersistGate loading={null} persistor={Persistor}>
+                    <div className="background-black flexi-grow">
+                        <OffCanvasNavContainer/>
+                        <TopBar/>
+                        <div className="nav-canvas notification-container diag-container flexi-grow">
+                            {this.props.content}
+                        </div>
+                        <VXAnchor/>
                     </div>
-                    <VXAnchor/>
-                </div>
+                </PersistGate>
             </Provider>
         )
     }

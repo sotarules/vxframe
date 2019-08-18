@@ -64,9 +64,9 @@ export default class VXInput extends Component {
         UX.unregister(this)
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug("VXInput.jsx componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
+            //OLog.debug("VXInput.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
             this.setValue(newProps.value)
         }
     }
@@ -96,6 +96,7 @@ export default class VXInput extends Component {
                     value={this.state.value}
                     style={this.props.style}
                     onChange={this.handleChange.bind(this)}
+                    onMouseDown={this.handleMouseDown.bind(this)}
                     onBlur={this.handleBlur.bind(this)}
                     onKeyPress={this.handleKeyPress.bind(this)}
                     ref={inputElement => { this.inputElement = inputElement } }
@@ -119,6 +120,13 @@ export default class VXInput extends Component {
                 this.props.onChange(event)
             }
         })
+    }
+
+    handleMouseDown(event) {
+        // Do not focus the control if the user is right clicking (e.g., show context menu)
+        if (event.button === 2) {
+            event.preventDefault()
+        }
     }
 
     handleKeyPress(event) {

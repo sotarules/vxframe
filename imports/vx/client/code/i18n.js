@@ -305,6 +305,16 @@
         rx : "$Delete$"
     },
 
+    popup_menu_undo : {
+        en : "Undo",
+        rx : "$Undo$"
+    },
+
+    popup_menu_redo : {
+        en : "Redo",
+        rx : "$Redo$"
+    },
+
     popup_menu_done_editing : {
         en : "Done Editing",
         rx : "$Done Editing$"

@@ -60,14 +60,14 @@ export default class VXSelect extends Component {
         UX.unregister(this)
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this)) {
             if (newProps.hasOwnProperty("value")) {
-                //OLog.debug(`VXSelect.jsx componentWillReceiveProps componentId=${this.props.id} value=${newProps.value} *update*`)
+                //OLog.debug(`VXSelect.jsx UNSAFE_componentWillReceiveProps componentId=${this.props.id} value=${newProps.value} *update*`)
                 this.setValue(newProps.value)
             }
             if (newProps.hasOwnProperty("codeArray")) {
-                //OLog.debug(`VXSelect.jsx componentWillReceiveProps componentId=${this.props.id} codeArray=${OLog.debugString(newProps.codeArray)} *update*`)
+                //OLog.debug(`VXSelect.jsx UNSAFE_componentWillReceiveProps componentId=${this.props.id} codeArray=${OLog.debugString(newProps.codeArray)} *update*`)
                 this.setCodeArray(newProps.codeArray)
             }
         }

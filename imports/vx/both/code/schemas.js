@@ -499,6 +499,72 @@ Schema.Notifications = new SimpleSchema({
     }
 })
 
+Schema.Transactions = new SimpleSchema({
+    domain : {
+        type : String,
+        custom : Schema.checkDomainId,
+        denyUpdate: true
+    },
+    userId : {
+        type : String,
+        custom : Schema.checkUserId,
+    },
+    collectionName : {
+        type : String
+    },
+    id: {
+        type : String
+    },
+    index : {
+        type : Number
+    },
+    history: {
+        type: [Object],
+        optional : true,
+        blackbox : true
+    }
+})
+
+Schema.Clipboard = new SimpleSchema({
+    userId : {
+        type : String,
+        custom: Schema.checkUserId,
+        autoValue: function() {
+            if ( this.isInsert ) {
+                return Schema.getAuditUserId(this)
+            }
+            else if ( this.isUpsert ) {
+                return { $setOnInsert: Schema.getAuditUserId(this) }
+            }
+            else if ( this.isSet ) {
+                this.unset()
+            }
+        }
+    },
+    date : {
+        type : Date,
+        autoValue: function() {
+            if ( this.isInsert ) {
+                return new Date()
+            }
+            else if ( this.isUpsert ) {
+                return { $setOnInsert: new Date() }
+            }
+            else if ( this.isSet ) {
+                this.unset()
+            }
+        }
+    },
+    clipboardType : {
+        type : String
+    },
+    payload : {
+        type : Object,
+        optional : true,
+        blackbox : true
+    }
+})
+
 Schema.UserProfileTenants = new SimpleSchema({
     tenantId : {
         type : String,
@@ -805,5 +871,7 @@ Meteor.users.attachSchema(Schema.Users)
 Log.attachSchema(Schema.Log)
 Events.attachSchema(Schema.Events)
 Notifications.attachSchema(Schema.Notifications)
+Transactions.attachSchema(Schema.Transactions)
+Clipboard.attachSchema(Schema.Clipboard)
 Templates.attachSchema(Schema.Templates)
 

@@ -56,7 +56,7 @@ export default class VXSpan extends Component {
         UX.unregister(this)
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
             this.setValue(newProps.value)
         }
@@ -68,6 +68,7 @@ export default class VXSpan extends Component {
                 tabIndex={this.props.editable ? "0" : null}
                 className={this.className()}
                 onClick={this.handleClick.bind(this)}
+                onMouseDown={this.handleMouseDown.bind(this)}
                 onKeyPress={this.handleKeyPress.bind(this)}
                 onBlur={this.handleBlur.bind(this)}
                 ref={inputElement => {this.inputElement = inputElement }}>
@@ -87,6 +88,16 @@ export default class VXSpan extends Component {
 
     setValue(value) {
         this.setState({value: Util.getNullAsEmpty(Util.toString(UX.render(this, value)))})
+    }
+
+    handleMouseDown(event) {
+        if (!this.props.editable) {
+            return
+        }
+        // Do not focus the control if the user is right clicking (e.g., show context menu)
+        if (event.button === 2) {
+            event.preventDefault()
+        }
     }
 
     handleClick(event) {

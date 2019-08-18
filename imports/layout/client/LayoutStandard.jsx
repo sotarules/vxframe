@@ -1,5 +1,6 @@
 import { Component } from "react"
 import { Provider } from "react-redux"
+import { PersistGate } from "redux-persist/integration/react"
 
 import PropTypes from "prop-types"
 import TransitionGroup from "react-transition-group/TransitionGroup"
@@ -32,38 +33,42 @@ export default class LayoutStandard extends Component {
         if (!this.props.isAuthorizedRoute) {
             return (
                 <Provider store={Store}>
-                    <div className="flexi-grow">
-                        <OffCanvasNavContainer/>
-                        <TopBar/>
-                        <div className="flexi-grow nav-canvas">
-                            <NotAuthorizedPage/>
+                    <PersistGate loading={null} persistor={Persistor}>
+                        <div className="flexi-grow">
+                            <OffCanvasNavContainer/>
+                            <TopBar/>
+                            <div className="flexi-grow nav-canvas">
+                                <NotAuthorizedPage/>
+                            </div>
                         </div>
-                    </div>
+                    </PersistGate>
                 </Provider>
             )
         }
         return (
             <Provider store={Store}>
-                <div id={this.props.id}
-                    className="flexi-grow">
-                    <OffCanvasNavContainer/>
-                    <TopBar/>
-                    <div className="container container-width-100 nav-canvas flexi-grow">
-                        <div className="animation-top flexi-grow">
-                            <div className="animation-container notification-container flexi-grow">
-                                <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
-                                    <SlidePanel key={this.props.routePath}
-                                        id={this.props.routePath}
-                                        className="animation-panel flexi-grow"
-                                        getAnimation={this.getAnimation.bind(this)}>
-                                        {this.props.content}
-                                    </SlidePanel>
-                                </TransitionGroup>
+                <PersistGate loading={null} persistor={Persistor}>
+                    <div id={this.props.id}
+                        className="flexi-grow">
+                        <OffCanvasNavContainer/>
+                        <TopBar/>
+                        <div className="container container-width-100 nav-canvas flexi-grow">
+                            <div className="animation-top flexi-grow">
+                                <div className="animation-container notification-container flexi-grow">
+                                    <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
+                                        <SlidePanel key={this.props.routePath}
+                                            id={this.props.routePath}
+                                            className="animation-panel flexi-grow"
+                                            getAnimation={this.getAnimation.bind(this)}>
+                                            {this.props.content}
+                                        </SlidePanel>
+                                    </TransitionGroup>
+                                </div>
                             </div>
                         </div>
+                        <VXAnchor/>
                     </div>
-                    <VXAnchor/>
-                </div>
+                </PersistGate>
             </Provider>
         )
     }

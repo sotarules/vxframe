@@ -1,6 +1,5 @@
 "use strict"
 
-import ReactDOM from "react-dom"
 import Parser from "html-react-parser"
 
 import { setIosState } from "/imports/vx/client/code/actions"
@@ -457,21 +456,28 @@ UX = {
      * Update the slide mode state in accord with device orientation.
      */
     updateSlideMode() {
-        let iosState = Store.getState().iosState
-        let slideModeOld = iosState.slideMode
-        let slideModeNew = UX.isGridCollapsed()
-        if (slideModeOld === slideModeNew) {
+        const iosState = Store.getState().iosState
+        const slideModeOld = iosState.slideMode
+        const slideModeNew = UX.isGridCollapsed()
+        if (slideModeNew === slideModeOld) {
             return
         }
+        OLog.debug(`ux.js updateSlideMode *changed* slideModeOld=${slideModeOld} slideModeNew=${slideModeNew}`)
         UX.setLayoutAnimation("crossfade")
         UX.setSlidePairAnimation("crossfade")
-        iosState.slideMode = slideModeNew
-        iosState.majorBackLabel = null
-        iosState.minorBackLabel = null
-        iosState.stack = []
-        if (slideModeNew) {
+        if (slideModeOld && !slideModeNew) {
+            if (iosState.stack.length > 0 && iosState.stack[iosState.stack.length - 1].major === false) {
+                OLog.debug("ux.js updateSlideMode transitioning out of slide mode *pop* stack to neutralize minor push")
+                const state = iosState.stack.pop()
+                iosState.majorBackLabel = state.majorLabel
+                iosState.minorBackLabel = state.minorLabel
+                UX.mutatePanelMap(iosState, Util.routePath(), state.panel)
+            }
+        }
+        else if (!slideModeOld && slideModeNew) {
             UX.mutatePanelMap(iosState, Util.routePath(), "LEFT")
         }
+        iosState.slideMode = slideModeNew
         Store.dispatch(setIosState(iosState))
     },
 
@@ -498,7 +504,7 @@ UX = {
         }
         // Nothing is on stack, in slide mode suppress iOS button bar on first
         // panel (left):
-        if (iosState.slideMode) {
+        if (iosState.slideMode && UX.getCurrentPanel(Util.routePath()) === "LEFT") {
             return false
         }
         let result = _.reduce(Object.keys(visible), (memo, key) => {
@@ -526,6 +532,11 @@ UX = {
      * @return {string} Localized back label.
      */
     backLabel(slideMode, majorBackLabel, minorBackLabel) {
+        // TODO: DL--just take iosState here and do more rigorous logic.
+        // 1. If we're not in slide mode, return majorBackLabel
+        // 2. If we're slide mode and LEFT return majorBackLabel
+        // 3. If we're slide mode and RIGHT return minorBackLabel
+        // 4. Eliminate back labels entirely! (just use stack)
         let backLabel = slideMode ? minorBackLabel : majorBackLabel
         if (backLabel) {
             return Util.i18n(backLabel)
@@ -537,13 +548,13 @@ UX = {
      * Get current panel.
      *
      * @param {string} path Route path.
-     * @return {string} Panel LEFT or RIGHT.
+     * @return {string} Panel (i.e, LEFT, RIGHT, BOTH).
      */
     getCurrentPanel(path) {
         let panelMap = Store.getState().iosState.panelMap || {}
         let routeSegmentFirst = Util.routeFirstSegment(path)
         let panel = panelMap[routeSegmentFirst]
-        return panel || "LEFT"
+        return panel || VXApp.getInitialPanel(path)
     },
 
     /**
@@ -558,39 +569,6 @@ UX = {
         iosState.panelMap = iosState.panelMap || {}
         let routeSegmentFirst = Util.routeFirstSegment(path)
         iosState.panelMap[routeSegmentFirst] = panel
-    },
-
-    /**
-     * Determine whether the left panel is currently displayed.
-     *
-     * @param {string} segment Optional first route segment.
-     * @return {boolean} True if current panel is left.
-     */
-    isCurrentPanelLeft(segment) {
-        return UX.isCurrentPanel(segment, "LEFT")
-    },
-
-    /**
-     * Determine whether the right panel is currently displayed.
-     *
-     * @param {string} segment Optional first route segment.
-     * @return {boolean} True if current panel is left.
-     */
-    isCurrentPanelRight(segment) {
-        return UX.isCurrentPanel(segment, "RIGHT")
-    },
-
-    /**
-     * Determine whether the right panel is currently displayed.
-     *
-     * @param {string} segment Optional first route segment.
-     * @param {string} panel LEFT or RIGHT.
-     * @return {boolean} True if current panel is matches the value supplied.
-     */
-    isCurrentPanel(segment, panel) {
-        segment = segment || Util.routeFirstSegment(Util.routePath())
-        let panelMap = Store.getState().iosState.panelMap || {}
-        return panel === panelMap[segment]
     },
 
     /**
@@ -1253,7 +1231,7 @@ UX = {
     },
 
     /**
-     * Find component By ID.
+     * Find component By ID (compatible with React 16 and subject to change).
      *
      * @param {string} id Component ID.
      * @return {object} Component.
@@ -1263,17 +1241,33 @@ UX = {
         if (!dom) {
             return null
         }
-        let key = Object.keys(dom).find(key => key.startsWith("__reactInternalInstance$"));
-        let internalInstance = dom[key];
-        if (internalInstance == null) {
+        let key = Object.keys(dom).find(key => key.startsWith("__reactInternalInstance$"))
+        let internalInstance = dom[key]
+        if (!internalInstance) {
+            console.error(`ux.js findComponentById id=${id} value of property whose name starts with __reactInternalInstance$ is null`)
             return null
         }
-        if (internalInstance.return) { // react 16+
-            return internalInstance._debugOwner ?
-                internalInstance._debugOwner.stateNode :
-                internalInstance.return.stateNode
+        let myReturn = internalInstance.return
+        if (!myReturn) {
+            console.error(`ux.js findComponentById id=${id} internalInstance does not have return`)
+            return null
         }
-        return internalInstance._currentElement._owner._instance;
+        while (myReturn && !(myReturn.stateNode &&
+            myReturn.stateNode && myReturn.stateNode.props &&
+            myReturn.stateNode.props.id === id)) {
+            myReturn = myReturn.return
+        }
+        if (!myReturn) {
+            console.error(`ux.js findComponentById id=${id} search exhausted unsuccessfully`)
+            return null
+        }
+        if (myReturn.stateNode &&
+            myReturn.stateNode.props &&
+            myReturn.stateNode.props.id === id) {
+            return myReturn.stateNode
+        }
+        console.error(`ux.js findComponentById id=${id} exited with return but doesn't meet our criteria`)
+        return null
     },
 
     /**
@@ -1650,7 +1644,7 @@ UX = {
      * @param {string} majorLabel i18n bundle key of major (route-level) back label.
      * @param {string} minorLabel i18n bundle key of minor (panel-level) back label.
      * @param {string} path Path (suitable for FlowRouter.go function).
-     * @param {string} panel Panel name (e.g., "LEFT").
+     * @param {string} panel Panel name (i.e., LEFT, RIGHT or BOTH).
      * @param {string} animation Optional animation name.
      */
     iosMajorPush(majorLabel, minorLabel, path, panel, animation) {
@@ -1686,7 +1680,7 @@ UX = {
      * unchanged (only the panel changes).
      *
      * @param {string} minorLabel i18n bundle key minor (panel-level) back label.
-     * @param {string} panel Name of panel to display.
+     * @param {string} panel Panel name (i.e., RIGHT).
      * @param {string} animation Optional animation name.
      */
     iosMinorPush(minorLabel, panel, animation) {
@@ -1732,7 +1726,7 @@ UX = {
             UX.goDefault()
             return
         }
-        if (iosState.slideMode) {
+        if (UX.isGridCollapsed()) {
             state = iosState.stack.pop()
         }
         else {
@@ -1743,7 +1737,7 @@ UX = {
         }
         // This should not be possible unless there is a bug:
         if (!state) {
-            OLog.error("ux.js iosPopAndGo pop executed but no previous state exists on stack")
+            OLog.error("ux.js iosPopAndGo pop executed but no previous state exists on stack going to default route")
             UX.goDefault()
             return
         }
@@ -1776,12 +1770,12 @@ UX = {
     },
 
     /**
-     * Go to a new route similar to iosMajorPush, but without affecting the iOS stack.
+     * Go to a new route with an effect like iosMajorPush without affecting the stack.
      *
      * @param {string} majorLabel i18n bundle key of major (route-level) back label.
      * @param {string} minorLabel i18n bundle key of minor (panel-level) back label.
      * @param {string} path Path (suitable for FlowRouter.go function).
-     * @param {string} panel Panel name (e.g., "LEFT").
+     * @param {string} panel Panel name to display (i.e., LEFT, RIGHT, BOTH).
      * @param {string} animation Optional animation name.
      */
     iosInvoke(majorLabel, minorLabel, path, panel, animation) {
@@ -1832,7 +1826,7 @@ UX = {
         iosState.stack = []
         iosState.majorBackLabel = null
         iosState.minorBackLabel = null
-        UX.mutatePanelMap(iosState, routePath, "LEFT")
+        UX.mutatePanelMap(iosState, routePath, VXApp.getInitialPanel(routePath))
         Store.dispatch(setIosState(iosState))
     },
 
@@ -1919,7 +1913,7 @@ UX = {
 
     /**
      * Determine whether a given component (within a form) should receive property updates
-     * via componentWillReceiveProps.
+     * via UNSAFE_componentWillReceiveProps.
      *
      * @param {object} component Component to be evaluated.
      * @return {boolean} True if component should receive props.
@@ -2206,6 +2200,8 @@ UX = {
      */
     goDefault() {
         Meteor.call("getDefaultRoute", (error, defaultRoute) => {
+            OLog.debug(`ux.js getDefaultRoute server has inferred that default route for ${Util.getUserEmail(Meteor.userId())} ` +
+                `should be ${defaultRoute}`)
             UX.initStackAndBackLabels(defaultRoute)
             FlowRouter.go(defaultRoute)
         })

@@ -2363,5 +2363,15 @@ Util = {
         const objectOneString = EJSON.stringify(objectOne)
         const objectTwoString = EJSON.stringify(objectTwo)
         return objectOneString === objectTwoString
+    },
+
+    /**
+     * Return Meteor collection matching supplied name.
+     *
+     * @param {string} collectionName Collection name (typically lowercase like "domains")
+     * @return {object} Reference to collection.
+     */
+    getCollection(collectionName) {
+        return Mongo.Collection.get(collectionName)
     }
 }

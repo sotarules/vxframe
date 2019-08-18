@@ -12,6 +12,8 @@ export default class IOSButtonBar extends Component {
         isEditVisible : PropTypes.bool.isRequired,
         isCloneVisible : PropTypes.bool.isRequired,
         isDeleteVisible : PropTypes.bool.isRequired,
+        isUndoVisible : PropTypes.bool.isRequired,
+        isRedoVisible : PropTypes.bool.isRequired,
         isDoneEditingVisible : PropTypes.bool.isRequired
     }
 
@@ -31,7 +33,7 @@ export default class IOSButtonBar extends Component {
         }, 350)
     }
 
-    componentWillReceiveProps(newProps) {
+    UNSAFE_componentWillReceiveProps(newProps) {
         this.setState({ isButtonBarVisible : newProps.isButtonBarVisible })
     }
 
@@ -74,6 +76,18 @@ export default class IOSButtonBar extends Component {
                                             iconClass="fa-times"
                                             title={Util.i18n("common.popup_menu_delete")}/>
                                     }
+                                    {this.props.isUndoVisible &&
+                                        <IOSButton id="ios-button-undo"
+                                            key="ios-button-undo"
+                                            iconClass="fa-undo"
+                                            title={Util.i18n("common.popup_menu_undo")}/>
+                                    }
+                                    {this.props.isRedoVisible &&
+                                        <IOSButton id="ios-button-redo"
+                                            key="ios-button-redo"
+                                            iconClass="fa-repeat"
+                                            title={Util.i18n("common.popup_menu_redo")}/>
+                                    }
                                     {this.props.isDoneEditingVisible &&
                                         <IOSButton id="ios-button-done-editing"
                                             key="ios-button-done-editing"
@@ -90,6 +104,6 @@ export default class IOSButtonBar extends Component {
     }
 
     className() {
-        return "flexi-fixed not-selectable " + (this.state.isButtonBarVisible ? "ios-button-bar" : "ios-button-bar-placeholder")
+        return `flexi-fixed not-selectable hidden-print ${(this.state.isButtonBarVisible ? "ios-button-bar" : "ios-button-bar-placeholder")}`
     }
 }

@@ -8,7 +8,15 @@ VXApp = _.extend(VXApp || {}, {
      * @return {string} Default route.
      */
     getDefaultRoute() {
-        return "/profile"
+        let path
+        if (VXApp.getAppDefaultRoute) {
+            path = VXApp.getAppDefaultRoute()
+        }
+        if (!path) {
+            path = "/profile"
+        }
+        OLog.debug(`vxapp.js getDefaultRoute path=${path}`)
+        return path
     },
 
     /**
@@ -672,7 +680,7 @@ VXApp = _.extend(VXApp || {}, {
     /**
      * Server side validation.
      *
-     * @param {string} functionName Name of function.
+     * @param {string} functionName Fully-qualified name of function (e.g., "VX.common.zip")
      * @param {array} validateArgs Validation arguments.
      * @return {object} Result object.
      */
@@ -791,5 +799,248 @@ VXApp = _.extend(VXApp || {}, {
             return `${httpString.substring(0, 100)}...`
         }
         return httpString
+    },
+
+    /**
+     * Handle an insert of a new record, initializing the Transactions collection as needed.
+     *
+     * @param {object} collection Collection.
+     * @param {string} userId User ID who is inserting the record.
+     * @param {object} doc Document after insert.
+     */
+    handleInsert(collection, userId, doc) {
+        VXApp.makeTransactions(collection, Util.getCurrentDomainId(userId), userId, doc)
+    },
+
+    /**
+     * Handle an update of an existing record, updating the Transactions collection as needed.
+     *
+     * @param {object} collection Collection.
+     * @param {string} userId User ID who is inserting the record.
+     * @param {object} doc Document after insert.
+     * @param {object} fieldNames Field names that were updated.
+     */
+    handleUpdate(collection, userId, doc, fieldNames) {
+        try {
+            const transactions = VXApp.findTransactions(collection, userId, doc)
+            if (!transactions) {
+                VXApp.makeTransactions(collection, Util.getCurrentDomainId(userId), userId, doc)
+                return
+            }
+            const undoStackSize = Util.getConfigValue("undoStackSize") || 100
+            const selector = VXApp.makeTransactionsSelector(collection, userId, doc)
+            if (transactions.history.length >= undoStackSize) {
+                OLog.debug(`vxapp.js handleUpdate ${collection._name} domain=${selector.domain} userId=${userId} stack at maximum undoStackSize=${undoStackSize} index=${transactions.index} length=${transactions.history.length} *shift*`)
+                transactions.history.shift()
+            }
+            else {
+                OLog.debug(`vxapp.js handleUpdate ${collection._name} domain=${selector.domain} userId=${userId} stack at still has room undoStackSize=${undoStackSize} index=${transactions.index} length=${transactions.history.length}`)
+            }
+            transactions.history.push(doc)
+            const modifier = {}
+            modifier.$set = {}
+            modifier.$set.index = transactions.history.length - 1
+            modifier.$set.history = transactions.history
+            OLog.debug(`vxapp.js handleUpdate ${collection._name} domain=${selector.domain} userId=${userId} fieldNames=${OLog.debugString(fieldNames)} selector=${OLog.debugString(selector)} modifier=${OLog.debugString(modifier)}`)
+            const result = Transactions.update(selector, modifier)
+            if (result !== 1) {
+                OLog.error(`vxapp.js handleUpdate *fail* result=${result} ${collection._name} domain=${selector.domain} userId=${userId} fieldNames=${OLog.debugString(fieldNames)} selector=${OLog.debugString(selector)} modifier=${OLog.debugString(modifier)}`)
+            }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js handleUpdate *fail* ${collection._name} domain=${Util.getCurrentDomainId(userId)} userId=${userId} fieldNames=${OLog.debugString(fieldNames)} error=${error}`)
+        }
+    },
+
+    /**
+     * Create and return transaction selector.
+     *
+     * @param {object} collection Collection.
+     * @param {string} userId User ID.
+     * @param {object} doc Record being inserted or updated.
+     */
+    makeTransactionsSelector(collection, userId, doc) {
+        const selector = {}
+        selector.domain = Util.getCurrentDomainId(userId)
+        selector.userId = userId
+        selector.collectionName = collection._name
+        selector.id = doc._id
+        return selector
+    },
+
+    /**
+     * Find a transaction set.
+     *
+     * @param {object} collection Collection.
+     * @param {string} userId User ID.
+     * @param {object} doc Record being inserted or updated.
+     */
+    findTransactions(collection, userId, doc) {
+        const selector = VXApp.makeTransactionsSelector(collection._name, userId, doc)
+        return Transactions.findOne(selector)
+    },
+
+    /**
+     * Create a new transaction set.
+     *
+     * @param {object} collection Collection.
+     * @param {string} domainId User ID.
+     * @param {string} userId User ID.
+     * @param {object} doc Record being inserted or updated.
+     */
+    makeTransactions(collection, domainId, userId, doc) {
+        const transactions = {}
+        transactions.domain = domainId
+        transactions.userId = userId
+        transactions.collectionName = collection._name
+        transactions.id = doc._id
+        transactions.index = 0
+        transactions.history = [ doc ]
+        OLog.debug(`vxapp.js makeTransactions transactions=${OLog.debugString(transactions)}`)
+        Transactions.insert(transactions)
+    },
+
+    /**
+     * Perform undo processing.
+     *
+     * @param {object} collectionName Collection name.
+     * @param {object} docCurrent Record current state to undo.
+     * @return {object} Result object.
+     */
+    undo(collectionName, docCurrent) {
+        try {
+            if (!(_.isString(collectionName) && _.isObject(docCurrent))) {
+                OLog.error(`vxapp.js undo parameter check failed collectionName=${collectionName} docCurrent=${OLog.errorString(docCurrent)}`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
+            }
+            const collection = Util.getCollection(collectionName)
+            if (!collection) {
+                OLog.error(`vxapp.js undo parameter check failed collectionName=${collectionName} unable to find matching Meteor collection`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
+            }
+            const userId = Meteor.userId()
+            if (!userId) {
+                OLog.error("vxapp.js undo security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            const transactions = VXApp.findTransactions(collection, userId, docCurrent)
+            if (!transactions) {
+                OLog.debug(`vxapp.js undo unable to find transaction set collectionName=${collectionName} docCurrent=${OLog.debugString(docCurrent)}`)
+                return { success : false, icon : "TRIANGLE", type: "INFO", key : "common.alert_transaction_fail_undo_transactions_not_found" }
+            }
+            OLog.debug(`vxapp.js undo collectionName=${collectionName} *found* transactions history index=${transactions.index} length=${transactions.history.length}`)
+            if (transactions.index === 0) {
+                return { success : false, icon : "TRIANGLE", type: "INFO", key : "common.alert_transaction_fail_undo_no_eariler_state" }
+            }
+            const selector = VXApp.makeTransactionsSelector(collection, userId, docCurrent)
+            const docPrevious = transactions.history[transactions.index - 1]
+            OLog.debug(`vxapp.js undo attempting to reinstate previous document collectionName=${collectionName} domain=${selector.domain} userId=${userId} selector=${OLog.debugString(selector)}`)
+            let result = collection.direct.update(transactions.id, docPrevious, { bypassCollection2: true })
+            if (result !== 1) {
+                OLog.error(`vxapp.js undo *fail* result=${result} collectionName=${collectionName} domain=${selector.domain} userId=${userId} selector=${OLog.errorString(selector)} docPrevious=${OLog.errorString(docPrevious)}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_update_record_state" }
+            }
+            const modifier = {}
+            modifier.$inc = {}
+            modifier.$inc.index = -1
+            result = Transactions.update(selector, modifier)
+            if (result !== 1) {
+                OLog.error(`vxapp.js undo *fail* result=${result} collectionName=${collectionName} domain=${selector.domain} userId=${userId} selector=${OLog.errorString(selector)} modifier=${OLog.errorString(modifier)}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_update_transaction_history" }
+            }
+            OLog.debug(`vxapp.js undo collectionName=${collection._name} domain=${selector.domain} userId=${userId} _id=${docCurrent._id} new index=${transactions.index - 1} length=${transactions.history.length}`)
+            return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js undo unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Perform redo processing.
+     *
+     * @param {object} collectionName Collection name
+     * @param {object} docCurrent Record current state to redo.
+     * @return {object} Result object.
+     */
+    redo(collectionName, docCurrent) {
+        try {
+            if (!(_.isString(collectionName) && _.isObject(docCurrent))) {
+                OLog.error(`vxapp.js redo parameter check failed collection=${collectionName} docCurrent=${OLog.errorString(docCurrent)}`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
+            }
+            const collection = Util.getCollection(collectionName)
+            if (!collection) {
+                OLog.error(`vxapp.js redo parameter check failed collectionName=${collectionName} unable to find matching Meteor collection`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
+            }
+            const userId = Meteor.userId()
+            if (!userId) {
+                OLog.error("vxapp.js redo security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            const transactions = VXApp.findTransactions(collection, userId, docCurrent)
+            if (!transactions) {
+                OLog.debug(`vxapp.js redo unable to find transaction set collectionName=${collectionName} docCurrent=${OLog.debugString(docCurrent)}`)
+                return { success : false, icon : "TRIANGLE", type: "INFO", key : "common.alert_transaction_fail_redo_transactions_not_found" }
+            }
+            OLog.debug(`vxapp.js redo collectionName=${collectionName} *found* transactions history index=${transactions.index} length=${transactions.history.length}`)
+            if (transactions.index === transactions.history.length - 1) {
+                return { success : false, icon : "TRIANGLE", type: "INFO", key : "common.alert_transaction_fail_redo_no_later_state" }
+            }
+            const selector = VXApp.makeTransactionsSelector(collection, userId, docCurrent)
+            const docNext = transactions.history[transactions.index + 1]
+            OLog.debug(`vxapp.js redo attempting to reinstate next document collectionName=${collectionName} domain=${selector.domain} userId=${userId} selector=${OLog.debugString(selector)}`)
+            let result = collection.direct.update(transactions.id, docNext, { bypassCollection2: true })
+            if (result !== 1) {
+                OLog.error(`vxapp.js redo *fail* result=${result} collectionName=${collection._name} domain=${selector.domain} userId=${userId} selector=${OLog.errorString(selector)} docNext=${OLog.errorString(docNext)}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_update_record_state" }
+            }
+            const modifier = {}
+            modifier.$inc = {}
+            modifier.$inc.index = 1
+            result = Transactions.update(selector, modifier)
+            if (result !== 1) {
+                OLog.error(`vxapp.js redo *fail* result=${result} collectionName=${collectionName} domain=${selector.domain} userId=${userId} selector=${OLog.errorString(selector)} modifier=${OLog.errorString(modifier)}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_update_transaction_history" }
+            }
+            OLog.debug(`vxapp.js redo collectionName=${collectionName} domain=${selector.domain} userId=${userId} _id=${docCurrent._id} new index=${transactions.index + 1} length=${transactions.history.length}`)
+            return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js redo unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Execute arbitrary function on server (only available to Super Administrators).
+     *
+     * @param {string} functionName Name of VXApp server-side function to invoke.
+     * @param {array} args Additional arguments if any.
+     */
+    serverExecute(functionName, ...args) {
+        try {
+            if (!_.isString(functionName)) {
+                OLog.error(`vxapp.js serverExecute parameter check failed functionName=${functionName}`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed" }
+            }
+            const userId = Meteor.userId()
+            if (!userId) {
+                OLog.error("vxapp.js serverExecute security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            if (!Util.isUserSuperAdmin(userId)) {
+                OLog.error("vxapp.js serverExecute security check failed only Super Administrators can invoke server-side functions arbitrarily")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            OLog.debug(`vxapp.js serverExecute *invoking* functionName=${functionName} args=${args}`)
+            return VXApp[functionName](...args)
+        }
+        catch (error) {
+            OLog.error(`vxapp.js serverExecute unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
     }
 })

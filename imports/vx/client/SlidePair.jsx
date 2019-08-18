@@ -22,7 +22,6 @@ export default class SlidePair extends Component {
 
     constructor(props) {
         super(props)
-        this.date = new Date()
         this.animation = null
     }
 
@@ -64,7 +63,9 @@ export default class SlidePair extends Component {
             return null
         }
         let routeSegmentFirst = Util.routeFirstSegment(Util.routePath())
-        let panel = this.props.iosState.panelMap ? this.props.iosState.panelMap[routeSegmentFirst] : "LEFT"
+        let panel = this.props.iosState.panelMap ?
+            this.props.iosState.panelMap[routeSegmentFirst] :
+            VXApp.getInitialPanel(Util.routePath())
         if (panel === "LEFT") {
             return (
                 <SlidePanel key="left-panel"

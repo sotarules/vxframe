@@ -27,6 +27,19 @@ Config.allow({
     fetch: []
 })
 
+Clipboard.allow({
+    insert: function(userId, doc) {
+        return Serv.isAssertionTrue(userId === doc.userId, "Clipboard.allow insert", doc)
+    },
+    update: function(userId, doc, fields, modifier) {
+        return Serv.isAssertionTrue(userId === doc.userId, "Clipboard.allow update", doc, modifier)
+    },
+    remove: function() {
+        return false
+    },
+    fetch: ["userId"]
+})
+
 Events.allow({
     insert: function() {
         return false
