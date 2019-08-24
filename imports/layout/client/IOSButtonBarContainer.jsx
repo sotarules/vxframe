@@ -5,7 +5,7 @@ import IOSButtonBar from "/imports/layout/client/IOSButtonBar"
 const MeteorContainer = withTracker(props => {
 
     let visible = {}
-    visible.back = props.iosState.slideMode ? !!props.iosState.minorBackLabel : !!props.iosState.majorBackLabel
+    visible.back = UX.isIosBackButtonVisible(props.iosState)
     visible.edit = VXApp.isEditVisible()
     visible.clone = VXApp.isCloneVisible()
     visible.delete = VXApp.isDeleteVisible()
@@ -13,7 +13,7 @@ const MeteorContainer = withTracker(props => {
     visible.redo = VXApp.isUndoVisible()
     visible.done = VXApp.isDoneEditingVisible()
 
-    OLog.debug("IOSButtonBarContainer.jsx createContaner visible=" + OLog.debugString(visible))
+    OLog.debug(`IOSButtonBarContainer.jsx createContaner visible=${OLog.debugString(visible)}`)
 
     return {
         isButtonBarVisible : UX.isIosButtonBarVisible(props.iosState, visible),
@@ -24,7 +24,7 @@ const MeteorContainer = withTracker(props => {
         isUndoVisible : visible.undo,
         isRedoVisible : visible.redo,
         isDoneEditingVisible : visible.done,
-        backLabel : UX.backLabel(props.iosState.slideMode, props.iosState.majorBackLabel, props.iosState.minorBackLabel)
+        backLabel : UX.backLabel(props.iosState)
     }
 
 })(IOSButtonBar)

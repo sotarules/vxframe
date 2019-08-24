@@ -105,6 +105,11 @@
         rx : "$Tenants$"
     },
 
+    button_my_tenant : {
+        en : "Tenant",
+        rx : "$Tenant$"
+    },
+
     button_my_domains : {
         en : "Domains",
         rx : "$Domains$"

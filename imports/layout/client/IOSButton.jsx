@@ -21,14 +21,11 @@ export default class IOSButton extends Component {
         )
     }
 
-    registerDelegate(delegate) {
-        UXState[this.props.id] = delegate
-    }
-
     handleClick(event) {
         OLog.debug("IOSButton.jsx handleClick id=" + this.props.id)
         if (!_.isFunction(UXState[this.props.id])) {
             OLog.error("IOSButton.jsx handleClick id=" + this.props.id + " no delegate has been registered")
+            return
         }
         UX.iosDisable("#" + this.props.id)
         UXState[this.props.id](() => {

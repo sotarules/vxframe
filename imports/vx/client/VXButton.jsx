@@ -84,7 +84,7 @@ export default class VXButton extends Component {
     }
 
     componentWillUnmount() {
-        this.stop()
+        this.unmounted = true
     }
 
     start() {
@@ -103,7 +103,7 @@ export default class VXButton extends Component {
     }
 
     stop() {
-        if (!this.state.loading) {
+        if (this.unmounted || !this.state.loading) {
             return
         }
         this.setState({ loading : false }, () => {

@@ -114,6 +114,6 @@ export default class TenantViewRight extends Component {
         publishCurrentDomain.criteria = { _id : component.props._id }
         OLog.debug("TenantViewRight.jsx handleSelectDomain will select domain publishCurrentDomain=" + OLog.debugString(publishCurrentDomain))
         Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
-        UX.iosMajorPush("common.button_my_tenants", "common.button_my_domains", "/domains", "RIGHT")
+        UX.iosMajorPush("common.button_my_tenants", "common.button_my_tenant", "/domains", "RIGHT")
     }
 }

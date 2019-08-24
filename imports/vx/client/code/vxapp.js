@@ -93,6 +93,7 @@ VXApp = _.extend(VXApp || {}, {
                 specialFunction()
             }
             if (layout && content) {
+                console.log("vxapp.js mountRender mounting React component")
                 OLog.debug("vxapp.js mountRender mounting React component")
                 VXApp.mountInternal(layout, { content : content })
             }
@@ -121,7 +122,6 @@ VXApp = _.extend(VXApp || {}, {
         UXState.isDomReady = false
         VXApp.mountInternalReady(() => {
             const rootNode = VXApp.mountInternalGetRootNode("react-root")
-            OLog.debug("vxapp.js mountInternalReady *fire*")
             const element = React.createElement(layoutClass, props)
             ReactDOM.render(element, rootNode)
             Meteor.setTimeout(() => {
@@ -164,13 +164,8 @@ VXApp = _.extend(VXApp || {}, {
         if (path === "/") {
             return true
         }
-        if (Util.startsWith(exemptRoutes, path)) {
-            return true
-        }
-        if (VXApp.isAppExemptRoute) {
-            return VXApp.isAppExemptRoute(path)
-        }
-        return false
+        return Util.startsWith(exemptRoutes, path) ||
+            VXApp.isAppExemptRoute && VXApp.isAppExemptRoute(path)
     },
 
     /**
@@ -971,14 +966,6 @@ VXApp = _.extend(VXApp || {}, {
         return false
     },
 
-    isUndoVisible() {
-        return false
-    },
-
-    isRedoVisible() {
-        return false
-    },
-
     isDoneEditingVisible() {
         if (Util.isRoutePath("/template/") ) {
             return true
@@ -992,6 +979,14 @@ VXApp = _.extend(VXApp || {}, {
         if (Util.isRoutePath("/tenant/")) {
             return true
         }
+        return false
+    },
+
+    isUndoVisible() {
+        return false
+    },
+
+    isRedoVisible() {
         return false
     },
 

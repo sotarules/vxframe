@@ -25,7 +25,6 @@ export default class LayoutStandard extends Component {
 
     constructor(props) {
         super(props)
-        this.date = new Date()
         this.animation = null
     }
 
@@ -56,8 +55,8 @@ export default class LayoutStandard extends Component {
                             <div className="animation-top flexi-grow">
                                 <div className="animation-container notification-container flexi-grow">
                                     <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
-                                        <SlidePanel key={this.props.routePath}
-                                            id={this.props.routePath}
+                                        <SlidePanel key={this.slidePanelId()}
+                                            id={this.slidePanelId()}
                                             className="animation-panel flexi-grow"
                                             getAnimation={this.getAnimation.bind(this)}>
                                             {this.props.content}
@@ -71,6 +70,10 @@ export default class LayoutStandard extends Component {
                 </PersistGate>
             </Provider>
         )
+    }
+
+    slidePanelId() {
+        return `slide-panel-${Util.routePath()}`
     }
 
     getAnimation() {

@@ -1,6 +1,7 @@
 "use strict"
 
 import Parser from "html-react-parser"
+import isEqual from "react-fast-compare"
 
 import { setIosState } from "/imports/vx/client/code/actions"
 import { setFormData } from "/imports/vx/client/code/actions"
@@ -465,18 +466,7 @@ UX = {
         OLog.debug(`ux.js updateSlideMode *changed* slideModeOld=${slideModeOld} slideModeNew=${slideModeNew}`)
         UX.setLayoutAnimation("crossfade")
         UX.setSlidePairAnimation("crossfade")
-        if (slideModeOld && !slideModeNew) {
-            if (iosState.stack.length > 0 && iosState.stack[iosState.stack.length - 1].major === false) {
-                OLog.debug("ux.js updateSlideMode transitioning out of slide mode *pop* stack to neutralize minor push")
-                const state = iosState.stack.pop()
-                iosState.majorBackLabel = state.majorLabel
-                iosState.minorBackLabel = state.minorLabel
-                UX.mutatePanelMap(iosState, Util.routePath(), state.panel)
-            }
-        }
-        else if (!slideModeOld && slideModeNew) {
-            UX.mutatePanelMap(iosState, Util.routePath(), "LEFT")
-        }
+        UX.mutatePanelMap(iosState, Util.routePath(), "LEFT")
         iosState.slideMode = slideModeNew
         Store.dispatch(setIosState(iosState))
     },
@@ -498,19 +488,28 @@ UX = {
      * @return {boolean} True if iOS button bar visible.
      */
     isIosButtonBarVisible(iosState, visible) {
-        // If something is on stack, we must show the back button:
+        // If something is on stack the bar certainly will be shown
+        // because at minimum we need to show the back button:
         if (iosState.stack && iosState.stack.length > 0) {
             return true
         }
-        // Nothing is on stack, in slide mode suppress iOS button bar on first
-        // panel (left):
+        // Nothing is on stack so no back button. In normal mode the visibility of the
+        // bar is therefore contingent on whether there are any iOS buttons visible.
+        // But in slide mode, if we're on the LEFT panel, there is no back button,
+        // so we can conserve space by not showing the iOS button bar:
         if (iosState.slideMode && UX.getCurrentPanel(Util.routePath()) === "LEFT") {
             return false
         }
+        // See if any iOS buttons are visible:
         let result = _.reduce(Object.keys(visible), (memo, key) => {
             return memo || visible[key]
         }, false)
         return result
+    },
+
+    isIosBackButtonVisible(iosState) {
+        return iosState.stack && iosState.stack.length > 0 &&
+            (iosState.slideMode ? !!iosState.minorBackLabel : !!iosState.majorBackLabel)
     },
 
     /**
@@ -531,13 +530,14 @@ UX = {
 
      * @return {string} Localized back label.
      */
-    backLabel(slideMode, majorBackLabel, minorBackLabel) {
-        // TODO: DL--just take iosState here and do more rigorous logic.
-        // 1. If we're not in slide mode, return majorBackLabel
-        // 2. If we're slide mode and LEFT return majorBackLabel
-        // 3. If we're slide mode and RIGHT return minorBackLabel
-        // 4. Eliminate back labels entirely! (just use stack)
-        let backLabel = slideMode ? minorBackLabel : majorBackLabel
+    backLabel(iosState) {
+        // This is right, we have both regular-mode and slide-mode back buttons.
+        // In slide mode, you'll usually go back to the singular element because
+        // you're going back to panel RIGHT typically body. In regular mode, you
+        // go back to panel LEFT with RIGHT on the side, and plural makes more
+        // sense because when both LEFT and RIGHT are shown, you're dealing with a
+        // list:
+        let backLabel = iosState.slideMode ? iosState.minorBackLabel : iosState.majorBackLabel
         if (backLabel) {
             return Util.i18n(backLabel)
         }
@@ -1718,15 +1718,15 @@ UX = {
      */
     iosPopAndGo(animation) {
         animation = animation || "slideright"
-        let state
         const path = Util.routePath()
-        let iosState = Store.getState().iosState
+        const iosState = Store.getState().iosState
         if (!iosState.stack || iosState.stack.length === 0) {
             OLog.error("ux.js iosPopAndGo stack length is zero, cannot pop")
             UX.goDefault()
             return
         }
-        if (UX.isGridCollapsed()) {
+        let state
+        if (UX.isSlideMode()) {
             state = iosState.stack.pop()
         }
         else {
@@ -1735,7 +1735,6 @@ UX = {
             }
             while (state && !state.major)
         }
-        // This should not be possible unless there is a bug:
         if (!state) {
             OLog.error("ux.js iosPopAndGo pop executed but no previous state exists on stack going to default route")
             UX.goDefault()
@@ -1764,7 +1763,7 @@ UX = {
                 FlowRouter.go(state.path)
             }
             catch (error) {
-                OLog.debug("ux.js iosPopAndGo error=" + error)
+                OLog.debug(`ux.js iosPopAndGo error=${error}`)
             }
         })
     },
@@ -2112,24 +2111,24 @@ UX = {
     },
 
     /**
-     * Register a caller-supplied delegate function with a specified iOS
-     * button.
+     * Register a caller-supplied delegate function for a specified iOS button.
      *
      * @param {string} componentId Component ID.
      * @param {function} delegate Delegate function.
      */
     registerIosButtonDelegate(componentId, delegate) {
-        let component = UX.findComponentById(componentId)
-        if (!component) {
-            OLog.debug("ux.js registerIosButtonDelegate unable to find componentId=" + componentId)
-            return
-        }
-        if (!component.registerDelegate) {
-            OLog.error("ux.js registerIosButtonDelegate componentId=" + componentId + " does not implement registerDelegate function")
-            return
-        }
-        OLog.debug("ux.js registerIosButtonDelegate componentId=" + componentId + " register delegate")
-        component.registerDelegate(delegate)
+        OLog.debug(`ux.js registerIosButtonDelegate componentId=${componentId} register delegate`)
+        UXState[componentId] = delegate
+    },
+
+    /**
+     * Unregister a delegate function.
+     *
+     * @param {string} componentId Component ID.
+     */
+    unregisterIosButtonDelegate(componentId) {
+        OLog.debug(`ux.js unregisterIosButtonDelegate componentId=${componentId}`)
+        delete UXState[componentId]
     },
 
     /**
@@ -2311,5 +2310,30 @@ UX = {
      */
     async http(method, url, options) {
         return await UX.call("http", method, url, options)
+    },
+
+    /**
+     * Compare two objects and find differences between them.
+     * This can be used on either properties or state objects.
+     *
+     * @param {object} oldObject Old object.
+     * @param {object} newObject New object.
+     * @param {string} keyCheck Key to check more carefully.
+     */
+    showDifferences(oldObject, newObject, keyCheck) {
+        if (!(oldObject && newObject)) {
+            console.log(`ux.js showDifferences oldObject=${oldObject} newObject=${newObject}`)
+            return
+        }
+        Object.keys(oldObject).forEach(key => {
+            const oldProp = oldObject[key]
+            const newProp = newObject[key]
+            if (!isEqual(oldProp, newProp)) {
+                console.log(`ux.js showDifferences key=${key}`)
+                if (key === keyCheck) {
+                    console.log(`ux.js showDifferences key=${key} oldProp=${JSON.stringify(oldProp)} newProp=${JSON.stringify(newProp)}`)
+                }
+            }
+        })
     }
 }

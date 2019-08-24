@@ -11,11 +11,6 @@ export default class SlidePanel extends Component {
         in : PropTypes.bool
     }
 
-    constructor(props) {
-        super(props)
-        this.date = new Date()
-    }
-
     render() {
         return (
             <Transition in={this.props.in}
