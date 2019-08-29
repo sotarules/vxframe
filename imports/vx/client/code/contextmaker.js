@@ -55,7 +55,7 @@ ContextMaker = {
     user() {
         let publishAuthoringUser = {}
         if (Util.isRoutePath("/user/")) {
-            publishAuthoringUser.criteria = { _id : UX.getParam("_id") }
+            publishAuthoringUser.criteria = { _id : UX.lastSegment() }
             OLog.debug(`contextmaker.js route [user] *correct* publishAuthoringUser=${OLog.debugString(publishAuthoringUser)}`)
             Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
         }
@@ -69,7 +69,7 @@ ContextMaker = {
     domain() {
         let publishAuthoringDomain = {}
         if (Util.isRoutePath("/domain/")) {
-            publishAuthoringDomain.criteria = { _id : UX.getParam("_id") }
+            publishAuthoringDomain.criteria = { _id : UX.lastSegment() }
             OLog.debug(`contextmaker.js route [domain] *correct* publishAuthoringDomain=${OLog.debugString(publishAuthoringDomain)}`)
             Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
         }
@@ -107,7 +107,7 @@ ContextMaker = {
     tenant() {
         let publishCurrentTenant = {}
         if (Util.isRoutePath("/tenant/")) {
-            publishCurrentTenant.criteria = { _id : UX.getParam("_id") }
+            publishCurrentTenant.criteria = { _id : UX.lastSegment() }
             OLog.debug(`contextmaker.js route [tenant] *correct* publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
             Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
         }
@@ -187,7 +187,7 @@ ContextMaker = {
     template() {
         let publishAuthoringTemplate = {}
         if (Util.isRoutePath("/template/")) {
-            publishAuthoringTemplate.criteria = { _id : UX.getParam("_id") }
+            publishAuthoringTemplate.criteria = { _id : UX.lastSegment() }
             OLog.debug(`contextmaker.js route [template] *correct* publishAuthoringTemplate=${OLog.debugString(publishAuthoringTemplate)}`)
             Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
         }

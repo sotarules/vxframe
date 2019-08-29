@@ -4,14 +4,16 @@ import { createStore } from "redux"
 import { combineReducers } from "redux"
 import { persistStore, persistReducer } from "redux-persist"
 import storage from "redux-persist/lib/storage"
-import allReducers from "/imports/vx/client/code/reducers/allReducers"
+import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
 import { setCurrentLocale } from "/imports/vx/client/code/actions"
 
 React = require("react")
 ReactDOM = require("react-dom")
 
+console.log("master.js (VX) *init*")
+
 const persistConfig = { key: "root", storage }
-const persistedReducer = persistReducer(persistConfig, combineReducers(allReducers))
+const persistedReducer = persistReducer(persistConfig, combineReducers(allReducersVx))
 Store = createStore(persistedReducer)
 Persistor = persistStore(Store)
 

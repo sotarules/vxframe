@@ -94,8 +94,9 @@ export default class DomainViewRight extends Component {
 
     handleMakeCurrent() {
         Meteor.call("setCurrentDomain", this.props.domain._id, (error, result) => {
-            VXApp.refreshGlobalSubscriptions(true, () => {
-                //callback() - no need to invoke callback to stop ladda this because button is gone
+            VXApp.clearSessionSettings()
+            UX.showLoading()
+            VXApp.refreshGlobalSubscriptions(() => {
                 UX.notify(result, error)
             })
         })

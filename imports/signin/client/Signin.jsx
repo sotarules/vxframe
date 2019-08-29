@@ -106,15 +106,13 @@ export default class Signin extends Component {
             let password = UX.getComponentValue("password")
             Meteor.loginWithPassword(email, password, (error) => {
                 if (error) {
-                    OLog.debug("Signin.jsx handleClickSignin Meteor.loginWithPassword failed, email=" + email + " error=" + error)
+                    OLog.debug(`Signin.jsx handleClickSignin Meteor.loginWithPassword failed, email=${email} error=${error}`)
                     UX.createAlertLegacy("alert-danger", "login.login_error", { error : error.reason })
                     callback()
                     return
                 }
-                UX.showLoading()
-                callback()
-                OLog.debug("Signin.jsx handleClickSignin Meteor.loginWithPassword success, email=" + email)
-                UX.goDefault()
+                OLog.debug(`Signin.jsx handleClickSignin Meteor.loginWithPassword success, email=${email}`)
+                VXApp.afterLogin()
             })
         }
         catch (error) {

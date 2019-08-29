@@ -51,7 +51,7 @@ import "/imports/vx/client/code/prototype"
 import "/imports/vx/client/code/master"
 //import "/imports/app/client/code/master"
 
-import "/imports/vx/client/code/router"
+import "/imports/vx/client/code/routes"
 //import "/imports/app/client/code/router"
 
 import "/imports/vx/client/code/ux"

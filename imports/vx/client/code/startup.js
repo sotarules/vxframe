@@ -1,4 +1,5 @@
 import initReactFastclick from "react-fastclick"
+import { createBrowserHistory } from "history"
 
 // This makes it possible to debug even if the user hasn't yet logged in (very helpful for debugging hyperlinks
 // such as sign-off actions):
@@ -8,19 +9,46 @@ if (Meteor.absoluteUrl().indexOf("sota.ddns.net") >= 0) {
 }
 
 Meteor.startup(() => {
+
+    console.log("startup.js creating browser history object")
+
+    // Default loading to hold off any rendering until subscriptions are loaded (see below).
+    UX.setLoading(true)
+
+    BrowserHistory = createBrowserHistory()
+    BrowserHistory.listen((location, action) => {
+        OLog.debug(`startup.js history listener URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
+        if (location.pathname === "/") {
+            OLog.debug("startup.js history user is logging out bypass subscriptions")
+            VXApp.routeBefore()
+            VXApp.routeAfter()
+            return
+        }
+        VXApp.routeBefore()
+        VXApp.doGlobalSubscriptions(() => {
+            VXApp.routeAfter()
+        })
+    })
+
+    ReactDOM.render(Routes.renderRoutes(), document.getElementById("react-root"))
+
     // Compute initial slide mode based on device characteristics:
     UX.updateSlideMode()
+
     PNotify.prototype.options.styling = "fontawesome"
     // Disable scroll for the document, we'll handle it ourselves
     $(document).on("touchmove", event => {
         event.preventDefault()
     })
+
     // Dynamic changes in screen size can change the slide-mode state of the system:
     $(window).on("resize", () => {
         UX.updateSlideMode()
     })
+
     // Anti-rubber-band logic:
     UX.noRubberBand()
+
     // Capture and log the client version:
     Accounts.onLogin(() => {
         console.log("startup.js Accounts onLogin *fire*")
@@ -31,7 +59,15 @@ Meteor.startup(() => {
             }
         })
     })
-    Meteor.Spinner.options = { zIndex : 0, width: 3 }
+
     // Use React-friendly FastClick:
     initReactFastclick()
+
+    // Reset global subscriptions here to handle the case where user is starting the system
+    // via bookmarked page that needs subscriptions ready:
+    VXApp.doGlobalSubscriptions(success => {
+        OLog.debug(`startup.js [${Util.routePath()}] doGlobalSubscriptions callback success=${success}`)
+        VXApp.routeBefore()
+        VXApp.routeAfter()
+    })
 })

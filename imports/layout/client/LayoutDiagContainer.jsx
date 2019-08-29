@@ -1,11 +1,16 @@
-import { withTracker } from "meteor/react-meteor-data"
-import LayoutDiag from "/imports/layout/client/LayoutDiag"
+import { Component } from "react"
+import { Provider } from "react-redux"
+import { PersistGate } from "redux-persist/integration/react"
+import LayoutDiagConnect from "/imports/layout/client/LayoutDiagConnect"
 
-export default withTracker(props => {
-
-    return {
-        isAuthorizedRoute : !!VXApp.isAuthorizedRoute(),
-        content : props.content
+export default class LayoutDiagContainer extends Component {
+    render() {
+        return (
+            <Provider store={Store}>
+                <PersistGate loading={null} persistor={Persistor}>
+                    <LayoutDiagConnect {...this.props} />
+                </PersistGate>
+            </Provider>
+        )
     }
-
-})(LayoutDiag)
+}

@@ -85,7 +85,7 @@ export default class SigninModal extends Component {
                 return
             }
 
-            let token = FlowRouter.getParam("token")
+            let token = UX.lastSegment()
             let password = UX.getComponentValue("modal-password")
 
             OLog.debug("SigninModal.jsx handleClickEnroll information is valid, proceeding with token=" + token + " password=" + password)
@@ -140,7 +140,7 @@ export default class SigninModal extends Component {
                 return
             }
 
-            let token = FlowRouter.getParam("token")
+            let token = UX.lastSegment()
             let password = UX.getComponentValue("modal-password")
 
             OLog.debug("SigninModal.jsx handleClickResetPassword information is valid, proceeding with token=" + token + " password=" + password)

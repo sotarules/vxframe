@@ -83,7 +83,7 @@ export default class DomainUserViewLeft extends Component {
                     OLog.error("UserDomainViewLeft.jsx handleClickCreateDomain error attempting to create domain=" + error)
                     return
                 }
-                VXApp.refreshGlobalSubscriptions(false, () => {
+                VXApp.refreshGlobalSubscriptions(() => {
                     callback()
                     UX.iosMajorPush(null, null, "/domain/" + domainId, "RIGHT", "crossfade")
                 })

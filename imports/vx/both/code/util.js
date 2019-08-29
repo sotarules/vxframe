@@ -778,11 +778,10 @@ Util = {
      * any of an array of strings.
      *
      * @param {?} stringOrArray String or array of route prefixes.
-     * @param {boolean} reactive True to enable reactivity.
      * @return {boolean} True if the current route path begins with the specified string.
      */
-    isRoutePath(stringOrArray, reactive) {
-        let path = Util.routePath(reactive)
+    isRoutePath(stringOrArray) {
+        let path = Util.routePath()
         if (!stringOrArray || !path) {
             return false
         }
@@ -804,18 +803,12 @@ Util = {
     },
 
     /**
-     * Return the current route path (non-reactive).
+     * Return the current route path.
      *
-     * @param {boolean} reactive True to enable reactivity.
      * @return {string} Current route path as string (e.g., "/cards").
      */
-    routePath(reactive) {
-        reactive = !!reactive
-        // We have to explicitly ask for reactive updates with FlowRouter:
-        if (reactive) {
-            FlowRouter.watchPathChange()
-        }
-        return FlowRouter.current().path
+    routePath() {
+        return BrowserHistory.location.pathname
     },
 
     /**

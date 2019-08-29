@@ -9,3 +9,5 @@ this.ContextMaker = {}
 this.VXSubs = {}
 this.Store = {}
 this.Persistor = {}
+this.BrowserHistory = {}
+this.Routes = {}

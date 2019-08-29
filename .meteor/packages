@@ -30,14 +30,12 @@ ejson@1.1.0
 
 lepozepo:accounting
 afruth:bootstrap-touchspin
-sacha:spin
 reactive-var@1.0.11
 random@1.1.0
 shell-server@0.4.0
 dsyko:holder
 lookback:emails
 momentjs:moment@2.15.1
-kadira:flow-router
 meteorhacks:picker
 joshowens:timezone-picker
 dynamic-import@0.5.1

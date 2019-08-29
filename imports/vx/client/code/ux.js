@@ -5,11 +5,28 @@ import isEqual from "react-fast-compare"
 
 import { setIosState } from "/imports/vx/client/code/actions"
 import { setFormData } from "/imports/vx/client/code/actions"
+import { setLoading } from "/imports/vx/client/code/actions"
 
 /**
  * User interface utility functions.
  */
 UX = {
+
+    /**
+     * Go to the specified path.
+     *
+     * @param {string} Route path.
+     */
+    go(path) {
+        console.log(`ux.js go path=${path}`)
+        try {
+            BrowserHistory.push(path)
+        }
+        catch (error) {
+            OLog.error(`ux.js go unexpected error=${error}`)
+            return
+        }
+    },
 
     /**
      * Fire fade transitions by setting CSS class fire in elements marked with
@@ -508,8 +525,10 @@ UX = {
     },
 
     isIosBackButtonVisible(iosState) {
-        return iosState.stack && iosState.stack.length > 0 &&
-            (iosState.slideMode ? !!iosState.minorBackLabel : !!iosState.majorBackLabel)
+        if (iosState && iosState.stack && iosState.stack.length > 0) {
+            return (iosState.slideMode ? !!iosState.minorBackLabel : !!iosState.majorBackLabel)
+        }
+        return false
     },
 
     /**
@@ -752,22 +771,6 @@ UX = {
     },
 
     /**
-     * Go to the specified path.
-     *
-     * @param {object} Route path.
-     */
-    go(path) {
-        OLog.debug("ux.js go invoking FlowRouter.go(" + path + ")")
-        try {
-            FlowRouter.go(path)
-        }
-        catch (error) {
-            OLog.error("ux.js go unexpected error=" + error)
-            return
-        }
-    },
-
-    /**
      * Display please wait.
      */
     showLoading() {
@@ -787,6 +790,15 @@ UX = {
             UXState.loading.finish()
             UXState.loading = null
         }
+    },
+
+    /**
+     * Setter for redux loading.
+     *
+     * @param {boolean} loading Loading indicator.
+     */
+    setLoading(loading) {
+        Store.dispatch(setLoading(loading))
     },
 
     /**
@@ -1643,7 +1655,7 @@ UX = {
      *
      * @param {string} majorLabel i18n bundle key of major (route-level) back label.
      * @param {string} minorLabel i18n bundle key of minor (panel-level) back label.
-     * @param {string} path Path (suitable for FlowRouter.go function).
+     * @param {string} path Path (suitable for UX.go function).
      * @param {string} panel Panel name (i.e., LEFT, RIGHT or BOTH).
      * @param {string} animation Optional animation name.
      */
@@ -1670,7 +1682,7 @@ UX = {
                 UX.mutatePanelMap(iosState, path, panel)
                 OLog.debug(`ux.js iosMajorPush new iosState=${OLog.debugString(iosState)}`)
                 Store.dispatch(setIosState(iosState))
-                FlowRouter.go(path)
+                UX.go(path)
             })
         })
     },
@@ -1760,7 +1772,7 @@ UX = {
                     return
                 }
                 OLog.debug(`ux.js iosPopAndGo original path=${path} state.path=${state.path} *different* FlowRouter go ${state.path}`)
-                FlowRouter.go(state.path)
+                UX.go(state.path)
             }
             catch (error) {
                 OLog.debug(`ux.js iosPopAndGo error=${error}`)
@@ -1773,7 +1785,7 @@ UX = {
      *
      * @param {string} majorLabel i18n bundle key of major (route-level) back label.
      * @param {string} minorLabel i18n bundle key of minor (panel-level) back label.
-     * @param {string} path Path (suitable for FlowRouter.go function).
+     * @param {string} path Path (suitable for UX.go function).
      * @param {string} panel Panel name to display (i.e., LEFT, RIGHT, BOTH).
      * @param {string} animation Optional animation name.
      */
@@ -1789,7 +1801,7 @@ UX = {
             iosState.minorBackLabel = minorLabel
             UX.mutatePanelMap(iosState, path, panel)
             Store.dispatch(setIosState(iosState))
-            FlowRouter.go(path)
+            UX.go(path)
         })
     },
 
@@ -2181,17 +2193,13 @@ UX = {
     },
 
     /**
-     * Get route parameter non-reactively.
+     * Get the last segment of the current route path. This is typically a MongoID or token.
      *
-     * @param {string} name Parameter name.
-     * @return {string} Parameter value
+     * @return {string} Last segment of route path.
      */
-    getParam(name) {
-        let value
-        Tracker.nonreactive(() => {
-            value = FlowRouter.getParam(name)
-        })
-        return value
+    lastSegment() {
+        const parts = Util.routePath().split("/")
+        return parts.pop()
     },
 
     /**
@@ -2202,7 +2210,7 @@ UX = {
             OLog.debug(`ux.js getDefaultRoute server has inferred that default route for ${Util.getUserEmail(Meteor.userId())} ` +
                 `should be ${defaultRoute}`)
             UX.initStackAndBackLabels(defaultRoute)
-            FlowRouter.go(defaultRoute)
+            UX.go(defaultRoute)
         })
     },
 

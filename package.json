@@ -22,7 +22,8 @@
     "react-fast-compare": "^2.0.4",
     "react-fastclick": "^3.0.2",
     "react-helmet": "^5.2.1",
-    "react-redux": "^7.1.0",
+    "react-redux": "^7.1.1",
+    "react-router-dom": "^5.0.1",
     "react-transition-group": "^4.2.2",
     "redux": "^4.0.4",
     "redux-actions": "^2.6.5",
@@ -31,7 +32,7 @@
   },
   "devDependencies": {
     "@meteorjs/eslint-config-meteor": "^1.0.5",
-    "babel-eslint": "^10.0.2",
+    "babel-eslint": "^10.0.3",
     "eslint": "^5.16.0",
     "eslint-config-airbnb": "^17.1.1",
     "eslint-import-resolver-meteor": "^0.4.0",

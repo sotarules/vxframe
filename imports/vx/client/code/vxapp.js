@@ -1,6 +1,5 @@
 "use strict";
 
-import domready from "domready"
 import { setCurrentDomainId } from "/imports/vx/client/code/actions"
 import { setCurrentLocale } from "/imports/vx/client/code/actions"
 import { setCurrentUserId } from "/imports/vx/client/code/actions"
@@ -16,140 +15,37 @@ import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
 import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
 import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
 import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
+import { setLoading } from "/imports/vx/client/code/actions"
 
 VXApp = _.extend(VXApp || {}, {
 
     /**
-     * Do everything to handle the current route, including subscribing, before-route actions
-     * and rendering.
+     * Given a layout component and content return a combined React element that is ready for
+     * mounting.
      *
      * @param {function} layout React layout (e.g., LayoutStandard).
      * @param {function} content React content (e.g., <EntityBody/>).
-     * @param {boolean} templateSubscription True if this route uses template subscription.
-     * @param {function} specialFunction Special function to invoke as action.
+     * @return {object} Element combined with content.
      */
-    mount(layout, content, templateSubscription, specialFunction) {
-        if (VXApp.isExemptRoute()) {
-            VXApp.mountRender(layout, content, templateSubscription, specialFunction)
-            return
-        }
-        let userId = Meteor.userId()
-        if (!userId) {
-            OLog.debug("vxapp.js mount no userId clearing session settings")
-            VXApp.clearSessionSettings()
-            OLog.debug("vxapp.js mount redirecting to signin")
-            FlowRouter.go("/")
-            return
-        }
-        let result = VXApp.getSubscriptionParameters()
-        if (result.success) {
-            OLog.debug("vxapp.js mount subscriptionParameters exist and will be used")
-            VXApp.mountContinued(result.subscriptionParameters, layout, content, templateSubscription, specialFunction)
-            return
-        }
-        Meteor.call("getSubscriptionParameters", (error, result) => {
-            if (!result.success) {
-                OLog.error("vxapp.js mount autorun userId=" + userId + " result=" + OLog.errorString(result))
-                return
-            }
-            VXApp.mountContinued(result.subscriptionParameters, layout, content, templateSubscription, specialFunction)
-            return
-        })
-    },
-
-    /**
-     * Continued with route action by subscribing and performing before functions.
-     *
-     * @param {object} subscriptionParameters Subscription parameters object.
-     * @param {function} layout React layout (e.g., LayoutStandard).
-     * @param {function} content React content (e.g., <EntityBody/>).
-     * @param {boolean} templateSubscription True if this route uses template subscription.
-     * @param {function} specialFunction Special function to invoke as action.
-     */
-    mountContinued(subscriptionParameters, layout, content, templateSubscription, specialFunction) {
-        VXApp.globalSubscriptions(subscriptionParameters, (error, result) => {
-            if (!result.success) {
-                OLog.error("vxapp.js mountContinued autorun result=" + OLog.errorString(result))
-                return
-            }
-            VXApp.routeBefore()
-            VXApp.mountRender(layout, content, templateSubscription, specialFunction)
-            return
-        })
-    },
-
-    /**
-     * Call layout function.
-     *
-     * @param {function} layout React layout (e.g., LayoutStandard).
-     * @param {function} content React content (e.g., <EntityBody/>).
-     * @param {boolean} templateSubscription True if this route uses template subscription.
-     * @param {function} specialFunction Special function to invoke as action.
-     */
-    mountRender(layout, content, templateSubscription, specialFunction) {
+    routeElement(layout, content) {
         try {
-            if (_.isFunction(specialFunction)) {
-                OLog.debug("vxapp.js mountRender invoking special function")
-                specialFunction()
-            }
             if (layout && content) {
-                console.log("vxapp.js mountRender mounting React component")
-                OLog.debug("vxapp.js mountRender mounting React component")
-                VXApp.mountInternal(layout, { content : content })
+                console.log("vxapp.js routeElement will layout and return react element for route")
+                OLog.debug("vxapp.js routeElement will layout and return react element for route")
+                return React.createElement(layout, { content : content })
             }
         }
         catch (error) {
-            OLog.error("vxapp.js mountRender error=" + error)
-        }
-        finally {
-            if (templateSubscription) {
-                OLog.debug("vxapp.js mountRender template subscription, leave loading indicator spinning")
-            }
-            else {
-                UX.clearLoading()
-            }
+            OLog.error(`vxapp.js routeElement unexpected error=${error}`)
         }
     },
 
     /**
-     * Mount internals stolen shamelessly from react-mounter. Out of respect for Arounoda,
-     * this is because the peerDependencies were limited to React 15. The code is fine.
-     *
-     * @param {object} layoutClass Layout React class.
-     * @param {object} props Properties must supply content as { content: <component> }.
+     * Perform goDefault to go programmatically to the default route for this user.
      */
-    mountInternal(layoutClass, props) {
-        UXState.isDomReady = false
-        VXApp.mountInternalReady(() => {
-            const rootNode = VXApp.mountInternalGetRootNode("react-root")
-            const element = React.createElement(layoutClass, props)
-            ReactDOM.render(element, rootNode)
-            Meteor.setTimeout(() => {
-                VXApp.routeAfter()
-            })
-        })
-    },
-
-    mountInternalReady(callback) {
-        if (UXState.isDomReady) {
-            return callback()
-        }
-        domready(() => {
-            UXState.isDomReady = true
-            setTimeout(callback, 10)
-        })
-    },
-
-    mountInternalGetRootNode(rootId) {
-        const rootNode = document.getElementById(rootId)
-        if (rootNode) {
-            return rootNode
-        }
-        const rootNodeHtml = `<div id="${rootId}"></div>`
-        OLog.debug(`vxapp.js mountInternalGetRootNode rootNodeHtml=${rootNodeHtml}`)
-        const body = document.getElementsByTagName("body")[0]
-        body.insertAdjacentHTML("beforeend", rootNodeHtml)
-        return document.getElementById(rootId)
+    afterLogin() {
+        OLog.debug("vxapp.js afterLogin *fire*")
+        UX.goDefault()
     },
 
     /**
@@ -159,13 +55,39 @@ VXApp = _.extend(VXApp || {}, {
      * @return {boolean} True if route is exempt from standard processing.
      */
     isExemptRoute(path) {
-        const exemptRoutes = ["/signin", "/enroll-account", "/reset-password"]
         path = path || Util.routePath()
         if (path === "/") {
             return true
         }
-        return Util.startsWith(exemptRoutes, path) ||
-            VXApp.isAppExemptRoute && VXApp.isAppExemptRoute(path)
+        if (VXApp.isAppExemptRoute && VXApp.isAppExemptRoute(path)) {
+            return true
+        }
+        const exemptRoutes = ["/signin", "/enroll-account", "/reset-password"]
+        if (Util.startsWith(exemptRoutes, path)) {
+            return true
+        }
+        return false
+    },
+
+    /**
+     * Determine if this route is authorized for the current user.
+     *
+     * @return {boolean} True if the current user is authorized for the current route.
+     */
+    isAuthorizedRoute() {
+        if (VXApp.isAppAuthorizedRoute && VXApp.isAppAuthorizedRoute()) {
+            return true
+        }
+        const superAdminRoutes = ["/log", "/events" ]
+        const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/"]
+        const path = Util.routePath()
+        if (Util.startsWith(superAdminRoutes, path)) {
+            return Util.isUserSuperAdmin()
+        }
+        if (Util.startsWith(systemAdminRoutes, path)) {
+            return Util.isUserAdmin()
+        }
+        return true
     },
 
     /**
@@ -188,49 +110,49 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Determine if this route is authorized for the current user.
+     * Set up global subscriptions.
      *
-     * @return {boolean} True if the current user is authorized for the current route.
+     * @param {function} Mandatory callback invoked when subscriptions are ready.
      */
-    isAuthorizedRoute() {
-        const superAdminRoutes = ["/log", "/events" ]
-        const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/"]
-        const path = Util.routePath(true)
-        if (Util.startsWith(superAdminRoutes, path)) {
-            return Util.isUserSuperAdmin()
+    doGlobalSubscriptions(callback) {
+        OLog.debug("vxapp.js doGlobalSubscriptions *init*")
+        Store.dispatch(setLoading(true))
+        let result = VXApp.getSubscriptionParameters()
+        if (result.success) {
+            OLog.debug("vxapp.js doGlobalSubscriptions subscriptionParameters exist and will be used")
+            VXApp.doGlobalSubscriptionsContinued(result.subscriptionParameters, callback)
+            return
         }
-        if (Util.startsWith(systemAdminRoutes, path)) {
-            return Util.isUserAdmin()
-        }
-        return true
+        Meteor.call("getSubscriptionParameters", (error, result) => {
+            if (!result.success) {
+                OLog.error(`vxapp.js doGlobalSubscriptions bad result=${OLog.errorString(result)}`)
+                Store.dispatch(setLoading(false))
+                callback(false)
+                return
+            }
+            VXApp.doGlobalSubscriptionsContinued(result.subscriptionParameters, callback)
+            return
+        })
     },
 
     /**
-     * Refresh global subscriptions.
+     * Continue with global subscriptions by subscribing then proceed to default route.
      *
-     * @param {boolean} showLoading True to show loading spinner.
-     * @param {object} callback Optional callback.
+     * @param {object} subscriptionParameters Subscription parameters object.
+     * @param {function} Mandatory callback invoked when subscriptions are ready.
      */
-    refreshGlobalSubscriptions(showLoading, callback) {
-        let result = VXApp.getSubscriptionParameters()
-        if (!result.success) {
-            OLog.error("vxapp.js refreshGlobalSubscriptions unable to get subscription parameters result=" + OLog.errorString(result))
-            if (callback) callback(null, result)
+    doGlobalSubscriptionsContinued(subscriptionParameters, callback) {
+        OLog.debug("vxapp.js doGlobalSubscriptionsContinued *continue*")
+        VXApp.globalSubscriptions(subscriptionParameters, (error, result) => {
+            if (!result.success) {
+                OLog.error(`vxapp.js doGlobalSubscriptionsContinued result=${OLog.errorString(result)}`)
+                Store.dispatch(setLoading(false))
+                callback(false)
+                return
+            }
+            Store.dispatch(setLoading(false))
+            callback(true)
             return
-        }
-        if (showLoading) {
-            UX.showLoading()
-        }
-        Meteor.defer(() => {
-            VXApp.globalSubscriptions(result.subscriptionParameters, (error, result) => {
-                UX.clearLoading()
-                if (!result.success) {
-                    OLog.error("vxapp.js refreshGlobalSubscriptions unable to refresh global subscriptions result=" + OLog.errorString(result))
-                    if (callback) callback(null, result)
-                    return
-                }
-                callback(null, { success: true })
-            })
         })
     },
 
@@ -241,37 +163,36 @@ VXApp = _.extend(VXApp || {}, {
      * @param {function} Mandatory callback.
      */
     globalSubscriptions(newSubscriptionParameters, callback) {
+        OLog.debug("vxapp.js globalSubscriptions *fire*")
+
         let oldSubscriptionParameters = Store.getState().subscriptionParameters
         let oldPublishingModeClient = Store.getState().publishingModeClient
         let oldPublishingModeServer = Store.getState().publishingModeServer
         let newPublishingModeClient = VXApp.getPublishingMode("client", newSubscriptionParameters)
         let newPublishingModeServer = VXApp.getPublishingMode("server", newSubscriptionParameters)
+
         let oldSubscriptionParametersString = JSON.stringify(oldSubscriptionParameters)
         let newSubscriptionParametersString = JSON.stringify(newSubscriptionParameters)
-        //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " cache list length=" + VXSubs._cacheList.length)
+
         if (VXSubs._cacheList.length > 0 &&
             newSubscriptionParametersString === oldSubscriptionParametersString &&
             newPublishingModeClient === oldPublishingModeClient &&
             newPublishingModeServer === oldPublishingModeServer) {
-            //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " old and new subscription parameters *match* invoking callback")
+            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} old and new subscription parameters *match* invoking callback`)
             callback(null, { success: true })
             return
         }
-        //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " oldSubscriptionParameters=" + oldSubscriptionParametersString)
-        //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " newSubscriptionParameters=" + newSubscriptionParametersString)
-        //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " oldPublishingModeClient=" + oldPublishingModeClient)
-        //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " newPublishingModeClient=" + newPublishingModeClient)
-        //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " oldPublishingModeServer=" + oldPublishingModeServer)
-        //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " newPublishingModeServer=" + newPublishingModeServer)
+
         if (newSubscriptionParametersString !== oldSubscriptionParametersString) {
-            //OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " subscription parameters have *changed*")
+            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} subscription parameters *changed*`)
             Store.dispatch(setSubscriptionParameters(newSubscriptionParameters))
         }
+
         let publishCurrentTenants, publishCurrentDomains, publishCurrentUsers
         if (VXSubs._cacheList.length === 0 ||
             newSubscriptionParametersString !== oldSubscriptionParametersString ||
             oldPublishingModeClient !== newPublishingModeClient) {
-            OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " client subscription mode has *changed* to " + newPublishingModeClient)
+            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} client subscription mode has *changed* to ${newPublishingModeClient}`)
             Store.dispatch(setPublishingModeClient(newPublishingModeClient))
             publishCurrentTenants = VXApp.makePublishingRequest("current_tenants", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
             Store.dispatch(setPublishCurrentTenants(publishCurrentTenants.client))
@@ -280,11 +201,14 @@ VXApp = _.extend(VXApp || {}, {
             publishCurrentUsers = VXApp.makePublishingRequest("current_users", newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
             Store.dispatch(setPublishCurrentUsers(publishCurrentUsers.client))
         }
+
         if (VXSubs._cacheList.length === 0 ||
             newSubscriptionParametersString !== oldSubscriptionParametersString ||
             oldPublishingModeServer !== newPublishingModeServer) {
-            OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " server subscription mode has *changed* to " + newPublishingModeServer)
+
+            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} server subscription mode has *changed* to ${newPublishingModeServer}`)
             Store.dispatch(setPublishingModeServer(newPublishingModeServer))
+
             let handles = []
             handles.push(VXSubs.subscribe("config"))
             handles.push(VXSubs.subscribe("clipboard"))
@@ -300,26 +224,53 @@ VXApp = _.extend(VXApp || {}, {
             UX.waitSubscriptions(handles, callback)
             return
         }
-        OLog.debug("vxapp.js globalSubscriptions " + newSubscriptionParameters.email + " server subscription mode *unchanged* invoking callback")
+
+        OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} server subscription remains the same`)
         callback(null, { success: true })
         return
     },
 
     /**
-     * Perform a variety of functions before any route, including re-direct to sign-in if the user has not logged in.
+     * Refresh global subscriptions.
+     *
+     * @param {object} callback Mandatory callback.
+     */
+    refreshGlobalSubscriptions(callback) {
+        let result = VXApp.getSubscriptionParameters()
+        if (!result.success) {
+            OLog.error(`vxapp.js refreshGlobalSubscriptions unable to get subscription parameters result=${OLog.errorString(result)}`)
+            callback(false)
+            return
+        }
+        Meteor.defer(() => {
+            VXApp.globalSubscriptions(result.subscriptionParameters, (error, result) => {
+                UX.clearLoading()
+                if (!result.success) {
+                    OLog.error(`vxapp.js refreshGlobalSubscriptions unable to refresh global subscriptions result=${OLog.errorString(result)}`)
+                    callback(false)
+                    return
+                }
+                callback(true)
+            })
+        })
+    },
+
+    /**
+     * Perform a variety of functions immediately when the route changes.
      */
     routeBefore() {
+        OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *fire*`)
         if (VXApp.isExemptRoute()) {
             return
         }
         let userId = Meteor.userId()
         if (!userId) {
-            OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] user is not logged in")
+            OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] user is not logged in`)
             return
         }
         let email = Util.getUserEmail(userId)
         if (!email) {
-            OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] userId=" + userId + " subscription is not yet ready")
+            OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] userId=${userId} subscription is not yet ready`)
             return
         }
         let tenantId = Util.getCurrentTenantId(userId)
@@ -328,56 +279,58 @@ VXApp = _.extend(VXApp || {}, {
         let publishingMode = VXApp.getPublishingMode(tenantId, domainId, "client", userId)
         let currentPublishingMode = Store.getState().currentPublishingMode
         if (domainId !== currentDomainId || publishingMode !== currentPublishingMode) {
-            OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " detected domain or publishing mode change:" +
-                " domain=" + Util.fetchDomainName(domainId) + " mode=" + publishingMode +
-                " *clearing* session variables")
-            // Experimental.  This should handle Make Current domain:
+            OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} detected domain or publishing mode change:` +
+                ` domain=${Util.fetchDomainName(domainId)} mode=${publishingMode} *clearing* session variables`)
             Store.dispatch(setPublishCurrentTenant({ criteria: { _id: tenantId } }))
             Store.dispatch(setPublishCurrentDomain({ criteria: { _id: domainId } }))
             Store.dispatch(setPublishAuthoringUser(null))
             Store.dispatch(setPublishAuthoringDomain(null))
             Store.dispatch(setCurrentDomainId(domainId))
             Store.dispatch(setCurrentPublishingMode(publishingMode))
-            // Set session variables that piggy back on existing subscriptions:
             VXApp.setSessionVariables(userId)
         }
         let currentUserId = Store.getState().currentUserId
         if (userId !== currentUserId) {
             if (email && domainId) {
-                OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " domain " + Util.fetchDomainName(domainId))
+                OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} domain ${Util.fetchDomainName(domainId)}`)
                 Store.dispatch(setCurrentUserId(currentUserId))
                 let currentLocale = Util.getProfileValue("locale")
                 Store.dispatch(setCurrentLocale(currentLocale))
-                OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " i18n currentLocale=" + currentLocale)
+                OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} i18n currentLocale=${currentLocale}`)
                 // Set the user's default timezone if it hasn't already been established:
                 if (!Util.getProfileValue("timezone", userId)) {
                     let detectedTimezone = TimezonePicker.detectedZone()
-                    OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " setting user profile timezone=" + detectedTimezone)
+                    OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} setting user profile timezone=${detectedTimezone}`)
                     Meteor.users.update(userId, { $set: { "profile.timezone": detectedTimezone } })
                 }
                 // Set session variables that piggy back on existing subscriptions:
                 VXApp.setSessionVariables(userId)
             }
             else {
-                OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " *notready* userId=" + userId + " waiting for email and domain")
+                OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} *notready* userId=${userId} waiting for email and domain`)
             }
         }
         else {
-            OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " *matching* userId=" + userId + " currentUserId=" + currentUserId)
+            OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} *matching* userId=${userId} currentUserId=${currentUserId}`)
         }
         if (Util.routePath() && UXState.previousBefore === Util.routePath()) {
-            OLog.debug("vxapp.js routeBefore [" + Util.routePath() + "] *before* email=" + email + " route is unchanged from previous=" + UXState.previousBefore + ", before action will be suppressed")
+            OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} route is unchanged from previous=${UXState.previousBefore} before action will be suppressed`)
             return
         }
         UXState.previousBefore = Util.routePath()
-        return
+        OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] invoking doRouteBefore`)
+        Routes.doRouteBefore()
     },
 
     /**
-     * Perform a variety functions post-mount.
+     * Perform a variety functions after new route.
      */
     routeAfter() {
         OLog.debug(`vxapp.js routeAfter [${Util.routePath()}] *fire*`)
+        Routes.doRouteAfter()
+        Meteor.setTimeout(() => {
+            UX.clearLoading()
+        }, 250)
     },
 
     /**
@@ -412,7 +365,7 @@ VXApp = _.extend(VXApp || {}, {
             publishRequest[side].extra.mode = mode
             VXApp.adjustPublishingRequest(publishRequest[side], subscriptionParameters.userId, subscriptionParameters)
         })
-        //OLog.debug("vxapp.js makePublishingRequest " + subscriptionName + " " + OLog.debugString(publishRequest))
+        OLog.debug("vxapp.js makePublishingRequest " + subscriptionName + " " + OLog.debugString(publishRequest))
         return publishRequest
     },
 
@@ -461,10 +414,10 @@ VXApp = _.extend(VXApp || {}, {
             })
         }
         OLog.debug("vxapp.js logout function was successful, redirecting to signin page and deferring logout")
-        FlowRouter.go("/")
+        UX.go("/")
         Meteor.setTimeout(() => {
             OLog.debug("vxapp.js logout purging redux persist store")
-            Persistor.purge()
+            Persistor.purge().then(() => { return Persistor.flush() }).then(() => { Persistor.pause() })
             Meteor.logout(error => {
                 if (error) {
                     OLog.error(`vxapp.js logout function returned unexpected error=${error}`)
@@ -966,6 +919,14 @@ VXApp = _.extend(VXApp || {}, {
         return false
     },
 
+    isUndoVisible() {
+        return false
+    },
+
+    isRedoVisible() {
+        return false
+    },
+
     isDoneEditingVisible() {
         if (Util.isRoutePath("/template/") ) {
             return true
@@ -979,14 +940,6 @@ VXApp = _.extend(VXApp || {}, {
         if (Util.isRoutePath("/tenant/")) {
             return true
         }
-        return false
-    },
-
-    isUndoVisible() {
-        return false
-    },
-
-    isRedoVisible() {
         return false
     },
 

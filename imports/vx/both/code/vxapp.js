@@ -9,6 +9,7 @@ VXApp = _.extend(VXApp || {}, {
      * @return {object} Result object.
      */
     getSubscriptionParameters(userId) {
+
         try {
             userId = userId || Meteor.userId()
             if (!userId) {
@@ -21,6 +22,7 @@ VXApp = _.extend(VXApp || {}, {
                     return { success : false, icon : "TRIANGLE", key : "common.alert_subscriptions_not_ready" }
                 }
             }
+
             let subscriptionParameters = {}
             subscriptionParameters.tenantId = Util.getCurrentTenantId(userId)
             subscriptionParameters.domainId = Util.getCurrentDomainId(userId)
@@ -33,11 +35,11 @@ VXApp = _.extend(VXApp || {}, {
             subscriptionParameters.preferenceLogsDefeatTenantFilters = Util.isPreference("LOGS_DEFEAT_TENANT_FILTERS", userId)
             subscriptionParameters.preferenceAllMembersAndDomains = Util.isPreference("ALL_MEMBERS_AND_DOMAINS", userId)
             subscriptionParameters.preferenceDomainSubscription = Util.isPreference("DOMAIN_SUBSCRIPTION", userId)
-            //OLog.debug("vxapp.js getSubscriptionParameters *success* subscriptionParameters=" + OLog.debugString(subscriptionParameters))
+
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", subscriptionParameters : subscriptionParameters }
         }
         catch (error) {
-            OLog.error("vxapp.js getSubscriptionParameters unexpected error=" + error)
+            OLog.error(`vxapp.js getSubscriptionParameters unexpected error=${error}`)
             return { success : false, type : "ERROR", icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
