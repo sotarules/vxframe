@@ -1,6 +1,5 @@
 import React from "react"
-import { Router, Route, Switch } from "react-router-dom"
-
+import { Router, Route, Switch, Redirect } from "react-router-dom"
 import DomainEdit from "/imports/domains/client/DomainEdit"
 import DomainUserView from "/imports/usersdomains/client/DomainUserView"
 import DomainView from "/imports/domains/client/DomainView"
@@ -22,26 +21,25 @@ import UserEdit from "/imports/users/client/UserEdit"
 
 Routes = {
     getRoutes() {
-        const appRoutes = Routes.getAppRoutes ? Routes.getAppRoutes() : []
+        const appRoutes = (Routes.getAppRoutes && Routes.getAppRoutes()) || []
         return appRoutes.concat([
-            <Route key="001" exact path="/" render={() => VXApp.routeElement(LayoutNoneContainer, <SigninContainer/>)}/>,
-            <Route key="002" path="/signin" render={() => VXApp.routeElement(LayoutNoneContainer, <SigninContainer/>)}/>,
-            <Route key="003" path="/enroll-account/:token" render={() => VXApp.routeElement(LayoutNoneContainer, <SigninContainer/>)}/>,
-            <Route key="004" path="/reset-password/:token" render={() => VXApp.routeElement(LayoutNoneContainer, <SigninContainer/>)}/>,
-            <Route key="005" path="/log" render={() => VXApp.routeElement(LayoutDiagContainer, <SystemLogContainer/>)}/>,
-            <Route key="006" path="/events" render={() => VXApp.routeElement(LayoutDiagContainer, <EventsContainer/>)}/>,
-            <Route key="007" path="/profile" render={() => VXApp.routeElement(LayoutStandardContainer, <ProfileContainer/>)}/>,
-            <Route key="008" path="/users-domains" render={() => VXApp.routeElement(LayoutStandardContainer, <UserDomainView/>)}/>,
-            <Route key="009" path="/domains-users" render={() => VXApp.routeElement(LayoutStandardContainer, <DomainUserView/>)}/>,
-            <Route key="010" path="/user/:_id" render={() => VXApp.routeElement(LayoutStandardContainer, <UserEdit/>)}/>,
-            <Route key="011" path="/domain/:_id" render={() => VXApp.routeElement(LayoutStandardContainer, <DomainEdit/>)}/>,
-            <Route key="012" path="/tenants" render={() => VXApp.routeElement(LayoutStandardContainer, <TenantView/>)}/>,
-            <Route key="013" path="/tenant/:_id" render={() => VXApp.routeElement(LayoutStandardContainer, <TenantEdit/>)}/>,
-            <Route key="014" path="/domains" render={() => VXApp.routeElement(LayoutStandardContainer, <DomainView/>)}/>,
-            <Route key="015" path="/system-settings" render={() => VXApp.routeElement(LayoutStandardContainer, <SettingsContainer/>)}/>,
-            <Route key="016" path="/templates" render={() => VXApp.routeElement(LayoutStandardContainer, <TemplateViewContainer/>)}/>,
-            <Route key="017" path="/template/:_id" render={() => VXApp.routeElement(LayoutStandardContainer, <TemplateEditContainer/>)}/>,
-            <Route key="018" render={() => VXApp.routeElement(LayoutNoneContainer,  <NotFoundPage/>)}/>
+            { path: "/", layoutName: "LayoutNoneContainer", component: SigninContainer },
+            { path: "/signin", layoutName: "LayoutNoneContainer", component: SigninContainer },
+            { path: "/enroll-account/:token", layoutName: "LayoutNoneContainer", component: SigninContainer },
+            { path: "/reset-password/:token", layoutName: "LayoutNoneContainer", component: SigninContainer },
+            { path: "/log", layoutName: "LayoutDiagContainer", component: SystemLogContainer },
+            { path: "/events", layoutName: "LayoutDiagContainer", component: EventsContainer },
+            { path: "/profile", layoutName: "LayoutStandardContainer", component: ProfileContainer },
+            { path: "/users-domains", layoutName: "LayoutStandardContainer", component: UserDomainView },
+            { path: "/domains-users", layoutName: "LayoutStandardContainer", component: DomainUserView },
+            { path: "/user/:_id", layoutName: "LayoutStandardContainer", component: UserEdit },
+            { path: "/domain/:_id", layoutName: "LayoutStandardContainer", component: DomainEdit },
+            { path: "/tenants", layoutName: "LayoutStandardContainer", component: TenantView },
+            { path: "/tenant/:_id", layoutName: "LayoutStandardContainer", component: TenantEdit },
+            { path: "/domains", layoutName: "LayoutStandardContainer", component: DomainView },
+            { path: "/system-settings", layoutName: "LayoutStandardContainer", component: SettingsContainer },
+            { path: "/templates", layoutName: "LayoutStandardContainer", component: TemplateViewContainer },
+            { path: "/template/:_id", layoutName: "LayoutStandardContainer", component: TemplateEditContainer },
         ])
     },
 
@@ -49,7 +47,28 @@ Routes = {
         return (
             <Router history={BrowserHistory}>
                 <Switch>
-                    {Routes.getRoutes()}
+                    <Route exact path={this.pathArrayFor("LayoutNoneContainer")}>
+                        <LayoutNoneContainer>
+                            {this.routesFor("LayoutNoneContainer")}
+                        </LayoutNoneContainer>
+                    </Route>
+                    <Route exact path={this.pathArrayFor("LayoutDiagContainer")}>
+                        <LayoutDiagContainer>
+                            {this.routesFor("LayoutDiagContainer")}
+                        </LayoutDiagContainer>
+                    </Route>
+                    <Route exact path={this.pathArrayFor("LayoutStandardContainer")} render={({location}) => (
+                        <LayoutStandardContainer location={location}>
+                            <Switch location={location}>
+                                {this.routesFor("LayoutStandardContainer")}
+                            </Switch>
+                        </LayoutStandardContainer>
+                    )}/>
+                    <Route>
+                        <LayoutNoneContainer>
+                            <NotFoundPage />
+                        </LayoutNoneContainer>
+                    </Route>
                 </Switch>
             </Router>
         )
@@ -68,9 +87,42 @@ Routes = {
      * Do any special functions after route.
      */
     doRouteAfter() {
+        UX.setLoading(false)
         if (Routes.doAppRouteAfter) {
             Routes.doAppRouteAfter()
         }
+    },
+
+    /**
+     * Return the path array which is the set of all paths that share the supplied layout.
+     *
+     * @param {object} layoutName Layout name of component to use as filter.
+     * @return {array} Array of routes.
+     */
+    pathArrayFor(layoutName) {
+        const routeObjects = _.filter(this.getRoutes(), routeObject => layoutName === routeObject.layoutName)
+        const pathArray = routeObjects.map(routeObject => routeObject.path)
+        console.log(`Router.jsx layoutName=${layoutName} parthArray=${pathArray}`)
+        return pathArray
+    },
+
+    /**
+     * Return React router Route components for all paths whose layout matches the one supplied.
+     * These are rendered routes as opposed to component routes. If the user is not logged in,
+     * (and the route isn't exempt) the rendered route will be a redirect to the signin page.
+     *
+     * @param {object} layoutName Layout name of component to use as filter.
+     * @return {array} Array of routes.
+     */
+    routesFor(layoutName) {
+        const routeObjects = _.filter(this.getRoutes(), routeObject => layoutName === routeObject.layoutName)
+        return routeObjects.map((routeObject, index) => {
+            return (<Route path={routeObject.path} key={index} exact={true} render={props => {
+                const isLoggedIn = !!Meteor.userId()
+                const Component = routeObject.component
+                return isLoggedIn || VXApp.isExemptRoute(routeObject.path) ?
+                    <Component {...props} /> : <Redirect to={{ pathname: "/", state: { from: props.location } }} />
+            }}/>)
+        })
     }
 }
-

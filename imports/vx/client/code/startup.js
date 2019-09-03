@@ -1,5 +1,6 @@
 import initReactFastclick from "react-fastclick"
 import { createBrowserHistory } from "history"
+import { setRoutePath } from "/imports/vx/client/code/actions"
 
 // This makes it possible to debug even if the user hasn't yet logged in (very helpful for debugging hyperlinks
 // such as sign-off actions):
@@ -18,10 +19,10 @@ Meteor.startup(() => {
     BrowserHistory = createBrowserHistory()
     BrowserHistory.listen((location, action) => {
         OLog.debug(`startup.js history listener URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
-        if (location.pathname === "/") {
-            OLog.debug("startup.js history user is logging out bypass subscriptions")
-            VXApp.routeBefore()
-            VXApp.routeAfter()
+        Store.dispatch(setRoutePath(location.pathname))
+        OLog.debug(`startup.js browser history listen routePath=${Util.routePath}`)
+        if (VXApp.isExemptRoute()) {
+            OLog.debug("startup.js browser history exempt route do not attempt to load global subscriptions")
             return
         }
         VXApp.routeBefore()

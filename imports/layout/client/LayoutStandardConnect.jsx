@@ -2,8 +2,9 @@ import { connect } from "react-redux"
 import LayoutStandard from "/imports/layout/client/LayoutStandard"
 
 const mapStateToProps = state => {
+    const isAuthorizedRoute = !!VXApp.isAuthorizedRoute()
     return {
-        isAuthorizedRoute : !!VXApp.isAuthorizedRoute(),
+        isAuthorizedRoute : isAuthorizedRoute,
         loading : state.loading
     }
 }

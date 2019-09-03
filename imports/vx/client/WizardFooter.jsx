@@ -52,8 +52,7 @@ export default class WizardFooter extends Component {
 
     handleClickPrevious(laddaCallback) {
         OLog.debug("WizardFooter.jsx handleClickPrevious user=" + Util.getUserEmail() + " wizardState=" + OLog.debugString(this.props.wizardState))
-        laddaCallback()
-        this.setAnimation("slideright")
+        UX.setAnimation("use-wizard-page", "slideright")
         if (this.props.onPrevious) {
             this.props.onPrevious(laddaCallback)
         }
@@ -61,8 +60,7 @@ export default class WizardFooter extends Component {
 
     handleClickNext(laddaCallback) {
         OLog.debug("WizardFooter.jsx handleClickNext user=" + Util.getUserEmail() + " wizardState=" + OLog.debugString(this.props.wizardState))
-        laddaCallback()
-        this.setAnimation("slideleft")
+        UX.setAnimation("use-wizard-page", "slideleft")
         if (this.props.onNext) {
             this.props.onNext(laddaCallback)
         }
@@ -70,17 +68,8 @@ export default class WizardFooter extends Component {
 
     handleClickFinish(laddaCallback) {
         OLog.debug("WizardFooter.jsx handleClickFinish user=" + Util.getUserEmail() + " wizardState=" + OLog.debugString(this.props.wizardState))
-        laddaCallback()
         if (this.props.onFinish) {
             this.props.onFinish(laddaCallback)
         }
-    }
-
-    setAnimation(animation) {
-        let component = UX.findComponentById("vx-wizard")
-        if (!component) {
-            return
-        }
-        component.setAnimation(animation)
     }
 }

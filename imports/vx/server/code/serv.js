@@ -176,7 +176,7 @@ Serv = {
 
     isAllowUserSetCurrentDomain(adminId, userId, domainId, operation, doc, modifier) {
         if (!domainId) {
-            OLog.debug("serv.js isAllowUserSetCurrentDomain *null-domain* " + operation + " *granted* adminId=" + adminId + " userId=" + userId + " tenantId=" + tenantId + " domainId=" + domainId + " doc=" + OLog.debugString(doc) + " modifier=" + OLog.debugString(modifier))
+            OLog.debug("serv.js isAllowUserSetCurrentDomain *null-domain* " + operation + " *granted* adminId=" + adminId + " userId=" + userId + " domainId=" + domainId + " doc=" + OLog.debugString(doc) + " modifier=" + OLog.debugString(modifier))
             return true
         }
         let tenantId = Util.getTenantId(domainId)

@@ -7,7 +7,6 @@ import LoadingSpinner from "/imports/vx/client/LoadingSpinner"
 export default class LayoutNone extends Component {
 
     static propTypes = {
-        content : PropTypes.element.isRequired,
         loading : PropTypes.bool
     }
 
@@ -17,7 +16,7 @@ export default class LayoutNone extends Component {
         }
         return (
             <div className="flexi-grow overflow-hidden">
-                {this.props.content}
+                {this.props.children}
                 <VXAnchor/>
             </div>
         )

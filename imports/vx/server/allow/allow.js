@@ -170,6 +170,9 @@ Meteor.users.deny({
 
                 if (fieldPath === "profile.currentDomain") {
                     domainId = modifier.$set["profile.currentDomain"]
+                    if (!domainId) {
+                        return true
+                    }
                     if (!Serv.isAllowUserSetCurrentDomain(userId, doc._id, domainId, "Meteor.users.deny update", doc, modifier)) {
                         return true
                     }

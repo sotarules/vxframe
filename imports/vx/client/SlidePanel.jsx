@@ -11,6 +11,15 @@ export default class SlidePanel extends Component {
         in : PropTypes.bool
     }
 
+    componentWillUnmount() {
+        //console.log(`${new Date().getTime()} ${this.props.id} componentWillUnmount`)
+    }
+
+    shouldComponentUpdate(newProps) {
+        //console.log(`${new Date().getTime()} ${this.props.id} shouldComponentUpdate locked=${this.locked} in=${this.props.in} new in=${newProps.in}`)
+        return true
+    }
+
     render() {
         return (
             <Transition in={this.props.in}
@@ -18,6 +27,7 @@ export default class SlidePanel extends Component {
                 addEndListener={this.handleEnd.bind(this)}
                 timeout={this.timeout()}>
                 {(status) => {
+                    //console.log(`${new Date().getTime()} ${this.props.id} render locked=${this.locked} status=${status} in=${this.props.in}`)
                     return (
                         <div id={this.props.id} className={this.makeClasses(status)}>
                             {this.props.children}
@@ -30,13 +40,14 @@ export default class SlidePanel extends Component {
 
     handleEnd(node, done) {
         $(node).one("webkitAnimationEnd oanimationend msAnimationEnd animationend", () => {
+            //console.log(`${new Date().getTime()} ${this.props.id} handleEnd`)
             UX.afterAnimate()
             done()
         })
     }
 
     timeout() {
-        return this.props.getAnimation() ? 550 : 1
+        return this.props.getAnimation() ? CX.SLIDE_ANIMATION_DURATION : 0
     }
 
     makeClasses(status) {

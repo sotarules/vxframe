@@ -12,7 +12,7 @@ export default class IOSButton extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className="ios-button-group-member fade-ios flex-section flex-section-fixed"
+                className="ios-button-group-member flex-section flex-section-fixed"
                 title={this.props.title}
                 onClick={this.handleClick.bind(this)}>
                 <span className={`ios-button-link ios-button-icon fa ${this.props.iconClass}`}/>

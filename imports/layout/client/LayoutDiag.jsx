@@ -10,7 +10,6 @@ export default class LayoutDiag extends Component {
 
     static propTypes = {
         isAuthorizedRoute : PropTypes.bool.isRequired,
-        content : PropTypes.element.isRequired,
         loading : PropTypes.bool
     }
 
@@ -26,7 +25,7 @@ export default class LayoutDiag extends Component {
                 <OffCanvasNavContainer/>
                 <TopBar/>
                 <div className="nav-canvas notification-container diag-container flexi-grow">
-                    {this.props.content}
+                    {this.props.children}
                 </div>
                 <VXAnchor/>
             </div>

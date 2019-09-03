@@ -2,11 +2,11 @@ import { Component } from "react"
 
 import PropTypes from "prop-types"
 import TransitionGroup from "react-transition-group/TransitionGroup"
+import SlidePanel from "/imports/vx/client/SlidePanel"
 import OffCanvasNavContainer from "/imports/layout/client/OffCanvasNavContainer"
 import TopBar from "/imports/layout/client/TopBar"
 import NotAuthorizedPage from "/imports/notfound/client/NotAuthorizedPage"
 import LoadingSpinner from "/imports/vx/client/LoadingSpinner"
-import SlidePanel from "/imports/vx/client/SlidePanel"
 import VXAnchor from "/imports/vx/client/VXAnchor"
 
 export default class LayoutStandard extends Component {
@@ -14,17 +14,11 @@ export default class LayoutStandard extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         isAuthorizedRoute : PropTypes.bool.isRequired,
-        content : PropTypes.element.isRequired,
         loading : PropTypes.bool
     }
 
     static defaultProps = {
         id : "vx-layout-standard"
-    }
-
-    constructor(props) {
-        super(props)
-        this.animation = null
     }
 
     render() {
@@ -47,7 +41,7 @@ export default class LayoutStandard extends Component {
                                     id={this.slidePanelId()}
                                     className="animation-panel flexi-grow"
                                     getAnimation={this.getAnimation.bind(this)}>
-                                    {this.props.content}
+                                    {this.props.children}
                                 </SlidePanel>
                             </TransitionGroup>
                         </div>
@@ -59,7 +53,7 @@ export default class LayoutStandard extends Component {
     }
 
     slidePanelId() {
-        return `layout-slide-panel-${this.props.content.type.name}`
+        return this.props.location.key || Util.routePath()
     }
 
     getAnimation() {

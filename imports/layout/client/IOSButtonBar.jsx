@@ -27,12 +27,6 @@ export default class IOSButtonBar extends Component {
         this.locked = false
     }
 
-    componentDidMount() {
-        Meteor.setTimeout(() => {
-            $(".fade-ios").addClass("fire")
-        }, 350)
-    }
-
     UNSAFE_componentWillReceiveProps(newProps) {
         this.setState({ isButtonBarVisible : newProps.isButtonBarVisible })
     }

@@ -30,6 +30,7 @@ import selectedLogEndDate from "/imports/vx/client/code/reducers/selectedLogEndD
 import wizardState from "/imports/vx/client/code/reducers/wizardState"
 import formData from "/imports/vx/client/code/reducers/formData"
 import loading from "/imports/vx/client/code/reducers/loading"
+import routePath from "/imports/vx/client/code/reducers/routePath"
 
 export default {
     buttonUsersDomains,
@@ -63,5 +64,6 @@ export default {
     selectedLogEndDate,
     wizardState,
     formData,
-    loading
+    loading,
+    routePath
 }

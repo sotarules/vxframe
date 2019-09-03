@@ -13,7 +13,7 @@ export default class IOSBackButton extends Component {
             <div id={this.props.id}
                 className="ios-button-group-back pull-left"
                 onClick={this.handleClickBack.bind(this)}>
-                <div className="ios-button-back ios-button-group-combo ios-button-link fade-ios">
+                <div className="ios-button-back ios-button-group-combo ios-button-link">
                     <span className="ios-button-back fa fa-chevron-left"></span>
                     <span className="ios-button-text">{this.props.backLabel}</span>
                 </div>

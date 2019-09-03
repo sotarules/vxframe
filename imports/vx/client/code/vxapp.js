@@ -44,6 +44,7 @@ VXApp = _.extend(VXApp || {}, {
      * Perform goDefault to go programmatically to the default route for this user.
      */
     afterLogin() {
+        UX.showLoading()
         OLog.debug("vxapp.js afterLogin *fire*")
         UX.goDefault()
     },
@@ -116,7 +117,6 @@ VXApp = _.extend(VXApp || {}, {
      */
     doGlobalSubscriptions(callback) {
         OLog.debug("vxapp.js doGlobalSubscriptions *init*")
-        Store.dispatch(setLoading(true))
         let result = VXApp.getSubscriptionParameters()
         if (result.success) {
             OLog.debug("vxapp.js doGlobalSubscriptions subscriptionParameters exist and will be used")
@@ -126,7 +126,6 @@ VXApp = _.extend(VXApp || {}, {
         Meteor.call("getSubscriptionParameters", (error, result) => {
             if (!result.success) {
                 OLog.error(`vxapp.js doGlobalSubscriptions bad result=${OLog.errorString(result)}`)
-                Store.dispatch(setLoading(false))
                 callback(false)
                 return
             }
@@ -146,11 +145,9 @@ VXApp = _.extend(VXApp || {}, {
         VXApp.globalSubscriptions(subscriptionParameters, (error, result) => {
             if (!result.success) {
                 OLog.error(`vxapp.js doGlobalSubscriptionsContinued result=${OLog.errorString(result)}`)
-                Store.dispatch(setLoading(false))
                 callback(false)
                 return
             }
-            Store.dispatch(setLoading(false))
             callback(true)
             return
         })
@@ -163,6 +160,7 @@ VXApp = _.extend(VXApp || {}, {
      * @param {function} Mandatory callback.
      */
     globalSubscriptions(newSubscriptionParameters, callback) {
+
         OLog.debug("vxapp.js globalSubscriptions *fire*")
 
         let oldSubscriptionParameters = Store.getState().subscriptionParameters
@@ -207,6 +205,8 @@ VXApp = _.extend(VXApp || {}, {
             oldPublishingModeServer !== newPublishingModeServer) {
 
             OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} server subscription mode has *changed* to ${newPublishingModeServer}`)
+
+            Store.dispatch(setLoading(true))
             Store.dispatch(setPublishingModeServer(newPublishingModeServer))
 
             let handles = []
@@ -221,7 +221,10 @@ VXApp = _.extend(VXApp || {}, {
                 handles = handles.concat(VXApp.getAppGlobalSubscriptions(newSubscriptionParameters))
             }
 
-            UX.waitSubscriptions(handles, callback)
+            UX.waitSubscriptions(handles, (error, result) => {
+                Store.dispatch(setLoading(false))
+                callback(error, result)
+            })
             return
         }
 

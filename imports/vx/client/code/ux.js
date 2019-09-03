@@ -481,8 +481,7 @@ UX = {
             return
         }
         OLog.debug(`ux.js updateSlideMode *changed* slideModeOld=${slideModeOld} slideModeNew=${slideModeNew}`)
-        UX.setLayoutAnimation("crossfade")
-        UX.setSlidePairAnimation("crossfade")
+        UX.setAnimation("vx-slide-pair", null)
         UX.mutatePanelMap(iosState, Util.routePath(), "LEFT")
         iosState.slideMode = slideModeNew
         Store.dispatch(setIosState(iosState))
@@ -591,30 +590,37 @@ UX = {
     },
 
     /**
-     * Set the slide pair animation.
+     * Set the animation inside a given animation container.
      *
-     * @param {string} animation slide pair animation (e.g., slideleft).
+     * @param {string} componentId Component ID.
+     * @param {string} animation Animation to set.
      */
-    setSlidePairAnimation(animation) {
-        let component = UX.findComponentById("vx-slide-pair")
+    setAnimation(componentId, animation) {
+        const component = UX.findComponentById(componentId)
         if (!component) {
+            console.log(`ux.js setAnimation unable to find componentId=${componentId}`)
+            OLog.error(`ux.js setAnimation unable to find componentId=${componentId}`)
             return
         }
         component.setAnimation(animation)
     },
 
     /**
-     * Set the layout animation.
+     * Get the current animation from a specified animation container.
      *
-     * @param {string} animation Layout animation (e.g., slideleft).
+     * @param {string} componentId Component ID.
+     * @return {string} Animation currently set.
      */
-    setLayoutAnimation(animation) {
-        let component = UX.findComponentById("vx-layout-standard")
+    getAnimation(componentId) {
+        const component = UX.findComponentById(componentId)
         if (!component) {
+            console.log(`ux.js getAnimation unable to find componentId=${componentId}`)
+            OLog.error(`ux.js getAnimation unable to find componentId=${componentId}`)
             return
         }
-        component.setAnimation(animation)
+        component.getAnimation()
     },
+
 
     /**
      * Enable the specified iOS button (or all buttons if no selector specified).
@@ -1677,12 +1683,15 @@ UX = {
             iosState.majorBackLabel = majorLabel
             iosState.minorBackLabel = minorLabel
             UX.beforeAnimate()
-            UX.setLayoutAnimation(animation)
+            UX.setAnimation("vx-layout-standard", animation)
             Meteor.setTimeout(() => {
                 UX.mutatePanelMap(iosState, path, panel)
                 OLog.debug(`ux.js iosMajorPush new iosState=${OLog.debugString(iosState)}`)
                 Store.dispatch(setIosState(iosState))
-                UX.go(path)
+                Meteor.setTimeout(() => {
+                    // Provide ample time for defeatSlidePairAnimation to redraw panel before go:
+                    UX.go(path)
+                })
             })
         })
     },
@@ -1714,7 +1723,7 @@ UX = {
             iosState.stack.push(state)
             UX.setLocked(["ios-button-bar"], true)
             iosState.minorBackLabel = minorLabel
-            UX.setSlidePairAnimation(animation)
+            UX.setAnimation("vx-slide-pair", animation)
             UX.beforeAnimate()
             UX.mutatePanelMap(iosState, Util.routePath(), panel)
             OLog.debug(`ux.js iosMinorPush new iosState=${OLog.debugString(iosState)}`)
@@ -1760,10 +1769,10 @@ UX = {
                 iosState.minorBackLabel = state.minorLabel
                 UX.beforeAnimate()
                 if (state.major) {
-                    UX.setLayoutAnimation(animation)
+                    UX.setAnimation("vx-layout-standard", animation)
                 }
                 else {
-                    UX.setSlidePairAnimation(animation)
+                    UX.setAnimation("vx-slide-pair", animation)
                 }
                 UX.mutatePanelMap(iosState, state.path, state.panel)
                 Store.dispatch(setIosState(iosState))
@@ -1771,8 +1780,10 @@ UX = {
                     OLog.debug(`ux.js iosPopAndGo original path=${path} state.path=${state.path} *same* stay on this route`)
                     return
                 }
-                OLog.debug(`ux.js iosPopAndGo original path=${path} state.path=${state.path} *different* FlowRouter go ${state.path}`)
-                UX.go(state.path)
+                OLog.debug(`ux.js iosPopAndGo original path=${path} state.path=${state.path} *different* go ${state.path}`)
+                Meteor.setTimeout(() => {
+                    UX.go(state.path)
+                })
             }
             catch (error) {
                 OLog.debug(`ux.js iosPopAndGo error=${error}`)
@@ -1796,7 +1807,7 @@ UX = {
             let iosState = Store.getState().iosState
             UX.setLocked(["ios-button-bar"], true)
             UX.beforeAnimate()
-            UX.setLayoutAnimation(animation)
+            UX.setAnimation("vx-layout-standard", animation)
             iosState.majorBackLabel = majorLabel
             iosState.minorBackLabel = minorLabel
             UX.mutatePanelMap(iosState, path, panel)
@@ -1809,21 +1820,14 @@ UX = {
      * Perform before-animate steps.
      */
     beforeAnimate() {
-        $(".fade-ios").removeClass("fire")
+        // Nothing universal yet
     },
 
     /**
      * Wrap up after animation is completed.
      */
     afterAnimate() {
-        Meteor.setTimeout(() => {
-            // Wait until next buttons are rendered, then fade them in. If they are
-            // unchanged, re-enable them:
-            Meteor.setTimeout(() => {
-                $(".fade-ios").addClass("fire")
-                UX.iosEnable()
-            })
-        }, 100)
+        UX.setAnimation("vx-layout-standard", null)
     },
 
     /**

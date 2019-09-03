@@ -2,6 +2,7 @@ import { Component } from "react"
 import PropTypes from "prop-types"
 import TransitionGroup from "react-transition-group/TransitionGroup"
 import IOSButtonBarContainer from "/imports/layout/client/IOSButtonBarContainer"
+import SimpleDiv from "/imports/vx/client/SimpleDiv"
 import SlidePanel from "/imports/vx/client/SlidePanel"
 
 export default class SlidePair extends Component {
@@ -20,29 +21,20 @@ export default class SlidePair extends Component {
         id : "vx-slide-pair"
     }
 
-    constructor(props) {
-        super(props)
-        this.animation = null
-    }
-
     render() {
         return (
             <div id={this.props.id} className="flexi-grow">
-                <TransitionGroup component="div" className="flexi-grow">
-                    {this.renderStandard()}
-                    {this.renderSlide()}
+                <TransitionGroup id={`transition-group-${this.props.id}`} className="flexi-grow">
+                    {!this.props.iosState.slideMode ? this.renderStandard() : this.renderSlide()}
                 </TransitionGroup>
             </div>
         )
     }
 
     renderStandard() {
-        if (this.props.iosState.slideMode) {
-            return null
-        }
         return (
-            <SlidePanel key="both-panels"
-                id="both-panels"
+            <SlidePanel id="both-panels"
+                key="both-panels"
                 className="animation-panel not-selectable flexi-grow"
                 getAnimation={this.getAnimation.bind(this)}>
                 <IOSButtonBarContainer/>
@@ -59,9 +51,6 @@ export default class SlidePair extends Component {
     }
 
     renderSlide() {
-        if (!this.props.iosState.slideMode) {
-            return null
-        }
         let routeSegmentFirst = Util.routeFirstSegment(Util.routePath())
         let panel = this.props.iosState.panelMap ?
             this.props.iosState.panelMap[routeSegmentFirst] :
