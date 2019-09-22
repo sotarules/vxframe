@@ -2,7 +2,7 @@ import { Component } from "react"
 
 import PropTypes from "prop-types"
 import TransitionGroup from "react-transition-group/TransitionGroup"
-import SlidePanel from "/imports/vx/client/SlidePanel"
+import RouteSlidePanel from "/imports/vx/client/RouteSlidePanel"
 import OffCanvasNavContainer from "/imports/layout/client/OffCanvasNavContainer"
 import TopBar from "/imports/layout/client/TopBar"
 import NotAuthorizedPage from "/imports/notfound/client/NotAuthorizedPage"
@@ -13,7 +13,8 @@ export default class LayoutStandard extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        isAuthorizedRoute : PropTypes.bool.isRequired,
+        exemptRoute : PropTypes.bool,
+        authorizedRoute : PropTypes.bool,
         loading : PropTypes.bool
     }
 
@@ -25,9 +26,10 @@ export default class LayoutStandard extends Component {
         if (this.props.loading) {
             return (<LoadingSpinner/>)
         }
-        if (!this.props.isAuthorizedRoute) {
+        if (!(this.props.exemptRoute || this.props.authorizedRoute)) {
             return (<NotAuthorizedPage/>)
         }
+        OLog.debug(`LayoutStandard.jsx render id=${this.slidePanelId()}`)
         return (
             <div id={this.props.id}
                 className="flexi-grow">
@@ -37,12 +39,13 @@ export default class LayoutStandard extends Component {
                     <div className="animation-top flexi-grow">
                         <div className="animation-container notification-container flexi-grow">
                             <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
-                                <SlidePanel key={this.slidePanelId()}
+                                <RouteSlidePanel key={this.slidePanelId()}
                                     id={this.slidePanelId()}
+                                    location={this.props.location}
                                     className="animation-panel flexi-grow"
                                     getAnimation={this.getAnimation.bind(this)}>
                                     {this.props.children}
-                                </SlidePanel>
+                                </RouteSlidePanel>
                             </TransitionGroup>
                         </div>
                     </div>
@@ -53,7 +56,7 @@ export default class LayoutStandard extends Component {
     }
 
     slidePanelId() {
-        return this.props.location.key || Util.routePath()
+        return this.props.location.key
     }
 
     getAnimation() {

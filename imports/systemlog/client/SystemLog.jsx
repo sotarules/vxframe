@@ -1,22 +1,26 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
+import LoadingSpinner from "/imports/vx/client/LoadingSpinner"
 import SystemLogControls from "/imports/systemlog/client/SystemLogControls"
 import SystemLogTableContainer from "/imports/systemlog/client/SystemLogTableContainer"
 
 export default class SystemLog extends Component {
 
     static propTypes = {
-        rowsArray : PropTypes.array.isRequired,
-        logLevels : PropTypes.array.isRequired,
         ready : PropTypes.bool.isRequired,
+        rowsArray : PropTypes.array,
+        logLevels : PropTypes.array,
         logLevel : PropTypes.string,
         logRows : PropTypes.number,
         logEndDate : PropTypes.instanceOf(Date),
         searchPhrase : PropTypes.string,
-        timezone : PropTypes.string.isRequired
+        timezone : PropTypes.string
     }
 
     render() {
+        if (!this.props.ready) {
+            return (<LoadingSpinner/>)
+        }
         return (
             <div className="fill flex-section">
                 <SystemLogControls rowsArray={this.props.rowsArray}

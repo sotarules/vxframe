@@ -342,6 +342,21 @@ Meteor.i18nMessages.common = {
         rx : "$Transaction failed unable to update transaction history$"
     },
 
+    alert_transaction_fail_unable_to_update_deployment_history : {
+        en : "Transaction failed unable to update deployment history",
+        rx : "$Transaction failed unable to update deployment history$"
+    },
+
+    alert_transaction_fail_unable_to_copy_record : {
+        en : "Transaction failed unable to copy record",
+        rx : "$Transaction failed unable to copy record$"
+    },
+
+    alert_transaction_fail_unable_to_find_deployment_history : {
+        en : "Transaction failed unable to find deployment history of {{targetDomainName}}",
+        rx : "$Transaction failed unable to find deployment history of {{targetDomainName}}$"
+    },
+
     alert_report_send_success : {
         en : "{{reportName}} has been sent to {{email}}",
         rx : "${{reportName}} has been sent to {{email}}$"
@@ -460,6 +475,46 @@ Meteor.i18nMessages.common = {
     alert_http_unexpected_http_status_code : {
         en : "Unexpected HTTP status code={{statusCode}}",
         rx : "$Unexpected HTTP status code={{statusCode}}$"
+    },
+
+    alert_deployment_copy_success : {
+        en : "{{sourceDomainName}} has been copied to {{targetDomainName}}",
+        rx : "${{sourceDomainName}} has been copied to {{targetDomainName}}$"
+    },
+
+    alert_deployment_restored_success : {
+        en : "{{targetDomainName}} has been restored to snapshot taken on {{dateTime}}",
+        rx : "${{targetDomainName}} has been restored to snapshot taken on {{dateTime}}$"
+    },
+
+    alert_deployment_message_restore : {
+        en : "If you press [Confirm] the system will restore all Functions, Wizards, Forms, Composites and Counties into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}.",
+        rx : "$If you press [Confirm] the system will restore all Functions, Wizards, Forms, Composites and Counties into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}..$"
+    },
+
+    alert_deployment_message_no_history : {
+        en : "Cannot restore because {{targetDomainName}} has no copy history",
+        rx : "$Cannot restore because {{targetDomainName}} has no copy history$"
+    },
+
+    alert_deployment_snapshot_option : {
+        en : "{{targetDomainName}} snapshot created {{dateTime}}",
+        rx : "${{targetDomainName}} snapshot created {{dateTime}}$"
+    },
+
+    alert_deployment_name_missing : {
+        en : "Collection {{collectionName}} has a record with no name",
+        rx : "$Collection {{collectionName}} has a record with no name$"
+    },
+
+    alert_deployment_name_duplicate : {
+        en : "Collection {{collectionName}} has more than one record named {{name}}",
+        rx : "$Collection {{collectionName}} has more than one record named {{name}}$"
+    },
+
+    alert_deployment_name_issues : {
+        en : "{{issues}}",
+        rx : "${{issues}}$"
     },
 
     message_loading : {

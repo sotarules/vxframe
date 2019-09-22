@@ -2,7 +2,6 @@ import { Component } from "react"
 import PropTypes from "prop-types"
 import TransitionGroup from "react-transition-group/TransitionGroup"
 import IOSButtonBarContainer from "/imports/layout/client/IOSButtonBarContainer"
-import SimpleDiv from "/imports/vx/client/SimpleDiv"
 import SlidePanel from "/imports/vx/client/SlidePanel"
 
 export default class SlidePair extends Component {

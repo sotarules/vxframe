@@ -1,6 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import SlidePairContainer from "/imports/vx/client/SlidePairContainer"
+import LoadingSpinner from "/imports/vx/client/LoadingSpinner"
 import TemplateViewLeftContainer from "/imports/templates/client/TemplateViewLeftContainer"
 import TemplateViewRightContainer from "/imports/templates/client/TemplateViewRightContainer"
 
@@ -12,7 +13,7 @@ export default class TemplateView extends Component {
 
     render() {
         if (!this.props.ready) {
-            return null
+            return (<LoadingSpinner/>)
         }
         return (
             <SlidePairContainer leftPanel={(<TemplateViewLeftContainer/>)}

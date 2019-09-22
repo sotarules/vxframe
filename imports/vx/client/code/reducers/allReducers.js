@@ -31,6 +31,8 @@ import wizardState from "/imports/vx/client/code/reducers/wizardState"
 import formData from "/imports/vx/client/code/reducers/formData"
 import loading from "/imports/vx/client/code/reducers/loading"
 import routePath from "/imports/vx/client/code/reducers/routePath"
+import exemptRoute from "/imports/vx/client/code/reducers/exemptRoute"
+import authorizedRoute from "/imports/vx/client/code/reducers/authorizedRoute"
 
 export default {
     buttonUsersDomains,
@@ -65,5 +67,7 @@ export default {
     wizardState,
     formData,
     loading,
-    routePath
+    routePath,
+    exemptRoute,
+    authorizedRoute
 }

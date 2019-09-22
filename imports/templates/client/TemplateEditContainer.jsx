@@ -4,15 +4,15 @@ import { setPublishCurrentTemplates } from "/imports/vx/client/code/actions"
 
 export default withTracker(() => {
 
-    let result = VXApp.getSubscriptionParameters()
+    const result = VXApp.getSubscriptionParameters()
     if (!result.success) {
-        OLog.debug("TemplateEditContainer.jsx withTracker subscription parameters not ready result=" + OLog.debugString(result))
-        return
+        OLog.debug(`TemplateEditContainer.jsx withTracker subscription parameters not ready result=${OLog.debugString(result)}`)
+        return { ready : false }
     }
 
-    let ready = new ReactiveVar(false)
-    let subscriptionParameters = result.subscriptionParameters
-    let publishRequest = VXApp.makePublishingRequest("templates", subscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
+    const ready = new ReactiveVar(false)
+    const subscriptionParameters = result.subscriptionParameters
+    const publishRequest = VXApp.makePublishingRequest("templates", subscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
 
     Store.dispatch(setPublishCurrentTemplates(publishRequest.client))
 

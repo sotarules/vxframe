@@ -116,7 +116,6 @@ VXApp = _.extend(VXApp || {}, {
      * @param {function} Mandatory callback invoked when subscriptions are ready.
      */
     doGlobalSubscriptions(callback) {
-        OLog.debug("vxapp.js doGlobalSubscriptions *init*")
         let result = VXApp.getSubscriptionParameters()
         if (result.success) {
             OLog.debug("vxapp.js doGlobalSubscriptions subscriptionParameters exist and will be used")
@@ -163,74 +162,106 @@ VXApp = _.extend(VXApp || {}, {
 
         OLog.debug("vxapp.js globalSubscriptions *fire*")
 
-        let oldSubscriptionParameters = Store.getState().subscriptionParameters
-        let oldPublishingModeClient = Store.getState().publishingModeClient
-        let oldPublishingModeServer = Store.getState().publishingModeServer
-        let newPublishingModeClient = VXApp.getPublishingMode("client", newSubscriptionParameters)
-        let newPublishingModeServer = VXApp.getPublishingMode("server", newSubscriptionParameters)
+        const oldSubscriptionParameters = Store.getState().subscriptionParameters
 
-        let oldSubscriptionParametersString = JSON.stringify(oldSubscriptionParameters)
-        let newSubscriptionParametersString = JSON.stringify(newSubscriptionParameters)
+        const oldPublishingModeClient = Store.getState().publishingModeClient
+        const oldPublishingModeServer = Store.getState().publishingModeServer
 
-        if (VXSubs._cacheList.length > 0 &&
-            newSubscriptionParametersString === oldSubscriptionParametersString &&
-            newPublishingModeClient === oldPublishingModeClient &&
-            newPublishingModeServer === oldPublishingModeServer) {
-            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} old and new subscription parameters *match* invoking callback`)
+        const newPublishingModeClient = VXApp.getPublishingMode("client", newSubscriptionParameters)
+        const newPublishingModeServer = VXApp.getPublishingMode("server", newSubscriptionParameters)
+
+        const oldSubscriptionParametersString = JSON.stringify(oldSubscriptionParameters)
+        const newSubscriptionParametersString = JSON.stringify(newSubscriptionParameters)
+
+        const isEmpty = Config.find().count() === 0
+        const isSameSubscriptionParameters = newSubscriptionParametersString === oldSubscriptionParametersString
+        const isSamePublishingModeClient = newPublishingModeClient === oldPublishingModeClient
+        const isSamePublishingModeServer = newPublishingModeServer === oldPublishingModeServer
+
+        if (!isEmpty && isSameSubscriptionParameters && isSamePublishingModeClient && isSamePublishingModeServer) {
+            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} all parameters *match* no action will be taken`)
             callback(null, { success: true })
             return
         }
 
-        if (newSubscriptionParametersString !== oldSubscriptionParametersString) {
-            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} subscription parameters *changed*`)
+        if (!isSameSubscriptionParameters) {
+            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} subscription parameters *changed* and will be updated`)
             Store.dispatch(setSubscriptionParameters(newSubscriptionParameters))
         }
 
-        let publishCurrentTenants, publishCurrentDomains, publishCurrentUsers
-        if (VXSubs._cacheList.length === 0 ||
-            newSubscriptionParametersString !== oldSubscriptionParametersString ||
-            oldPublishingModeClient !== newPublishingModeClient) {
-            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} client subscription mode has *changed* to ${newPublishingModeClient}`)
+        const doClient = isEmpty || !isSameSubscriptionParameters || !isSamePublishingModeClient
+        const doServer = isEmpty || !isSameSubscriptionParameters || !isSamePublishingModeServer
+
+        OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} doClient=${doClient} doServer=${doServer} ` +
+            `newPublishingModeClient=${newPublishingModeClient} newPublishingModeServer=${newPublishingModeServer}`)
+
+        if (doClient) {
             Store.dispatch(setPublishingModeClient(newPublishingModeClient))
-            publishCurrentTenants = VXApp.makePublishingRequest("current_tenants", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+        }
+
+        if (doServer) {
+            Store.dispatch(setPublishingModeServer(newPublishingModeServer))
+        }
+
+        let handles = VXApp.changeGlobalSubscriptions(doClient, doServer, newSubscriptionParameters)
+        if (VXApp.changeAppGlobalSubscriptions) {
+            handles = handles.concat(VXApp.changeAppGlobalSubscriptions(doClient, doServer, newSubscriptionParameters))
+        }
+
+        OLog.debug("vxapp.js globalSubscriptions prepare to *wait*")
+        Store.dispatch(setLoading(true))
+        UX.waitSubscriptions(handles, (error, result) => {
+            if (VXApp.onAppChangeSubscriptionsReady) {
+                VXApp.onAppChangeSubscriptionsReady()
+            }
+            Store.dispatch(setLoading(false))
+            OLog.debug(`vxapp.js globalSubscriptions ready domain count=${Domains.find().count()}`)
+            callback(error, result)
+            return
+        })
+
+        return
+    },
+
+    changeGlobalSubscriptions(doClient, doServer, newSubscriptionParameters) {
+
+        OLog.debug("vxapp.js changeGlobalSubscriptions *fire*")
+
+        const handles = []
+
+        const publishCurrentTenants = VXApp.makePublishingRequest("current_tenants", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+        const publishCurrentDomains = VXApp.makePublishingRequest("current_domains", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+        const publishCurrentUsers = VXApp.makePublishingRequest("current_users", newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
+
+        if (doClient) {
             Store.dispatch(setPublishCurrentTenants(publishCurrentTenants.client))
-            publishCurrentDomains = VXApp.makePublishingRequest("current_domains", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
             Store.dispatch(setPublishCurrentDomains(publishCurrentDomains.client))
-            publishCurrentUsers = VXApp.makePublishingRequest("current_users", newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
             Store.dispatch(setPublishCurrentUsers(publishCurrentUsers.client))
         }
 
-        if (VXSubs._cacheList.length === 0 ||
-            newSubscriptionParametersString !== oldSubscriptionParametersString ||
-            oldPublishingModeServer !== newPublishingModeServer) {
-
-            OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} server subscription mode has *changed* to ${newPublishingModeServer}`)
-
-            Store.dispatch(setLoading(true))
-            Store.dispatch(setPublishingModeServer(newPublishingModeServer))
-
-            let handles = []
-            handles.push(VXSubs.subscribe("config"))
-            handles.push(VXSubs.subscribe("clipboard"))
-            handles.push(VXSubs.subscribe("current_tenants", publishCurrentTenants.server))
-            handles.push(VXSubs.subscribe("current_domains", publishCurrentDomains.server))
-            handles.push(VXSubs.subscribe("current_users", publishCurrentUsers.server))
-
-            if (VXApp.getAppGlobalSubscriptions) {
-                OLog.debug("vxapp.js getAppGlobalSubscriptions detected, application-level subscriptions will be honored")
-                handles = handles.concat(VXApp.getAppGlobalSubscriptions(newSubscriptionParameters))
-            }
-
-            UX.waitSubscriptions(handles, (error, result) => {
-                Store.dispatch(setLoading(false))
-                callback(error, result)
-            })
-            return
+        if (doServer) {
+            handles.push(Meteor.subscribe("config"))
+            handles.push(Meteor.subscribe("clipboard"))
+            handles.push(Meteor.subscribe("current_tenants", publishCurrentTenants.server))
+            handles.push(Meteor.subscribe("current_domains", publishCurrentDomains.server))
+            handles.push(Meteor.subscribe("current_users", publishCurrentUsers.server))
         }
 
-        OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} server subscription remains the same`)
-        callback(null, { success: true })
-        return
+        return handles
+    },
+
+    /**
+     * Reset session settings and global subscriptions.
+     *
+     * @param {object} callback Mandatory callback.
+     */
+    refreshSessionSettingsAndGlobalSubscriptions(callback) {
+        VXApp.clearSessionSettings()
+        UX.showLoading()
+        VXApp.refreshGlobalSubscriptions(() => {
+            UX.clearLoading()
+            callback()
+        })
     },
 
     /**
@@ -247,7 +278,6 @@ VXApp = _.extend(VXApp || {}, {
         }
         Meteor.defer(() => {
             VXApp.globalSubscriptions(result.subscriptionParameters, (error, result) => {
-                UX.clearLoading()
                 if (!result.success) {
                     OLog.error(`vxapp.js refreshGlobalSubscriptions unable to refresh global subscriptions result=${OLog.errorString(result)}`)
                     callback(false)
@@ -296,7 +326,7 @@ VXApp = _.extend(VXApp || {}, {
         if (userId !== currentUserId) {
             if (email && domainId) {
                 OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} domain ${Util.fetchDomainName(domainId)}`)
-                Store.dispatch(setCurrentUserId(currentUserId))
+                Store.dispatch(setCurrentUserId(userId))
                 let currentLocale = Util.getProfileValue("locale")
                 Store.dispatch(setCurrentLocale(currentLocale))
                 OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} i18n currentLocale=${currentLocale}`)
@@ -342,63 +372,9 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} userId Current user ID.
      */
     setSessionVariables(userId) {
-        // Template function (override in VXApps)
-    },
-
-    /**
-     * Return a dual-mode object with search criteria.  The client criteria is used to
-     * populate session variables to control Mini-MongoDB finds.  The server criteria is used to
-     * control subscriptions on the server.
-     *
-     * @param {string} subscriptionName Subscription name (e.g., "current_cards").
-     * @param {object} subscriptionParameters Subscription parameters object.
-     * @param {object} criteria MongoDB criteria.
-     * @param {object} options MongoDB options.
-     * @return {object} Dual-mode publish request object.
-     */
-    makePublishingRequest(subscriptionName, subscriptionParameters, criteria, options) {
-        let publishRequest = {}
-        _.each(["client", "server"], (side) => {
-            let mode = VXApp.getPublishingMode(side, subscriptionParameters)
-            publishRequest[side] = {}
-            publishRequest[side].criteria = $.extend(true, {}, criteria)
-            publishRequest[side].options = options
-            publishRequest[side].extra = {}
-            publishRequest[side].extra.subscriptionName = subscriptionName
-            publishRequest[side].extra.mode = mode
-            VXApp.adjustPublishingRequest(publishRequest[side], subscriptionParameters.userId, subscriptionParameters)
-        })
-        OLog.debug("vxapp.js makePublishingRequest " + subscriptionName + " " + OLog.debugString(publishRequest))
-        return publishRequest
-    },
-
-    /**
-     * Infer the current publishing mode based on the route.
-     *
-     * DEFEAT - no adjustment to tenants and domains.
-     * TEXAS - user sees all tenants.
-     * TEAM - user sees all domains in a single tenant.
-     * DOMAIN - user sees a single domain.
-     *
-     * @param {string} side Side client or server.
-     * @param {object} subscriptionParameters Subscription parameters object.
-     * @return {string} Publishing mode.
-     */
-    getPublishingMode(side, subscriptionParameters) {
-        //console.log("vxapp.js getPublishingMode side=" + side + " subscriptionParameters=" + OLog.debugString(subscriptionParameters))
-        if (Util.isRoutePath("/log") || Util.isRoutePath("/events")) {
-            return subscriptionParameters.superAdmin && subscriptionParameters.preferenceLogsDefeatTenantFilters ? "DEFEAT" : "TEXAS"
+        if (VXApp.setAppSessionVariables) {
+            VXApp.setAppSessionVariables(userId)
         }
-        if (UX.iosIsRoutePathOnStack("/users-domains") || UX.iosIsRoutePathOnStack("/domains-users") || Util.isRoutePath("/user/") || Util.isRoutePath("/domain/")) {
-            return subscriptionParameters.superAdmin && subscriptionParameters.preferenceAllMembersAndDomains ? "DEFEAT" : "TEAM"
-        }
-        if (UX.iosIsRoutePathOnStack("/tenants") || Util.isRoutePath("/tenant/") || Util.isRoutePath("/domains")) {
-            return subscriptionParameters.superAdmin ? "DEFEAT" : "TEAM"
-        }
-        if (Util.isRoutePath("/tenants") || Util.isRoutePath("/tenant/") || Util.isRoutePath("/domains")) {
-            return "TEXAS"
-        }
-        return "DOMAIN"
     },
 
     /**
@@ -410,7 +386,6 @@ VXApp = _.extend(VXApp || {}, {
     logout(callback) {
         OLog.debug(`vxapp.js logout user=${Util.getUserEmail(Meteor.userId())}`)
         VXApp.clearSessionSettings()
-        VXSubs.clear()
         if (callback) {
             Meteor.setTimeout(() => {
                 callback()
@@ -1069,5 +1044,79 @@ VXApp = _.extend(VXApp || {}, {
             return null
         }
         return clipboard.clipboardType === clipboardType ? clipboard.payload : null
+    },
+
+    /**
+     * Make an array of domains for a drop-down list.
+     *
+     * @param {boolean} includeBlank True to include blank row at beginning.
+     * @param {string} excludeDomainId Domain ID to be excluded (if any).
+     * @return {array} Array of domains (code and localized).
+     */
+    makeDomainArray(includeBlank, excludeDomainId) {
+        const domains = VXApp.findDomainList()
+        const codeArray = _.reject(domains, domain => domain._id === excludeDomainId).map(domain => {
+            return { code: domain._id, localized: domain.name }
+        })
+        codeArray.sort((recordA, recordB) => {
+            return recordA.localized.localeCompare(recordB.localized)
+        })
+        if (includeBlank) {
+            codeArray.unshift( { code: "", localized: "" } )
+        }
+        return codeArray
+    },
+
+    /**
+     * Make animation classes for SlidePanel and similar components.
+     *
+     * @param {string} status Transition status.
+     * @param {string} classes Base classes.
+     * @param {string} animation Animation name.
+     * @return {string} Base classes augmented with animation classes.
+     */
+    makeAnimationClasses(status, classes, animation) {
+
+        if (animation) {
+            switch (status) {
+            case "entering" :
+                classes += " " + animation + "-enter"
+                break
+            case "entered" :
+                classes += " " + animation + "-enter " + animation + "-enter-active"
+                break
+            case "exiting" :
+                classes += " " + animation + "-exit"
+                break
+            case "exited" :
+                classes += " " + animation + "-exit " + animation + "-exit-active"
+                break
+            }
+        }
+
+        return classes
+    },
+
+    /**
+     * Get animation timeout.
+     *
+     * @param {string} animation Animation name.
+     * @return {number} Milliseconds or zero if no animation.
+     */
+    animationTimeout(animation) {
+        return animation ? CX.SLIDE_ANIMATION_DURATION : 0
+    },
+
+    /**
+     * Set one-time listener to handle clean-up after animation finishes.
+     *
+     * @param {object} node DOM element being animated.
+     * @param {function} callback Callback (must be called after finish).
+     */
+    handleAnimationEnd(node, callback) {
+        $(node).one("webkitAnimationEnd oanimationend msAnimationEnd animationend", () => {
+            UX.afterAnimate()
+            callback()
+        })
     }
 })

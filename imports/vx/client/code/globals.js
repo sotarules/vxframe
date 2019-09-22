@@ -6,7 +6,6 @@ this.ReactDOM = {}
 this.UX = {}
 this.UXState = {}
 this.ContextMaker = {}
-this.VXSubs = {}
 this.Store = {}
 this.Persistor = {}
 this.BrowserHistory = {}

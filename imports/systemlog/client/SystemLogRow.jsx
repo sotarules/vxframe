@@ -34,13 +34,17 @@ export default class SystemLogRow extends Component {
 
     rowClassName() {
 
-        let row = this.props.logRow;
+        const row = this.props.logRow
 
         if (row.severity === "ERROR" || row.severity === "FATAL") {
-            return "log-row-error";
+            return "log-row-error"
         }
 
-        return row.server ? "log-row-server" : "log-row-client";
+        if (row.severity === "WARN") {
+            return "log-row-warning"
+        }
+
+        return row.server ? "log-row-server" : "log-row-client"
     }
 
     formatDateTime() {

@@ -5,14 +5,14 @@ import { setPublishCurrentEvents } from "/imports/vx/client/code/actions"
 
 const MeteorContainer = withTracker(props => {
 
-    let result = VXApp.getSubscriptionParameters()
+    const result = VXApp.getSubscriptionParameters()
     if (!result.success) {
-        OLog.debug("EventsContainer.jsx withTracker subscription parameters not ready result=" + OLog.debugString(result))
-        return
+        OLog.debug(`EventsContainer.jsx withTracker subscription parameters not ready result=${OLog.debugString(result)}`)
+        return { ready : false }
     }
 
-    let ready = new ReactiveVar(false)
-    let criteria = {}
+    const ready = new ReactiveVar(false)
+    const criteria = {}
 
     if (props.selectedEventType !== "ALL") {
         criteria.type = props.selectedEventType
@@ -22,14 +22,14 @@ const MeteorContainer = withTracker(props => {
         criteria.date = { $lte: props.selectedEventEndDate }
     }
 
-    let options = {}
+    const options = {}
     options.sort = { date : -1 }
     options.limit = props.selectedEventRows
 
-    let publishRequest = VXApp.makePublishingRequest("events", result.subscriptionParameters, criteria, options)
+    const publishRequest = VXApp.makePublishingRequest("events", result.subscriptionParameters, criteria, options)
     Store.dispatch(setPublishCurrentEvents(publishRequest.server))
 
-    let handles = []
+    const handles = []
     handles.push(Meteor.subscribe("events", publishRequest.server))
 
     UX.waitSubscriptions(handles, () => {
@@ -37,13 +37,14 @@ const MeteorContainer = withTracker(props => {
         UX.clearLoading()
     })
 
-    let timezone = Util.getUserTimezone(Meteor.userId())
-    OLog.debug("EventsContainer.jsx withTracker eventEndDate=" + props.selectedEventEndDate + " timezone=" + timezone)
+    const timezone = Util.getUserTimezone(Meteor.userId())
+
+    OLog.debug(`EventsContainer.jsx withTracker eventEndDate=${props.selectedEventEndDate} timezone=${timezone}`)
 
     return {
+        ready : !!ready.get(),
         rowsArray : UX.makeRowsArray(),
         eventTypes : UX.makeEventTypesArray(true),
-        ready : !!ready.get(),
         eventType : props.selectedEventType,
         eventRows : props.selectedEventRows,
         eventEndDate : props.selectedEventEndDate,

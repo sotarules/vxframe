@@ -5,14 +5,14 @@ import { setPublishCurrentLog } from "/imports/vx/client/code/actions"
 
 const MeteorContainer = withTracker(props => {
 
-    let result = VXApp.getSubscriptionParameters()
+    const result = VXApp.getSubscriptionParameters()
     if (!result.success) {
-        OLog.debug("SystemLogContainer.jsx withTracker subscription parameters not ready result=" + OLog.debugString(result))
-        return
+        OLog.debug(`SystemLogContainer.jsx withTracker subscription parameters not ready result=${OLog.debugString(result)}`)
+        return { ready : false }
     }
 
-    let ready = new ReactiveVar(false)
-    let criteria = {}
+    const ready = new ReactiveVar(false)
+    const criteria = {}
 
     if (props.selectedLogLevel !== "ALL") {
         criteria.severity = props.selectedLogLevel
@@ -26,14 +26,14 @@ const MeteorContainer = withTracker(props => {
         criteria.message = props.searchPhrase
     }
 
-    let options = {}
+    const options = {}
     options.sort = { date : -1, hrtime : -1 }
     options.limit = props.selectedLogRows
 
-    let publishRequest = VXApp.makePublishingRequest("olog", result.subscriptionParameters, criteria, options)
+    const publishRequest = VXApp.makePublishingRequest("olog", result.subscriptionParameters, criteria, options)
     Store.dispatch(setPublishCurrentLog(publishRequest.server))
 
-    let handles = []
+    const handles = []
     handles.push(Meteor.subscribe("olog", publishRequest.server))
 
     UX.waitSubscriptions(handles, () => {
@@ -41,13 +41,14 @@ const MeteorContainer = withTracker(props => {
         UX.clearLoading()
     })
 
-    let timezone = Util.getUserTimezone(Meteor.userId())
-    OLog.debug("SystemLogContainer.jsx withTracker logEndDate=" + props.selectedLogEndDate + " timezone=" + timezone)
+    const timezone = Util.getUserTimezone(Meteor.userId())
+
+    OLog.debug(`SystemLogContainer.jsx withTracker logEndDate=${props.selectedLogEndDate} timezone=${timezone}`)
 
     return {
+        ready : !!ready.get(),
         rowsArray : UX.makeRowsArray(),
         logLevels : UX.makeLogLevelsArray(true, false),
-        ready : !!ready.get(),
         logLevel : props.selectedLogLevel,
         logRows : props.selectedLogRows,
         logEndDate : props.selectedLogEndDate,
@@ -58,13 +59,12 @@ const MeteorContainer = withTracker(props => {
 })(SystemLog)
 
 const mapStateToProps = state => {
-    let props = {
+    return {
         selectedLogLevel : state.selectedLogLevel,
         selectedLogRows : state.selectedLogRows,
         selectedLogEndDate : state.selectedLogEndDate,
         searchPhrase : state.searchPhrase
     }
-    return props
 }
 
 export default connect(mapStateToProps)(MeteorContainer)

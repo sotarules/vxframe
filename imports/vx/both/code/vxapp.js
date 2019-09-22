@@ -45,6 +45,61 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
+     * Return a dual-mode object with search criteria.  The client criteria is used to
+     * populate session variables to control Mini-MongoDB finds.  The server criteria is used to
+     * control subscriptions on the server.
+     *
+     * @param {string} subscriptionName Subscription name (e.g., "current_cards").
+     * @param {object} subscriptionParameters Subscription parameters object.
+     * @param {object} criteria MongoDB criteria.
+     * @param {object} options MongoDB options.
+     * @return {object} Dual-mode publish request object.
+     */
+    makePublishingRequest(subscriptionName, subscriptionParameters, criteria, options) {
+        const publishRequest = {}
+        _.each(["client", "server"], side => {
+            const mode = VXApp.getPublishingMode(side, subscriptionParameters)
+            publishRequest[side] = {}
+            publishRequest[side].criteria = $.extend(true, {}, criteria)
+            publishRequest[side].options = options
+            publishRequest[side].extra = {}
+            publishRequest[side].extra.subscriptionName = subscriptionName
+            publishRequest[side].extra.mode = mode
+            VXApp.adjustPublishingRequest(publishRequest[side], subscriptionParameters.userId, subscriptionParameters)
+        })
+        OLog.debug(`vxapp.js makePublishingRequest ${subscriptionName} ${OLog.debugString(publishRequest)}`)
+        return publishRequest
+    },
+
+    /**
+     * Infer the current publishing mode based on the route.
+     *
+     * DEFEAT - no adjustment to tenants and domains.
+     * TEXAS - user sees all tenants.
+     * TEAM - user sees all domains in a single tenant.
+     * DOMAIN - user sees a single domain.
+     *
+     * @param {string} side Side client or server.
+     * @param {object} subscriptionParameters Subscription parameters object.
+     * @return {string} Publishing mode.
+     */
+    getPublishingMode(side, subscriptionParameters) {
+        if (Util.isRoutePath("/log") || Util.isRoutePath("/events")) {
+            return subscriptionParameters.superAdmin && subscriptionParameters.preferenceLogsDefeatTenantFilters ? "DEFEAT" : "TEXAS"
+        }
+        if (UX.iosIsRoutePathOnStack("/users-domains") || UX.iosIsRoutePathOnStack("/domains-users") || Util.isRoutePath("/user/") || Util.isRoutePath("/domain/")) {
+            return subscriptionParameters.superAdmin && subscriptionParameters.preferenceAllMembersAndDomains ? "DEFEAT" : "TEAM"
+        }
+        if (UX.iosIsRoutePathOnStack("/tenants") || Util.isRoutePath("/tenant/") || Util.isRoutePath("/domains")) {
+            return subscriptionParameters.superAdmin ? "DEFEAT" : "TEAM"
+        }
+        if (Util.isRoutePath("/tenants") || Util.isRoutePath("/tenant/") || Util.isRoutePath("/domains")) {
+            return "TEXAS"
+        }
+        return "DOMAIN"
+    },
+
+    /**
      * Adjust a supplied publishing request object to limit visibility based on the publishing mode.
      *
      * @param {object} request Publishing request object including criteria, options, extra.
@@ -52,17 +107,17 @@ VXApp = _.extend(VXApp || {}, {
      * @param {object} subscriptionParameters Subscription parameters (required on client only).
      */
     adjustPublishingRequest(request, userId, subscriptionParameters) {
-        //OLog.debug("vxapp.js adjustPublishingRequest input request=" + OLog.debugString(request))
+
         if (!userId) {
-            OLog.error("vxapp.js adjustPublishingRequest no userId specified, request=" + OLog.errorString(request))
+            OLog.error(`vxapp.js adjustPublishingRequest no userId specified, request=${OLog.errorString(request)}`)
             return request
         }
-        if (Meteor.isClient) {
-            if (!subscriptionParameters) {
-                OLog.error("vxapp.js adjustPublishingRequest on client subscriptionParameters are required, request=" + OLog.errorString(request))
-                return request
-            }
+
+        if (Meteor.isClient && !subscriptionParameters) {
+            OLog.error(`vxapp.js adjustPublishingRequest on client subscriptionParameters are required, request=${OLog.errorString(request)}`)
+            return request
         }
+
         if (Meteor.isServer) {
             let result = VXApp.getSubscriptionParameters(userId)
             if (!result.success) {
@@ -71,6 +126,7 @@ VXApp = _.extend(VXApp || {}, {
             }
             subscriptionParameters = result.subscriptionParameters
         }
+
         if (request.extra.subscriptionName === "current_tenants") {
             if (request.extra.mode === "DEFEAT")  {
                 request.criteria.dateRetired = { $exists : false }
@@ -142,7 +198,7 @@ VXApp = _.extend(VXApp || {}, {
                 request.criteria.domain = subscriptionParameters.domainId
             }
         }
-        //OLog.debug("vxapp.js adjustPublishingRequest adjusted request=" + OLog.debugString(request))
+
         return request
     },
 
@@ -203,34 +259,31 @@ VXApp = _.extend(VXApp || {}, {
     setSubsystemStatus(subsystem, record, status, key, variables, minimumMinutesBetweenChange) {
         try {
             if (VXApp.isSubsystemStatusChangeIgnored(subsystem, record, status, key, variables)) {
-                OLog.debug("vxapp.js setSubsystemStatus recordId=" + record._id + " " + subsystem + " " + status + " " + key + " *ignored*")
+                OLog.debug(`vxapp.js setSubsystemStatus recordId=${record._id} ${subsystem} ${status} ${key} *ignored*`)
                 return
             }
             if (VXApp.isSubsystemStatusEqual(subsystem, record, status, key, variables)) {
-                //OLog.debug("vxapp.js setSubsystemStatus recordId=" + record._id + " " + subsystem + " " + status + " " + key + " *equal*")
                 return
             }
-            OLog.debug("vxapp.js setSubsystemStatus recordId=" + record._id + " " + subsystem + " " + status + " " + key + " *changed* record=" + OLog.debugString(record))
+            OLog.debug(`vxapp.js setSubsystemStatus recordId=${record._id} ${subsystem} ${status} ${key} *changed* record=${OLog.debugString(record)}`)
             let subsystemStatus = VXApp.getSubsystemStatus(subsystem, record)
             if (subsystemStatus) {
                 if (minimumMinutesBetweenChange) {
                     let dateRecent = moment().subtract(minimumMinutesBetweenChange, "minutes")
                     if (subsystemStatus.date > dateRecent) {
-                        OLog.debug("vxapp.js setSubsystemStatus recordId=" + record._id + " " + subsystem + " " + status + " " + key + " was updated *recently* " + subsystemStatus.date + " *wait*")
+                        OLog.debug(`vxapp.js setSubsystemStatus recordId=${record._id} ${subsystem} ${status} ${key} was updated *recently* ${subsystemStatus.date} *wait*"`)
                         return
                     }
                 }
             }
-            let modifier = {}
+            const subsystemStatusArray = record.subsystemStatus || []
             if (!subsystemStatus) {
                 subsystemStatus = {}
-                modifier.$addToSet = {}
-                modifier.$addToSet.subsystemStatus = subsystemStatus
+                subsystemStatusArray.push(subsystemStatus)
             }
             else {
-                let index = _.indexOf(_.pluck(record.subsystemStatus, "subsystem"), subsystem)
-                modifier.$set = {}
-                modifier.$set["subsystemStatus." + index] = subsystemStatus
+                let index = _.indexOf(_.pluck(subsystemStatusArray, "subsystem"), subsystem)
+                subsystemStatusArray[index] = subsystemStatus
             }
             subsystemStatus.subsystem = subsystem
             subsystemStatus.status = status
@@ -242,10 +295,13 @@ VXApp = _.extend(VXApp || {}, {
             else {
                 delete subsystemStatus.variables
             }
-            //OLog.debug("vxapp.js setSubsystemStatus recordId=" + record._id + " " + subsystem + " " + status + " " + key + " modifier=" + JSON.stringify(modifier))
+            const modifier = {}
+            modifier.$set = {}
+            modifier.$set.subsystemStatus = subsystemStatusArray
+            OLog.debug(`vxapp.js setSubsystemStatus recordId=${record._id} ${subsystem} ${status} ${key} modifier=${JSON.stringify(modifier)}`)
             let eventData = VXApp.onSubsystemStatusChange(subsystem, record, modifier)
-            let localizedIdentifier = Util.i18n("codes.subsystemIdentifier." + subsystem, { key : eventData.recordIdentifier } )
-            let localizedStatus = Util.i18n("codes.subsystemStatus." + status)
+            let localizedIdentifier = Util.i18n(`codes.subsystemIdentifier.${subsystem}`, { key : eventData.recordIdentifier } )
+            let localizedStatus = Util.i18n(`codes.subsystemStatus.${status}`)
             let subject = Util.i18n("common.mail_subsystem_subject", { subsystemIdentifier : localizedIdentifier, subsystemStatus : localizedStatus })
             let message = Util.i18n(key, variables)
             let eventType, text
@@ -269,7 +325,7 @@ VXApp = _.extend(VXApp || {}, {
             VXApp.createEvent(eventType, eventData.domainId, eventData, { genericSubject: subject, genericMessage : text } )
         }
         catch (error) {
-            OLog.error("vxapp.js setSubsystemStatus unexpected error=" + error)
+            OLog.error(`vxapp.js setSubsystemStatus unexpected error=${error}`)
         }
     },
 
@@ -295,13 +351,11 @@ VXApp = _.extend(VXApp || {}, {
             break
         }
         case "MAILGUN" : {
-            eventData.recordIdentifier = record.mailgunDomain
             eventData.domainId = record._id
             Domains.update(record._id, modifier)
             break
         }
         case "TWILIO" : {
-            eventData.recordIdentifier = record._id
             eventData.domainId = record._id
             Domains.update(record._id, modifier)
             break

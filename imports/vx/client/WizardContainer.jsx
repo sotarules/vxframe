@@ -1,13 +1,13 @@
 import { connect } from "react-redux"
-
-import SettingsPanel from "/imports/settings/client/SettingsPanel"
+import Wizard from "/imports/vx/client/Wizard"
 
 const mapStateToProps = state => {
     return {
-        tabName : state.settingsTab
+        wizardState : state.wizardState,
+        iosState : state.iosState
     }
 }
 
 export default connect(
     mapStateToProps
-)(SettingsPanel)
+)(Wizard)

@@ -26,7 +26,7 @@ export default class EmptyEntityList extends Component {
     dropZoneClassNames() {
         let myReturn = "empty-list flexi-grow flex-section-center"
         if (this.props.dropClassName) {
-            myReturn += " " + this.props.dropClassName + " ui-sortable"
+            myReturn += " " + this.props.dropClassName
         }
         return myReturn
     }

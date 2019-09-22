@@ -21,6 +21,7 @@ export default class TextArea extends Component {
         rule : PropTypes.oneOfType([ PropTypes.func, PropTypes.string ]),
         format : PropTypes.object,
         rows : PropTypes.number,
+        resize : PropTypes.bool,
         popoverPlacement : PropTypes.string,
         bindingType : PropTypes.string,
         extra : PropTypes.array,
@@ -40,7 +41,8 @@ export default class TextArea extends Component {
     static defaultProps = {
         popoverPlacement : "bottom",
         format : FX.trim,
-        rows : 4
+        rows : 4,
+        resize : true
     }
 
     constructor(props) {
@@ -86,6 +88,7 @@ export default class TextArea extends Component {
                     id={this.props.id}
                     name={this.props.name}
                     rows={this.props.rows}
+                    style={this.style()}
                     className={`form-control ${this.props.className || ""}`}
                     placeholder={this.props.placeholder}
                     disabled={this.props.disabled}
@@ -99,6 +102,10 @@ export default class TextArea extends Component {
                 />
             </div>
         )
+    }
+
+    style() {
+        return this.props.resize ? null : { resize: "none" }
     }
 
     getValue() {

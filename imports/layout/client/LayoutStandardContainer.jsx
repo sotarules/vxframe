@@ -5,6 +5,7 @@ import LayoutStandardConnect from "/imports/layout/client/LayoutStandardConnect"
 
 export default class LayoutStandardContainer extends Component {
     render() {
+        OLog.debug("LayoutStandardContainer.jsx render")
         return (
             <Provider store={Store}>
                 <PersistGate loading={null} persistor={Persistor}>

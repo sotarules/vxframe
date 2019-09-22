@@ -525,6 +525,72 @@ Schema.Transactions = new SimpleSchema({
     }
 })
 
+Schema.SnapshotCollection = new SimpleSchema({
+    collectionName : {
+        type : String
+    },
+    records : {
+        type : [Object],
+        optional : true,
+        blackbox : true
+    }
+})
+
+Schema.Snapshot = new SimpleSchema({
+    userId : {
+        type : String,
+        custom: Schema.checkUserId,
+        autoValue: function() {
+            if ( this.isInsert ) {
+                return Schema.getAuditUserId(this)
+            }
+            else if ( this.isUpsert ) {
+                return { $setOnInsert: Schema.getAuditUserId(this) }
+            }
+            else if ( this.isSet ) {
+                this.unset()
+            }
+        }
+    },
+    date : {
+        type : Date,
+        autoValue: function() {
+            if ( this.isInsert ) {
+                return new Date()
+            }
+            else if ( this.isUpsert ) {
+                return { $setOnInsert: new Date() }
+            }
+            else if ( this.isSet ) {
+                this.unset()
+            }
+        }
+    },
+    sourceDomain : {
+        type : String,
+        custom : Schema.checkDomainId,
+    },
+    targetDomain : {
+        type : String,
+        custom : Schema.checkDomainId,
+    },
+    collections : {
+        type : [Schema.SnapshotCollection],
+        optional : true
+    }
+})
+
+Schema.History = new SimpleSchema({
+    domain : {
+        type : String,
+        custom : Schema.checkDomainId
+    },
+    snapshots : {
+        type : [Schema.Snapshot],
+        optional : true
+    }
+})
+
 Schema.Clipboard = new SimpleSchema({
     userId : {
         type : String,
@@ -668,10 +734,6 @@ Schema.UserProfile = new SimpleSchema({
     },
     domains : {
         type : [Schema.UserProfileDomains]
-    },
-    domain : {
-        type : String,
-        optional : true
     },
     currentDomain: {
         type: String,
@@ -872,6 +934,7 @@ Log.attachSchema(Schema.Log)
 Events.attachSchema(Schema.Events)
 Notifications.attachSchema(Schema.Notifications)
 Transactions.attachSchema(Schema.Transactions)
+History.attachSchema(Schema.History)
 Clipboard.attachSchema(Schema.Clipboard)
 Templates.attachSchema(Schema.Templates)
 

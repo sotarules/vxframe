@@ -102,6 +102,22 @@ Meteor.methods({
         return VXApp.redo(collectionName, doc)
     },
 
+    makeSnapshotArray(formObject) {
+        return VXApp.makeSnapshotArray(formObject)
+    },
+
+    deploymentMessage(formObject) {
+        return VXApp.deploymentMessage(formObject)
+    },
+
+    checkSourceDomainNames(formObject) {
+        return VXApp.checkSourceDomainNames(formObject)
+    },
+
+    executeDeploymentAction(formObject) {
+        return VXApp.executeDeploymentAction(formObject)
+    },
+
     performanceSetCapture(capture) {
         return Performance.setCapture(capture)
     },

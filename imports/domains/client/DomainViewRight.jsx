@@ -97,6 +97,7 @@ export default class DomainViewRight extends Component {
             VXApp.clearSessionSettings()
             UX.showLoading()
             VXApp.refreshGlobalSubscriptions(() => {
+                UX.clearLoading()
                 UX.notify(result, error)
             })
         })

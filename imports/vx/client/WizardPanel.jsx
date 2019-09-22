@@ -7,6 +7,7 @@ export default class WizardPanel extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         children: PropTypes.node,
+        style: PropTypes.object,
         className: PropTypes.string,
         finishText : PropTypes.string,
         isVisiblePrevious : PropTypes.func.isRequired,
@@ -20,7 +21,8 @@ export default class WizardPanel extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className={`wizard-panel ${this.props.className || ""}`}>
+                className={`wizard-panel ${this.props.className || ""}`}
+                style={this.props.style}>
                 {this.props.children}
                 <WizardFooter wizardState={this.props.wizardState}
                     isVisiblePrevious={this.props.isVisiblePrevious}

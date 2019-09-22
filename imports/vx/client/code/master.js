@@ -1,7 +1,6 @@
 "use strict";
 
-import { createStore } from "redux"
-import { combineReducers } from "redux"
+import { combineReducers, createStore } from "redux"
 import { persistStore, persistReducer } from "redux-persist"
 import storage from "redux-persist/lib/storage"
 import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
@@ -16,8 +15,6 @@ const persistConfig = { key: "root", storage }
 const persistedReducer = persistReducer(persistConfig, combineReducers(allReducersVx))
 Store = createStore(persistedReducer)
 Persistor = persistStore(Store)
-
-VXSubs = new SubsManager()
 
 document.title = Util.i18n("master.page_title")
 

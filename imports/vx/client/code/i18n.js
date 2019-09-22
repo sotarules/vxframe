@@ -260,16 +260,6 @@
         rx : "$Email Template$"
     },
 
-    empty_templates : {
-        en : "There are no Email Templates, press Create Email Template to add one",
-        rx : "$There are no Email Templates, press Create Email Template to add one$"
-    },
-
-    empty_template_rhs_details : {
-        en : "The details of your selected Email Template will appear here",
-        rx : "$The details of your selected Email Template will appear here$"
-    },
-
     label_name : {
         en : "Name",
         rx : "$Name$"
@@ -283,6 +273,51 @@
     label_html : {
         en : "HTML",
         rx : "$HTML$"
+    },
+
+    label_deployment : {
+        en : "Deployment",
+        rx : "$Deployment$"
+    },
+
+    label_deployment_action : {
+        en : "Deployment Action",
+        rx : "$Deployment Action$"
+    },
+
+    label_source_domain : {
+        en : "Source Domain",
+        rx : "$Source Domain$"
+    },
+
+    label_target_domain : {
+        en : "Target Domain",
+        rx : "$Target Domain$"
+    },
+
+    label_snapshot_to_restore : {
+        en : "Snapshot to Restore",
+        rx : "$Snapshot to Restore$"
+    },
+
+    label_deployment_message : {
+        en : "Deployment Message",
+        rx : "$Deployment Message$"
+    },
+
+    label_issues_message : {
+        en : "Issues Detected",
+        rx : "$Issues Detected$"
+    },
+
+    empty_templates : {
+        en : "There are no Email Templates, press Create Email Template to add one",
+        rx : "$There are no Email Templates, press Create Email Template to add one$"
+    },
+
+    empty_template_rhs_details : {
+        en : "The details of your selected Email Template will appear here",
+        rx : "$The details of your selected Email Template will appear here$"
     },
 
     switch_on : {
@@ -321,8 +356,8 @@
     },
 
     popup_menu_done_editing : {
-        en : "Done Editing",
-        rx : "$Done Editing$"
+        en : "Done",
+        rx : "$Done$"
     },
 
     tooltip_domain_decoration_current : {
@@ -334,6 +369,26 @@
         en : "User is currently in this tenant.",
         rx : "$User is currently in this tenant.$"
     },
+
+    tooltip_deployment_action : {
+        en : "Select the action to take: copy domain to domain or restore from snapshot.",
+        rx : "$Select the action to take: copy domain to domain or restore from snapshot.$"
+    },
+
+    tooltip_source_domain : {
+        en : "Select source domain.",
+        rx : "$Select source domain.$"
+    },
+
+    tooltip_target_domain : {
+        en : "Select target domain.",
+        rx : "$Select target domain.$"
+    },
+
+    tooltip_snapshot_to_restore : {
+        en : "Select the snapshot to restore into the selected target domain.",
+        rx : "$Select the snapshot to restore into the selected target domain.$"
+    }
 })
 
 Meteor.i18nMessages.master = _.extend(Meteor.i18nMessages.master || {}, {
@@ -394,6 +449,11 @@ Meteor.i18nMessages.navbar = _.extend(Meteor.i18nMessages.navbar || {}, {
     settings: {
         en: "Settings",
         rx: "$Settings$"
+    },
+
+    deployment: {
+        en: "Deployment",
+        rx: "$Deployment$"
     }
 })
 

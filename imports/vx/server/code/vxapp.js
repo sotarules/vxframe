@@ -1042,5 +1042,274 @@ VXApp = _.extend(VXApp || {}, {
             OLog.error(`vxapp.js serverExecute unexpected error=${error}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
+    },
+
+    /**
+     * For RESTORE deployment action, return an array of snapshots in a
+     * form used to populate the snapshot dropdown.
+     *
+     * @param {object} formObject Form object from deployment modal.
+     * @return {object} Result object.
+     */
+    makeSnapshotArray(formObject) {
+        try {
+            const targetDomainName = Util.fetchDomainName(formObject.targetDomain)
+            let history = History.findOne( { domain: formObject.targetDomain } )
+            if (!history) {
+                return { success : false, key : "common.alert_deployment_message_no_history", variables : { targetDomainName } }
+            }
+            const snapshotArray = history.snapshots.map((snapshot, index) => {
+                return { code: index, localized : Util.i18n("common.alert_deployment_snapshot_option",
+                    { targetDomainName, dateTime : Util.formatDateTime(snapshot.date) } ) }
+            })
+            snapshotArray.sort((recordA, recordB) => {
+                return recordB.code - recordA.code
+            })
+            snapshotArray.unshift( { code: "", localized: "" } )
+            return { success : true, snapshotArray }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js makeSnapshotArray unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * For RESTORE deployment action, return i18n bundle key and variables
+     * used to populate a text area in the deployment modal.
+     *
+     * @param {object} formObject Form object from deployment modal.
+     * @return {object} Result object.
+     */
+    deploymentMessage(formObject) {
+        try {
+            const targetDomainName = Util.fetchDomainName(formObject.targetDomain)
+            let history = History.findOne( { domain: formObject.targetDomain } )
+            if (!history) {
+                return { success : false, key : "common.alert_deployment_message_no_history", variables : { targetDomainName } }
+            }
+            const snapshot = history.snapshots[formObject.snapshotIndex]
+            const dateTime = Util.formatDateTime(snapshot.date)
+            return { success : true, key: "common.alert_deployment_message_restore", variables : { targetDomainName, dateTime } }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js deploymentMessage unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Check all collections in source domain to ensure that name fields are present
+     * and unique for all records.
+     *
+     * @param {object} formObject Form object from deployment modal.
+     * @return {object} Result object.
+     */
+    checkSourceDomainNames(formObject) {
+        try {
+            const messages = []
+            const deploymentCollections = VXApp.getAppDeploymentCollections()
+            _.each(deploymentCollections, collection => {
+                const alreadyReported = []
+                _.each(collection.find( { domain: formObject.sourceDomain, dateRetired : { $exists : false } } ).fetch(), record => {
+                    if (!record.name) {
+                        messages.push( { key : "common.alert_deployment_name_missing", variables: { collectionName : collection._name } } )
+                        return
+                    }
+                    const count = collection.find( { domain: formObject.sourceDomain, dateRetired : { $exists : false }, name : record.name } ).count()
+                    if (count > 1 && !alreadyReported.includes(record.name)) {
+                        alreadyReported.push(record.name)
+                        messages.push( { key : "common.alert_deployment_name_duplicate", variables: { collectionName : collection._name, name : record.name } } )
+                        return
+                    }
+                })
+            })
+            if (messages.length === 0) {
+                return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
+            }
+            let issues = ""
+            messages.forEach(message => {
+                issues += Util.i18n(message.key, message.variables) + "\n"
+            })
+            return { success : false, key: "common.alert_deployment_name_issues", variables : { issues } }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js deploymentMessage unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Perform deployment action.
+     *
+     * @param {object} formObject Form object from deployment modal.
+     * @return {object} Result object.
+     */
+    executeDeploymentAction(formObject) {
+
+        try {
+
+            if (!_.isObject(formObject)) {
+                OLog.error(`vxapp.js executeDeploymentAction parameter check failed formObject=${OLog.errorString(formObject)}`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
+            }
+
+            const userId = Meteor.userId()
+            if (!userId) {
+                OLog.error("vxapp.js executeDeploymentAction security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+
+            if (!Util.isUserSuperAdmin(userId)) {
+                OLog.error("vxapp.js executeDeploymentAction security check failed only Super Administrators can execute deployment actions")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+
+            switch (formObject.deploymentAction) {
+            case "COPY" : return VXApp.executeDeploymentCopy(formObject, userId)
+            case "RESTORE" : return VXApp.executeDeploymentRestore(formObject)
+            }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js executeDeploymentAction unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Copy one domain to another.
+     *
+     * @param {object} formObject Form object from deployment modal.
+     * @param {string} userId User ID invoking this action.
+     * @return {object} Result object.
+     */
+    executeDeploymentCopy(formObject, userId) {
+
+        OLog.debug(`vxapp.js executeDeploymentCopy userId=${userId} deploymentAction=${formObject.deploymentAction} ` +
+            ` sourceDomain=${formObject.sourceDomain} targetDomain=${formObject.targetDomain}`)
+
+        let history = History.findOne( { domain: formObject.targetDomain } )
+        if (!history) {
+            history = {}
+            history.domain = formObject.targetDomain
+            history.snapshots = []
+            const historyId = History.insert(history)
+            history = History.findOne(historyId)
+        }
+
+        const snapshot = {}
+        snapshot.userId = userId
+        snapshot.date = new Date()
+        snapshot.sourceDomain = formObject.sourceDomain
+        snapshot.targetDomain = formObject.targetDomain
+        snapshot.collections = []
+
+        const deploymentCollections = VXApp.getAppDeploymentCollections()
+        _.each(deploymentCollections, collection => {
+            const snapshotCollection = {}
+            snapshotCollection.collectionName = collection._name
+            snapshotCollection.records = collection.find( { domain: formObject.targetDomain, dateRetired : { $exists : false } } ).fetch()
+            OLog.debug(`vxapp.js executeDeploymentCopy *captured* collectionName=${snapshotCollection.collectionName} ` +
+                ` record count=${snapshotCollection.records.length}`)
+            snapshot.collections.push(snapshotCollection)
+        })
+
+        history.snapshots.push(snapshot)
+
+        let result = History.direct.update(history._id, history, { bypassCollection2: true })
+        if (result !== 1) {
+            OLog.error(`vxapp.js executeDeploymentCopy deploymentAction=${formObject.deploymentAction} *fail* result=${result}`)
+            return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_update_deployment_history" }
+        }
+
+        _.each(deploymentCollections, collection => {
+            // Fetch retired target records to get them removed from target domain (see synchronizeCollection)
+            let sourceRecords = collection.find( { domain: formObject.sourceDomain, dateRetired : { $exists : false } } ).fetch()
+            let targetRecords = collection.find( { domain: formObject.targetDomain } ).fetch()
+            VXApp.synchronizeCollection(formObject, collection, sourceRecords, targetRecords)
+        })
+
+        OLog.debug(`vxapp.js executeDeploymentCopy *success* snapshot created in historyId=${history._id}`)
+        return { success : true, icon : "CLONE", key : "common.alert_deployment_copy_success",
+            variables : { sourceDomainName : Util.fetchDomainName(formObject.sourceDomain),
+                targetDomainName : Util.fetchDomainName(formObject.targetDomain) } }
+    },
+
+    /**
+     * Restore a previously-created domain snapshot.
+     *
+     * @param {object} formObject Form object from deployment modal.
+     * @return {object} Result object.
+     */
+    executeDeploymentRestore(formObject) {
+
+        let history = History.findOne( { domain: formObject.targetDomain } )
+        if (!history) {
+            OLog.error(`vxapp.js executeDeploymentRestore *fail* unable to find history of targetDomainName=${Util.fetchDomainName(formObject.targetDomain)}`)
+            return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_find_deployment_history",
+                variables: { targetDomainName : Util.fetchDomainName(formObject.targetDomain) } }
+        }
+
+        const snapshot = history.snapshots[formObject.snapshotIndex]
+        const deploymentCollections = VXApp.getAppDeploymentCollections()
+
+        _.each(snapshot.collections, snapshotCollection => {
+            OLog.debug(`vxapp.js executeDeploymentRestore collectionName=${snapshotCollection.collectionName} record count=${snapshotCollection.records.length}`)
+            const collection = _.find(deploymentCollections, deploymentCollection => deploymentCollection._name === snapshotCollection.collectionName)
+            if (!collection) {
+                OLog.error(`vxapp.js executeDeploymentRestore unable to find deployment collection matching collectionName=${snapshotCollection.collectionName}`)
+                return
+            }
+            let sourceRecords = snapshotCollection.records
+            let targetRecords = collection.find( { domain: formObject.targetDomain } ).fetch()
+            VXApp.synchronizeCollection(formObject, collection, sourceRecords, targetRecords)
+        })
+
+        OLog.debug(`vxapp.js executeDeploymentRestore *success* historyId=${history._id} index=${formObject.snapshotIndex}`)
+        return { success : true, icon : "HISTORY", key : "common.alert_deployment_restored_success",
+            variables : { targetDomainName : Util.fetchDomainName(formObject.targetDomain), dateTime : Util.formatDateTime(snapshot.date) } }
+    },
+
+    /**
+     * Synchronize source and target record sets making them match exactly.
+     */
+    synchronizeCollection(formObject, collection, sourceRecords, targetRecords) {
+
+        OLog.debug(`vxapp.js synchronizeCollection collectionName=${collection._name} ` +
+            `source count=${sourceRecords.length} target count=${targetRecords.length}`)
+
+        _.each(sourceRecords, sourceRecord => {
+            const targetRecord = _.findWhere(targetRecords, { name : sourceRecord.name })
+            if (targetRecord) {
+                OLog.debug(`vxapp.js synchronizeCollection collectionName=${collection._name} updating name=${sourceRecord.name} ` +
+                    ` sourceRecordId=${sourceRecord._id} targetRecordId=${targetRecord._id}`)
+                const sourceRecordId = sourceRecord._id
+                delete sourceRecord._id
+                sourceRecord.dateModified = new Date()
+                sourceRecord.userModified = Meteor.userId()
+                sourceRecord.domain = formObject.targetDomain
+                const result = collection.direct.update(targetRecord._id, sourceRecord, { bypassCollection2: true })
+                if (result !== 1) {
+                    OLog.error(`vxapp.js synchronizeCollection collectionName=${collection._name} ` +
+                        `sourceRecordId=${sourceRecordId} targetRecordId=${targetRecord._id} result=${result}`)
+                }
+                targetRecords = _.without(targetRecords, _.findWhere(targetRecords, { _id : targetRecord._id }))
+            }
+            else {
+                OLog.debug(`vxapp.js synchronizeCollection collectionName=${collection._name} inserting name=${sourceRecord.name} ` +
+                    ` sourceRecordId=${sourceRecord._id}`)
+                delete sourceRecord._id
+                sourceRecord.dateModified = new Date()
+                sourceRecord.userModified = Meteor.userId()
+                sourceRecord.domain = formObject.targetDomain
+                collection.direct.insert(sourceRecord)
+            }
+        })
+
+        _.each(targetRecords, targetRecord => {
+            OLog.debug(`vxapp.js synchronizeCollection collectionName=${collection._name} removing name=${targetRecord.name} ` +
+                ` targetRecordId=${targetRecord._id}`)
+            collection.direct.remove(targetRecord._id)
+        })
     }
 })

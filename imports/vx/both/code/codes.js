@@ -1663,8 +1663,8 @@ Meteor.i18nMessages.codes = {
             rx : "$Template {{key}}$"
         },
         MAILGUN : {
-            en : "Mailgun domain {{key}}",
-            rx : "$Mailgun domain {{key}}$"
+            en : "Mailgun",
+            rx : "$Mailgun$"
         },
         TWILIO : {
             en : "Twilio",
@@ -1701,6 +1701,17 @@ Meteor.i18nMessages.codes = {
                     code : "state"
                 }
             }
+        }
+    },
+
+    deploymentAction : {
+        COPY : {
+            en : "Copy domain",
+            rx : "$Copy domain$"
+        },
+        RESTORE : {
+            en : "Restore snapshot",
+            rx : "$Restore snapshot$"
         }
     }
 }

@@ -9,7 +9,8 @@ import NotAuthorizedPage from "/imports/notfound/client/NotAuthorizedPage"
 export default class LayoutDiag extends Component {
 
     static propTypes = {
-        isAuthorizedRoute : PropTypes.bool.isRequired,
+        exemptRoute : PropTypes.bool,
+        authorizedRoute : PropTypes.bool,
         loading : PropTypes.bool
     }
 
@@ -17,7 +18,7 @@ export default class LayoutDiag extends Component {
         if (this.props.loading) {
             return (<LoadingSpinner/>)
         }
-        if (!this.props.isAuthorizedRoute) {
+        if (!(this.props.exemptRoute || this.props.authorizedRoute)) {
             return (<NotAuthorizedPage/>)
         }
         return (

@@ -47,23 +47,18 @@ Routes = {
         return (
             <Router history={BrowserHistory}>
                 <Switch>
-                    <Route exact path={this.pathArrayFor("LayoutNoneContainer")}>
+                    <Route exact path={Routes.pathArrayFor("LayoutNoneContainer")}>
                         <LayoutNoneContainer>
-                            {this.routesFor("LayoutNoneContainer")}
+                            {Routes.routesFor("LayoutNoneContainer")}
                         </LayoutNoneContainer>
                     </Route>
-                    <Route exact path={this.pathArrayFor("LayoutDiagContainer")}>
+                    <Route exact path={Routes.pathArrayFor("LayoutDiagContainer")}>
                         <LayoutDiagContainer>
-                            {this.routesFor("LayoutDiagContainer")}
+                            {Routes.routesFor("LayoutDiagContainer")}
                         </LayoutDiagContainer>
                     </Route>
-                    <Route exact path={this.pathArrayFor("LayoutStandardContainer")} render={({location}) => (
-                        <LayoutStandardContainer location={location}>
-                            <Switch location={location}>
-                                {this.routesFor("LayoutStandardContainer")}
-                            </Switch>
-                        </LayoutStandardContainer>
-                    )}/>
+                    <Route exact path={Routes.pathArrayFor("LayoutStandardContainer")}
+                        render={Routes.renderStandardLayout}/>
                     <Route>
                         <LayoutNoneContainer>
                             <NotFoundPage />
@@ -71,6 +66,15 @@ Routes = {
                     </Route>
                 </Switch>
             </Router>
+        )
+    },
+
+    renderStandardLayout({location}) {
+        OLog.debug(`routes.jsx renderStandardLayout key=${location.key} pathname=${location.pathname}`)
+        return (
+            <LayoutStandardContainer location={location}>
+                {Routes.routesFor("LayoutStandardContainer")}
+            </LayoutStandardContainer>
         )
     },
 
@@ -100,10 +104,8 @@ Routes = {
      * @return {array} Array of routes.
      */
     pathArrayFor(layoutName) {
-        const routeObjects = _.filter(this.getRoutes(), routeObject => layoutName === routeObject.layoutName)
-        const pathArray = routeObjects.map(routeObject => routeObject.path)
-        console.log(`Router.jsx layoutName=${layoutName} parthArray=${pathArray}`)
-        return pathArray
+        const routeObjects = _.filter(Routes.getRoutes(), routeObject => layoutName === routeObject.layoutName)
+        return routeObjects.map(routeObject => routeObject.path)
     },
 
     /**
@@ -115,7 +117,7 @@ Routes = {
      * @return {array} Array of routes.
      */
     routesFor(layoutName) {
-        const routeObjects = _.filter(this.getRoutes(), routeObject => layoutName === routeObject.layoutName)
+        const routeObjects = _.filter(Routes.getRoutes(), routeObject => layoutName === routeObject.layoutName)
         return routeObjects.map((routeObject, index) => {
             return (<Route path={routeObject.path} key={index} exact={true} render={props => {
                 const isLoggedIn = !!Meteor.userId()

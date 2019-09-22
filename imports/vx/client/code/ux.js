@@ -169,11 +169,15 @@ UX = {
      * @param {string} code Enumeration code name (see codes.js).
      * @returns {array} Array of properties and values.
      */
-    makeCodeArray(code) {
-        return _.map(Meteor.i18nMessages.codes[code], (value, propertyName) => {
+    makeCodeArray(code, includeBlank) {
+        const codeArray = _.map(Meteor.i18nMessages.codes[code], (value, propertyName) => {
             let localized = Util.i18n("codes." + code + "." + propertyName)
             return { code : propertyName, localized : localized }
         })
+        if (includeBlank) {
+            codeArray.unshift( { code: "", localized: "" } )
+        }
+        return codeArray
     },
 
     /**
@@ -804,7 +808,9 @@ UX = {
      * @param {boolean} loading Loading indicator.
      */
     setLoading(loading) {
-        Store.dispatch(setLoading(loading))
+        if (Store.getState().loading !== loading) {
+            Store.dispatch(setLoading(loading))
+        }
     },
 
     /**
@@ -1684,15 +1690,10 @@ UX = {
             iosState.minorBackLabel = minorLabel
             UX.beforeAnimate()
             UX.setAnimation("vx-layout-standard", animation)
-            Meteor.setTimeout(() => {
-                UX.mutatePanelMap(iosState, path, panel)
-                OLog.debug(`ux.js iosMajorPush new iosState=${OLog.debugString(iosState)}`)
-                Store.dispatch(setIosState(iosState))
-                Meteor.setTimeout(() => {
-                    // Provide ample time for defeatSlidePairAnimation to redraw panel before go:
-                    UX.go(path)
-                })
-            })
+            UX.mutatePanelMap(iosState, path, panel)
+            OLog.debug(`ux.js iosMajorPush new iosState=${OLog.debugString(iosState)}`)
+            Store.dispatch(setIosState(iosState))
+            UX.go(path)
         })
     },
 
@@ -2256,13 +2257,27 @@ UX = {
     },
 
     /**
+     * Nav menu on click deployment.
+     *
+     * @param {object} event Event.
+     * @param {object} modal Deployment modal.
+     */
+    onClickDeployment(event, modal) {
+        OLog.debug(`ux.js onClickDeployment user=${Util.getUserEmail()}`)
+        event.preventDefault()
+        Meteor.setTimeout(() => {
+            UX.showModal(modal)
+        }, 300)
+    },
+
+    /**
      * Nav menu on click about.
      *
      * @param {object} event Event.
      * @param {object} modal About Modal.
      */
     onClickAbout(event, modal) {
-        OLog.debug("ux.js onClickAbout user=" + Util.getUserEmail())
+        OLog.debug(`ux.js onClickAbout user=${Util.getUserEmail()}`)
         event.preventDefault()
         Meteor.setTimeout(() => {
             UX.showModal(modal)

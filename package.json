@@ -18,7 +18,7 @@
     "react": "^16.8.6",
     "react-bootstrap": "^0.31.5",
     "react-contexify": "^4.1.1",
-    "react-dom": "^16.8.6",
+    "react-dom": "^16.8.0",
     "react-fast-compare": "^2.0.4",
     "react-fastclick": "^3.0.2",
     "react-helmet": "^5.2.1",

@@ -19,7 +19,6 @@ email@1.2.3
 http@1.4.2
 less@2.8.0
 kidovate:pnotify
-meteorhacks:subs-manager
 mrt:moment-timezone
 pcel:loading
 accounts-base@1.4.3
@@ -45,4 +44,3 @@ static-html
 underscore@1.0.10
 react-meteor-data
 standard-minifier-js
-standard-minifier-css

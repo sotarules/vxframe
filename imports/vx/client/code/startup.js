@@ -1,6 +1,8 @@
 import initReactFastclick from "react-fastclick"
 import { createBrowserHistory } from "history"
 import { setRoutePath } from "/imports/vx/client/code/actions"
+import { setExemptRoute } from "/imports/vx/client/code/actions"
+import { setAuthorizedRoute } from "/imports/vx/client/code/actions"
 
 // This makes it possible to debug even if the user hasn't yet logged in (very helpful for debugging hyperlinks
 // such as sign-off actions):
@@ -9,26 +11,40 @@ if (Meteor.absoluteUrl().indexOf("sota.ddns.net") >= 0) {
     OLog.setLogLevel(5)
 }
 
-Meteor.startup(() => {
+const doRoute = () => {
+    const routePath = Util.routePath()
+    const exemptRoute = VXApp.isExemptRoute()
+    const authorizedRoute = VXApp.isAuthorizedRoute()
+    if (routePath !== Store.getState().routePath) {
+        Store.dispatch(setRoutePath(routePath))
+    }
+    if (exemptRoute !== Store.getState().exemptRoute) {
+        Store.dispatch(setExemptRoute(exemptRoute))
+    }
+    if (authorizedRoute !== Store.getState().authorizedRoute) {
+        Store.dispatch(setAuthorizedRoute(authorizedRoute))
+    }
+    OLog.debug(`startup.js doRoute routePath=${routePath} exemptRoute=${exemptRoute} authorizedRoute=${authorizedRoute}`)
+    if (!(exemptRoute || authorizedRoute)) {
+        OLog.debug("startup.js doRoute neither exempt route nor authorized route defeat global subscriptions")
+        VXApp.routeAfter()
+        return
+    }
+    VXApp.routeBefore()
+    VXApp.doGlobalSubscriptions(() => {
+        VXApp.routeAfter()
+    })
+}
 
-    console.log("startup.js creating browser history object")
+Meteor.startup(() => {
 
     // Default loading to hold off any rendering until subscriptions are loaded (see below).
     UX.setLoading(true)
 
     BrowserHistory = createBrowserHistory()
     BrowserHistory.listen((location, action) => {
-        OLog.debug(`startup.js history listener URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
-        Store.dispatch(setRoutePath(location.pathname))
-        OLog.debug(`startup.js browser history listen routePath=${Util.routePath}`)
-        if (VXApp.isExemptRoute()) {
-            OLog.debug("startup.js browser history exempt route do not attempt to load global subscriptions")
-            return
-        }
-        VXApp.routeBefore()
-        VXApp.doGlobalSubscriptions(() => {
-            VXApp.routeAfter()
-        })
+        OLog.debug(`startup.js browser history listen URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
+        doRoute()
     })
 
     ReactDOM.render(Routes.renderRoutes(), document.getElementById("react-root"))
@@ -52,10 +68,10 @@ Meteor.startup(() => {
 
     // Capture and log the client version:
     Accounts.onLogin(() => {
-        console.log("startup.js Accounts onLogin *fire*")
+        OLog.debug("startup.js Accounts onLogin *fire*")
         Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, error => {
             if (error) {
-                console.log("startup.js Accounts onClientLogin callback error=" + error)
+                OLog.error(`startup.js Accounts onClientLogin callback error=${error}`)
                 return
             }
         })
@@ -64,11 +80,5 @@ Meteor.startup(() => {
     // Use React-friendly FastClick:
     initReactFastclick()
 
-    // Reset global subscriptions here to handle the case where user is starting the system
-    // via bookmarked page that needs subscriptions ready:
-    VXApp.doGlobalSubscriptions(success => {
-        OLog.debug(`startup.js [${Util.routePath()}] doGlobalSubscriptions callback success=${success}`)
-        VXApp.routeBefore()
-        VXApp.routeAfter()
-    })
+    doRoute()
 })
