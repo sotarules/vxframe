@@ -45,7 +45,7 @@ export default class TemplateViewRight extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className="flexi-grow">
+                className="flexi-grow lock-exiting-component">
                 {this.props.template ? (
                     <RightPanel>
                         <RightHeader iconUrl={CX.CLOUDFILES_PREFIX + "/img/system/template5.png"}

@@ -98,6 +98,7 @@ export default class IOSButtonBar extends Component {
     }
 
     className() {
-        return `flexi-fixed not-selectable hidden-print ${(this.state.isButtonBarVisible ? "ios-button-bar" : "ios-button-bar-placeholder")}`
+        return `flexi-fixed not-selectable hidden-print lock-exiting-component ${(this.state.isButtonBarVisible ?
+            "ios-button-bar" : "ios-button-bar-placeholder")}`
     }
 }

@@ -67,7 +67,6 @@ VXApp = _.extend(VXApp || {}, {
             publishRequest[side].extra.mode = mode
             VXApp.adjustPublishingRequest(publishRequest[side], subscriptionParameters.userId, subscriptionParameters)
         })
-        OLog.debug(`vxapp.js makePublishingRequest ${subscriptionName} ${OLog.debugString(publishRequest)}`)
         return publishRequest
     },
 

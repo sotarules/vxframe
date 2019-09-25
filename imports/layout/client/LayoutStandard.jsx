@@ -56,7 +56,8 @@ export default class LayoutStandard extends Component {
     }
 
     slidePanelId() {
-        return this.props.location.key
+        // Pathname fallback is used when page is reloaded and no BroswerHistory is established
+        return this.props.location.key || this.props.location.pathname
     }
 
     getAnimation() {

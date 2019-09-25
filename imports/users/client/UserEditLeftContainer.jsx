@@ -3,8 +3,12 @@ import UserEditLeft from "/imports/users/client/UserEditLeft"
 
 export default withTracker(( ) => {
 
+    let domains
+
+    domains =  VXApp.findDomainList()
+
     return {
-        domains : VXApp.findDomainList()
+        domains
     }
 
 })(UserEditLeft)

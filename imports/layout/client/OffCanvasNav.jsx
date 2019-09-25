@@ -3,6 +3,7 @@ import PropTypes from "prop-types"
 import OffCanvasNavItem from "./OffCanvasNavItem"
 import OffCanvasNavSeparator from "./OffCanvasNavSeparator"
 import AboutModal from "/imports/vx/client/AboutModal"
+import DeploymentModal from "/imports/vx/client/DeploymentModal"
 
 export default class OffCanvasNav extends Component {
 
@@ -22,37 +23,36 @@ export default class OffCanvasNav extends Component {
                         text={Util.i18n("navbar.my_tenants")}
                         path="/tenants"/>
                     {this.props.isUserAdmin &&
-                        <OffCanvasNavSeparator/>
-                    }
-                    {this.props.isUserAdmin &&
-                        <OffCanvasNavItem iconClass="fa-file-code-o"
-                            text={Util.i18n("navbar.templates")}
-                            path="/templates"/>
-                    }
-                    {this.props.isUserAdmin &&
-                        <OffCanvasNavItem iconClass="fa-sitemap"
-                            text={Util.i18n("navbar.members_domains")}
-                            path="/users-domains"/>
-                    }
-                    <hr className="nav-separator"/>
-                    {this.props.isUserSuperAdmin &&
-                        <OffCanvasNavItem iconClass="fa-gear"
-                            text={Util.i18n("navbar.settings")}
-                            path="/system-settings"/>
+                        <React.Fragment>
+                            <OffCanvasNavSeparator/>
+                            <OffCanvasNavItem iconClass="fa-file-code-o"
+                                text={Util.i18n("navbar.templates")}
+                                path="/templates"/>
+                            <OffCanvasNavItem iconClass="fa-sitemap"
+                                text={Util.i18n("navbar.members_domains")}
+                                path="/users-domains"/>
+                        </React.Fragment>
                     }
                     {this.props.isUserSuperAdmin &&
-                        <OffCanvasNavItem iconClass="fa-history"
-                            text={Util.i18n("navbar.events")}
-                            path="/events"/>
+                        <React.Fragment>
+                            <OffCanvasNavSeparator/>
+                            <OffCanvasNavItem iconClass="fa-upload"
+                                text={Util.i18n("navbar.deployment")}
+                                path="/domains-users"
+                                onClick={this.onClickDeployment.bind(this)}/>
+                            <OffCanvasNavSeparator/>
+                            <OffCanvasNavItem iconClass="fa-gear"
+                                text={Util.i18n("navbar.settings")}
+                                path="/system-settings"/>
+                            <OffCanvasNavItem iconClass="fa-history"
+                                text={Util.i18n("navbar.events")}
+                                path="/events"/>
+                            <OffCanvasNavItem iconClass="fa-database"
+                                text={Util.i18n("navbar.log")}
+                                path="/log"/>
+                        </React.Fragment>
                     }
-                    {this.props.isUserSuperAdmin &&
-                        <OffCanvasNavItem iconClass="fa-database"
-                            text={Util.i18n("navbar.log")}
-                            path="/log"/>
-                    }
-                    {this.props.isUserSuperAdmin &&
-                        <OffCanvasNavSeparator/>
-                    }
+                    <OffCanvasNavSeparator/>
                     <OffCanvasNavItem iconClass="fa-info-circle"
                         text={Util.i18n("navbar.about")}
                         onClick={this.onClickAbout.bind(this)}/>
@@ -68,6 +68,15 @@ export default class OffCanvasNav extends Component {
         return {
             offcanvasMenu : { left : "-200px" }
         }
+    }
+
+    onClickDeployment(event) {
+        event.persist()
+        const delayMilliseconds = Util.isRoutePath("/domains-users") ? 0 : 1000
+        UX.onClickMenuItem(event)
+        Meteor.setTimeout(() => {
+            UX.onClickDeployment(event, <DeploymentModal/>)
+        }, delayMilliseconds)
     }
 
     onClickAbout(event) {

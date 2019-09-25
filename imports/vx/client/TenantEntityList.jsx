@@ -1,11 +1,13 @@
-import { Component } from "react";
+import { Component } from "react"
 import PropTypes from "prop-types"
+import EmptyEntityList from "/imports/vx/client/EmptyEntityList"
 import EntityList from "/imports/vx/client/EntityList";
 import EntityItem from "/imports/vx/client/EntityItem";
 
 export default class TenantEntityList extends Component {
 
     static propTypes = {
+        id : PropTypes.string.isRequired,
         tenants : PropTypes.array.isRequired,
         selectable : PropTypes.bool,
         chevrons : PropTypes.bool,
@@ -13,6 +15,13 @@ export default class TenantEntityList extends Component {
     }
 
     render() {
+        if (this.props.tenants.length === 0) {
+            return (
+                <EmptyEntityList id={this.props.id}
+                    emptyMessage={Util.i18n("common.empty_tenants")}
+                    emptyListSize="large"/>
+            )
+        }
         return (
             <EntityList id="tenant-list"
                 className="tenant-list"

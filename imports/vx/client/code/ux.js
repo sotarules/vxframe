@@ -485,10 +485,13 @@ UX = {
             return
         }
         OLog.debug(`ux.js updateSlideMode *changed* slideModeOld=${slideModeOld} slideModeNew=${slideModeNew}`)
-        UX.setAnimation("vx-slide-pair", null)
         UX.mutatePanelMap(iosState, Util.routePath(), "LEFT")
         iosState.slideMode = slideModeNew
         Store.dispatch(setIosState(iosState))
+        const slidePair = UX.findComponentById("vx-slide-pair")
+        if (slidePair) {
+            UX.setAnimation("vx-slide-pair", null)
+        }
     },
 
     /**
@@ -1685,7 +1688,7 @@ UX = {
             OLog.debug(`ux.js iosMajorPush *push* old state=${OLog.debugString(state)}`)
             iosState.stack = iosState.stack || []
             iosState.stack.push(state)
-            UX.setLocked(["ios-button-bar"], true)
+            UX.lockExitingComponents(true)
             iosState.majorBackLabel = majorLabel
             iosState.minorBackLabel = minorLabel
             UX.beforeAnimate()
@@ -1722,7 +1725,7 @@ UX = {
             OLog.debug(`ux.js iosMinorPush *push* old state=${OLog.debugString(state)}`)
             iosState.stack = iosState.stack || []
             iosState.stack.push(state)
-            UX.setLocked(["ios-button-bar"], true)
+            UX.lockExitingComponents(true)
             iosState.minorBackLabel = minorLabel
             UX.setAnimation("vx-slide-pair", animation)
             UX.beforeAnimate()
@@ -1765,7 +1768,7 @@ UX = {
         OLog.debug(`ux.js iosPopAndGo stack *pop* new state=${OLog.debugString(state)}`)
         Meteor.setTimeout(() => {
             try {
-                UX.setLocked(["ios-button-bar"], true)
+                UX.lockExitingComponents(true)
                 iosState.majorBackLabel = state.majorLabel
                 iosState.minorBackLabel = state.minorLabel
                 UX.beforeAnimate()
@@ -1806,7 +1809,8 @@ UX = {
         Meteor.setTimeout(() => {
             animation = animation || "crossfade"
             let iosState = Store.getState().iosState
-            UX.setLocked(["ios-button-bar"], true)
+            OLog.debug(`ux.js iosInvoke path=${path} animation=${animation}`)
+            UX.lockExitingComponents(true)
             UX.beforeAnimate()
             UX.setAnimation("vx-layout-standard", animation)
             iosState.majorBackLabel = majorLabel
@@ -1814,6 +1818,32 @@ UX = {
             UX.mutatePanelMap(iosState, path, panel)
             Store.dispatch(setIosState(iosState))
             UX.go(path)
+        })
+    },
+
+    /**
+     * Lock any components bearing class lock-exiting-component.
+     *
+     * @param {boolean} locked True to lock, false to unlock.
+     */
+    lockExitingComponents(locked) {
+        $(".lock-exiting-component").each((index, element) => {
+            const id = $(element).attr("id")
+            if (!id) {
+                OLog.error("ux.js lockExitingComponents element does not have attribute id")
+                return
+            }
+            const component = UX.findComponentById(id)
+            if (!component) {
+                OLog.error(`ux.js lockExitingComponents element id=${id} is not a React component`)
+                return
+            }
+            if (!component.setLocked) {
+                OLog.error(`ux.js lockExitingComponents element id=${id} component does not expose setLocked method`)
+                return
+            }
+            component.setLocked(locked)
+            OLog.debug(`ux.js lockExitingComponents element id=${id} component *locked*`)
         })
     },
 
@@ -2205,6 +2235,17 @@ UX = {
     lastSegment() {
         const parts = Util.routePath().split("/")
         return parts.pop()
+    },
+
+    /**
+     * Get the first segment of the current route path. This is the route path without token.
+     *
+     * @return {string} First segment of route path.
+     */
+    firstSegment() {
+        const routePath = Util.routePath()
+        const index = routePath.lastIndexOf("/")
+        return index === 0 ? routePath : routePath.substring(0, index + 1)
     },
 
     /**

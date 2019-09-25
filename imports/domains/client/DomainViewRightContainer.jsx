@@ -4,20 +4,25 @@ import DomainViewRight from "/imports/domains/client/DomainViewRight"
 
 const MeteorContainer = withTracker(( ) => {
 
-    let tenant = ContextMaker.domains()
-    if (!(tenant && tenant.domain)) {
-        return {}
+    let tenant, domain, decorationIconClassName, decorationColor, decorationTooltip, users, currentDomainId
+
+    tenant = ContextMaker.domains()
+    if (tenant && tenant.domain) {
+        domain = tenant.domain
+        decorationIconClassName = Util.isDomainCurrent(domain._id) ? "entity-decoration-icon-medium fa fa-lg fa-asterisk" : null
+        decorationColor = "blue"
+        decorationTooltip = Util.i18n("common.tooltip_domain_decoration_current")
+        users = Util.findUsersInDomain(domain._id).fetch()
+        currentDomainId = Util.getCurrentDomainId(Meteor.userId())
     }
 
-    let domain = tenant.domain
-
     return {
-        domain : domain,
-        decorationIconClassName : Util.isDomainCurrent(domain._id) ? "entity-decoration-icon-medium fa fa-lg fa-asterisk" : null,
-        decorationColor : "blue",
-        decorationTooltip : Util.i18n("common.tooltip_domain_decoration_current"),
-        users : Util.findUsersInDomain(domain._id).fetch(),
-        currentDomainId : Util.getCurrentDomainId(Meteor.userId())
+        domain,
+        decorationIconClassName,
+        decorationColor,
+        decorationTooltip,
+        users,
+        currentDomainId
     }
 
 })(DomainViewRight)

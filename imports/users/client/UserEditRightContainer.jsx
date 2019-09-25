@@ -3,19 +3,20 @@ import UserEditRight from "/imports/users/client/UserEditRight"
 
 export default withTracker(( ) => {
 
-    const user = ContextMaker.user()
-    if (!user) {
-        return {}
+    let user, domains, domainRolesChecked, currentDomainId
+
+    user = ContextMaker.user()
+    if (user) {
+        domains = _.pluck(VXApp.findUserDomainList(user._id), "domain")
+        domainRolesChecked = Util.domainRolesMap(domains, user)
+        currentDomainId = Util.getCurrentDomainId(user._id)
     }
 
-    const domains = _.pluck(VXApp.findUserDomainList(user._id), "domain")
-    const domainRolesChecked = Util.domainRolesMap(domains, user)
-
     return {
-        user : user,
-        domains : domains,
-        domainRolesChecked : domainRolesChecked,
-        currentDomainId : Util.getCurrentDomainId(user._id)
+        user,
+        domains,
+        domainRolesChecked,
+        currentDomainId
     }
 
 })(UserEditRight)

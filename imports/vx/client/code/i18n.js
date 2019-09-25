@@ -310,14 +310,44 @@
         rx : "$Issues Detected$"
     },
 
+    empty_tenants : {
+        en : "There are no tenants to display",
+        rx : "$There are no tenants to display$"
+    },
+
+    empty_domains : {
+        en : "There are no domains to display",
+        rx : "$There are no domains to display$"
+    },
+
     empty_templates : {
         en : "There are no Email Templates, press Create Email Template to add one",
         rx : "$There are no Email Templates, press Create Email Template to add one$"
     },
 
+    empty_tenant_rhs_details : {
+        en : "The details of your selected Tenant will appear here",
+        rx : "$The details of your selected Tenant will appear here$"
+    },
+
+    empty_domain_rhs_details : {
+        en : "The details of your selected Domain will appear here",
+        rx : "$The details of your selected Domain will appear here$"
+    },
+
+    empty_user_rhs_details : {
+        en : "The details of your selected User will appear here",
+        rx : "$The details of your selected User will appear here$"
+    },
+
     empty_template_rhs_details : {
         en : "The details of your selected Email Template will appear here",
         rx : "$The details of your selected Email Template will appear here$"
+    },
+
+    empty_edit_record_missing : {
+        en : "The record ID in the URL doesn't match any record in the database",
+        rx : "$The record ID in the URL doesn't match any record in the database$"
     },
 
     switch_on : {

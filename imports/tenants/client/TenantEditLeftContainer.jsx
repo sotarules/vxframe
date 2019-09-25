@@ -3,8 +3,12 @@ import TenantEditLeft from "/imports/tenants/client/TenantEditLeft"
 
 export default withTracker(( ) => {
 
+    let tenants
+
+    tenants = VXApp.findTenantList(Meteor.userId())
+
     return {
-        tenants : VXApp.findTenantList(Meteor.userId())
+        tenants
     }
 
 })(TenantEditLeft)

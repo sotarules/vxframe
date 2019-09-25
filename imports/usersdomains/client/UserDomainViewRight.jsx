@@ -1,6 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
+import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
 import RightHeader from "/imports/vx/client/RightHeader"
 import VXForm from "/imports/vx/client/VXForm"
 import VXFieldBox from "/imports/vx/client/VXFieldBox"
@@ -13,10 +14,10 @@ export default class UserDomainViewRight extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        user : PropTypes.object.isRequired,
-        domains : PropTypes.array.isRequired,
-        domainRolesChecked : PropTypes.object.isRequired,
-        currentDomainId : PropTypes.string.isRequired
+        user : PropTypes.object,
+        domains : PropTypes.array,
+        domainRolesChecked : PropTypes.object,
+        currentDomainId : PropTypes.string
     }
 
     static defaultProps = {
@@ -45,44 +46,48 @@ export default class UserDomainViewRight extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className="flexi-grow">
-                <RightPanel>
-                    <RightHeader iconUrl={Util.fetchUserPhotoUrl(this.props.user)}
-                        rounded={true}
-                        name={Util.fetchFullName(this.props.user)}
-                        description={Util.getUserEmail(this.props.user)}>
-                        <VXForm id="user-domain-view-right-form"
-                            ref={(form) => { this.form = form }}
-                            className="right-panel-form flexi-fixed">
-                            <div className="row">
-                                <div className="col-xs-6">
-                                    <VXFieldBox label={Util.i18n("common.label_email")}
-                                        value={Util.getUserEmail(this.props.user)}/>
+                className="flexi-grow lock-exiting-component">
+                {this.props.user ? (
+                    <RightPanel>
+                        <RightHeader iconUrl={Util.fetchUserPhotoUrl(this.props.user)}
+                            rounded={true}
+                            name={Util.fetchFullName(this.props.user)}
+                            description={Util.getUserEmail(this.props.user)}>
+                            <VXForm id="user-domain-view-right-form"
+                                ref={(form) => { this.form = form }}
+                                className="right-panel-form flexi-fixed">
+                                <div className="row">
+                                    <div className="col-xs-6">
+                                        <VXFieldBox label={Util.i18n("common.label_email")}
+                                            value={Util.getUserEmail(this.props.user)}/>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-xs-6">
-                                    <VXFieldBox label={Util.i18n("common.label_phone")}
-                                        value={Util.fetchUserPhone(this.props.user)}/>
+                                <div className="row">
+                                    <div className="col-xs-6">
+                                        <VXFieldBox label={Util.i18n("common.label_phone")}
+                                            value={Util.fetchUserPhone(this.props.user)}/>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-xs-6">
-                                    <VXFieldBox label={Util.i18n("common.label_mobile")}
-                                        value={Util.fetchUserMobile(this.props.user)}/>
+                                <div className="row">
+                                    <div className="col-xs-6">
+                                        <VXFieldBox label={Util.i18n("common.label_mobile")}
+                                            value={Util.fetchUserMobile(this.props.user)}/>
+                                    </div>
                                 </div>
-                            </div>
-                        </VXForm>
-                    </RightHeader>
-                    <EntityListHeader label={Util.i18n("user_domain.label_domains_header")}/>
-                    <DomainEntityList id="user-domain-view-right-list"
-                        domains={this.props.domains}
-                        currentDomainId={this.props.currentDomainId}
-                        rightPanel={true}
-                        roleCheckboxes={true}
-                        roleCheckboxesDisabled={true}
-                        domainRolesChecked={this.props.domainRolesChecked}/>
-                </RightPanel>
+                            </VXForm>
+                        </RightHeader>
+                        <EntityListHeader label={Util.i18n("user_domain.label_domains_header")}/>
+                        <DomainEntityList id="user-domain-view-right-list"
+                            domains={this.props.domains}
+                            currentDomainId={this.props.currentDomainId}
+                            rightPanel={true}
+                            roleCheckboxes={true}
+                            roleCheckboxesDisabled={true}
+                            domainRolesChecked={this.props.domainRolesChecked}/>
+                    </RightPanel>
+                ) : (
+                    <EmptyRightPanel emptyMessage={Util.i18n("common.empty_user_rhs_details")}/>
+                )}
             </div>
         )
     }

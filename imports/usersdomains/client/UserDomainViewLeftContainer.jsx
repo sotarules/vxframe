@@ -3,8 +3,12 @@ import UserDomainViewLeft from "/imports/usersdomains/client/UserDomainViewLeft"
 
 export default withTracker(( ) => {
 
+    let users
+
+    users = VXApp.findUserList()
+
     return {
-        users : VXApp.findUserList()
+        users
     }
 
 })(UserDomainViewLeft)

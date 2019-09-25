@@ -3,22 +3,26 @@ import DomainEditRight from "/imports/domains/client/DomainEditRight"
 
 export default withTracker(( ) => {
 
-    let domain = ContextMaker.domain()
-    if (!domain) {
-        return {}
+    let domain, decorationIconClassName, decorationColor, decorationTooltip, userRolesChecked, users, states
+    domain = ContextMaker.domain()
+    if (domain) {
+        users = VXApp.findDomainUserList(domain)
+        decorationIconClassName = Util.isDomainCurrent(domain._id) ? "entity-decoration-icon-medium fa fa-lg fa-asterisk" : null
+        decorationColor = "blue"
+        decorationTooltip = Util.i18n("common.tooltip_domain_decoration_current")
+        userRolesChecked = Util.userRolesMap(users, domain)
+        users = VXApp.findDomainUserList(domain)
+        states = UX.makeCodeArray("state")
     }
 
-    let users = VXApp.findDomainUserList(domain)
-    let userRolesChecked = Util.userRolesMap(users, domain)
-
     return {
-        domain : domain,
-        decorationIconClassName : Util.isDomainCurrent(domain._id) ? "entity-decoration-icon-medium fa fa-lg fa-asterisk" : null,
-        decorationColor : "blue",
-        decorationTooltip : Util.i18n("common.tooltip_domain_decoration_current"),
-        users : VXApp.findDomainUserList(domain),
-        userRolesChecked : userRolesChecked,
-        states : UX.makeCodeArray("state")
+        domain,
+        decorationIconClassName,
+        decorationColor,
+        decorationTooltip,
+        users,
+        userRolesChecked,
+        states
     }
 
 })(DomainEditRight)

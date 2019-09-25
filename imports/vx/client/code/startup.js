@@ -13,25 +13,36 @@ if (Meteor.absoluteUrl().indexOf("sota.ddns.net") >= 0) {
 
 const doRoute = () => {
     const routePath = Util.routePath()
-    const exemptRoute = VXApp.isExemptRoute()
-    const authorizedRoute = VXApp.isAuthorizedRoute()
     if (routePath !== Store.getState().routePath) {
         Store.dispatch(setRoutePath(routePath))
     }
-    if (exemptRoute !== Store.getState().exemptRoute) {
-        Store.dispatch(setExemptRoute(exemptRoute))
+    const valid = Routes.isValidRoute(routePath)
+    if (!valid) {
+        OLog.debug(`startup.js doRoute [${Util.routePath()}] *invalid* no subscriptions shall be performed`)
+        VXApp.routeAfter()
+        return
     }
-    if (authorizedRoute !== Store.getState().authorizedRoute) {
-        Store.dispatch(setAuthorizedRoute(authorizedRoute))
+    const exemptRoute = VXApp.isExemptRoute()
+    if (exemptRoute) {
+        OLog.debug(`startup.js doRoute [${Util.routePath()}] *exempt* no subscriptions shall be performed`)
+        if (exemptRoute !== Store.getState().exemptRoute) {
+            Store.dispatch(setExemptRoute(exemptRoute))
+        }
+        VXApp.routeAfter()
+        return
     }
-    OLog.debug(`startup.js doRoute routePath=${routePath} exemptRoute=${exemptRoute} authorizedRoute=${authorizedRoute}`)
-    if (!(exemptRoute || authorizedRoute)) {
-        OLog.debug("startup.js doRoute neither exempt route nor authorized route defeat global subscriptions")
+    if (!Meteor.userId()) {
+        OLog.debug(`startup.js doRoute [${Util.routePath()}] *not-logged-in* no subscriptions shall be performed`)
         VXApp.routeAfter()
         return
     }
     VXApp.routeBefore()
     VXApp.doGlobalSubscriptions(() => {
+        const authorizedRoute = VXApp.isAuthorizedRoute()
+        OLog.debug(`startup.js doRoute [${Util.routePath()}] user=${Util.getUserEmail()} authorizedRoute=${authorizedRoute}`)
+        if (authorizedRoute !== Store.getState().authorizedRoute) {
+            Store.dispatch(setAuthorizedRoute(authorizedRoute))
+        }
         VXApp.routeAfter()
     })
 }

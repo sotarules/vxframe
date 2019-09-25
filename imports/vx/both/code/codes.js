@@ -30,7 +30,7 @@ Meteor.i18nMessages.codes = {
         2 : {
             en : "Warning",
             rx : "$Warning$",
-            code: "WARNING"
+            code: "WARN"
         },
         3 : {
             en : "Info",

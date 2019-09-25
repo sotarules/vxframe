@@ -488,8 +488,8 @@ Meteor.i18nMessages.common = {
     },
 
     alert_deployment_message_restore : {
-        en : "If you press [Confirm] the system will restore all Functions, Wizards, Forms, Composites and Counties into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}.",
-        rx : "$If you press [Confirm] the system will restore all Functions, Wizards, Forms, Composites and Counties into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}..$"
+        en : "If you press [Confirm] the system will records into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}.",
+        rx : "$If you press [Confirm] the system will records into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}.$"
     },
 
     alert_deployment_message_no_history : {

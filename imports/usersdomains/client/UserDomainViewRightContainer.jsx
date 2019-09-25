@@ -4,19 +4,19 @@ import UserDomainViewRight from "/imports/usersdomains/client/UserDomainViewRigh
 
 const MeteorContainer = withTracker(() => {
 
-    let user = ContextMaker["users-domains"]()
-    if (!user) {
-        return {}
+    let user, domains, domainRolesChecked, currentDomainId
+    user = ContextMaker["users-domains"]()
+    if (user) {
+        domains = _.pluck(VXApp.findUserDomainList(user._id), "domain")
+        domainRolesChecked = Util.domainRolesMap(domains, user)
+        currentDomainId = Util.getCurrentDomainId(user._id)
     }
 
-    let domains = _.pluck(VXApp.findUserDomainList(user._id), "domain")
-    let domainRolesChecked = Util.domainRolesMap(domains, user)
-
     return {
-        user : user,
-        domains : domains,
-        domainRolesChecked : domainRolesChecked,
-        currentDomainId : Util.getCurrentDomainId(user._id)
+        user,
+        domains,
+        domainRolesChecked,
+        currentDomainId
     }
 
 })(UserDomainViewRight)

@@ -39,7 +39,8 @@ export default class TenantViewLeft extends Component {
                     <RadioButton id="button-tenants"
                         text={Util.i18n("common.label_my_tenants")}/>
                 </RadioButtonGroup>
-                <TenantEntityList tenants={this.props.tenants}
+                <TenantEntityList id="tenant-view-left-list"
+                    tenants={this.props.tenants}
                     selectable={true}
                     chevrons={true}
                     onSelect={this.handleSelectTenant.bind(this)}/>

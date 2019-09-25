@@ -4,16 +4,19 @@ import TemplateViewRight from "/imports/templates/client/TemplateViewRight"
 
 const MeteorContainer = withTracker(() => {
 
-    let template = ContextMaker.templates()
-    if (!template) {
-        return {}
+    let template, decorationIconClassName, decorationColor, decorationTooltip
+    template = ContextMaker.templates()
+    if (template) {
+        decorationIconClassName = VXApp.getSubsystemStatusDecorationIconClassName("TEMPLATE", template, "medium")
+        decorationColor = VXApp.getSubsystemStatusDecorationColor("TEMPLATE", template)
+        decorationTooltip = VXApp.getSubsystemStatusDecorationTooltip("TEMPLATE", template)
     }
 
     return {
-        template : template,
-        decorationIconClassName : VXApp.getSubsystemStatusDecorationIconClassName("TEMPLATE", template, "medium"),
-        decorationColor : VXApp.getSubsystemStatusDecorationColor("TEMPLATE", template),
-        decorationTooltip : VXApp.getSubsystemStatusDecorationTooltip("TEMPLATE", template)
+        template,
+        decorationIconClassName,
+        decorationColor,
+        decorationTooltip
     }
 
 })(TemplateViewRight)

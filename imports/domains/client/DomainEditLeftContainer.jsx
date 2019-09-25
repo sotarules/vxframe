@@ -3,8 +3,9 @@ import DomainEditLeft from "/imports/domains/client/DomainEditLeft"
 
 export default withTracker(( ) => {
 
+    let users = VXApp.findUserList()
     return {
-        users : VXApp.findUserList()
+        users
     }
 
 })(DomainEditLeft)

@@ -14,7 +14,7 @@ export default class DomainEditLeft extends Component {
         return (
             <div className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-users"
-                        activeButtonId="button-users">
+                    activeButtonId="button-users">
                     <RadioButton id="button-users"
                         text={Util.i18n("common.label_domains")}/>
                 </RadioButtonGroup>

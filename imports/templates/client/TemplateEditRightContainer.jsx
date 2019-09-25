@@ -2,16 +2,20 @@ import { withTracker } from "meteor/react-meteor-data"
 import TemplateEditRight from "/imports/templates/client/TemplateEditRight"
 
 export default withTracker(( ) => {
+    let template, decorationIconClassName, decorationColor, decorationTooltip
 
-    let template = ContextMaker.template()
-
-    OLog.debug("TemplateEditRightContainer.jsx template=" + OLog.debugString(template))
+    template = ContextMaker.template()
+    if (template) {
+        decorationIconClassName = VXApp.getSubsystemStatusDecorationIconClassName("TEMPLATE", template, "medium")
+        decorationColor = VXApp.getSubsystemStatusDecorationColor("TEMPLATE", template)
+        decorationTooltip = VXApp.getSubsystemStatusDecorationTooltip("TEMPLATE", template)
+    }
 
     return {
-        template : template,
-        decorationIconClassName : VXApp.getSubsystemStatusDecorationIconClassName("TEMPLATE", template, "medium"),
-        decorationColor : VXApp.getSubsystemStatusDecorationColor("TEMPLATE", template),
-        decorationTooltip : VXApp.getSubsystemStatusDecorationTooltip("TEMPLATE", template)
+        template,
+        decorationIconClassName,
+        decorationColor,
+        decorationTooltip
     }
 
 })(TemplateEditRight)

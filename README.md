@@ -50,7 +50,6 @@ Although Atmosphere is considered "legacy" now, it is still a very convenient wa
 | less  | This is necessary because Bootstrap is the front-end of VXFrame. |
 | lookback:emails | Provide the infrastructure for HTML email reports, part of the VXFrame Profile subsystem. |
 | meteorhacks:picker  | Server Side Router for Meteor. |
-| meteorhacks:subs-manager  | Subscriptions Manager for Meteor. Caching of subscriptions can improve performance. |
 | momentjs:moment  | Absolutely must-have package, Moment.js allows you to parse, validate, manipulate, and display dates |
 | mrt:jquery-ui-sortable | Reorder elements in a list or grid using the mouse, this supports VXFrame drag/drop processing. |
 | mrt:moment-timezone  | Must-have package that fully supports user timezones (sister of Moment.js). |
@@ -82,7 +81,7 @@ Best practices for Meteor suggest that whenever possible you use raw NPM package
 | react-fastclick | Gets rid of annoying 350ms delay on touch devices, definitely a must-have package. |
 | react-helmet | Gives you convenient access to HTML header elements with simple React components. |
 | react-redux | Official React bindings for Redux. |
-| react-router-dom | Perhaps best router for React |
+| react-router-dom | Perhaps best router for React very clean and lets you have ultra-granular routes. |
 | react-transition-group | State-of-the-art package for implementing animations on React. It took a lot of time to master this package, but now it handles VXFrame slide and cross-fade animations. Hats off to the developers, they clearly worked their butts off on this package, and I can see that this generalized approach can handle most animation requirements. |
 | redux | Over-engineered and overly-complex browser state management, loved by propeller-heads and barely tolerated by regular developers, works hand-in-glove with Meteor tracker to control local state. |
 | redux-actions | Flux Standard Action utilities for Redux. |

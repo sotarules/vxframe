@@ -1,6 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
+import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
 import RightHeader from "/imports/vx/client/RightHeader"
 import VXForm from "/imports/vx/client/VXForm"
 import VXFieldBox from "/imports/vx/client/VXFieldBox"
@@ -15,15 +16,15 @@ export default class TenantViewRight extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        tenant : PropTypes.object.isRequired,
+        tenant : PropTypes.object,
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["blue"]),
         decorationTooltip : PropTypes.string,
-        userEmail : PropTypes.string.isRequired,
-        isUserTenantAdmin : PropTypes.bool.isRequired,
-        domains : PropTypes.array.isRequired,
-        domainRolesChecked : PropTypes.object.isRequired,
-        currentDomainId : PropTypes.string.isRequired
+        userEmail : PropTypes.string,
+        isUserTenantAdmin : PropTypes.bool,
+        domains : PropTypes.array,
+        domainRolesChecked : PropTypes.object,
+        currentDomainId : PropTypes.string
     }
 
     static defaultProps = {
@@ -51,43 +52,47 @@ export default class TenantViewRight extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className="flexi-grow">
-                <RightPanel>
-                    <RightHeader iconUrl={Util.fetchTenantIconUrl(this.props.tenant._id)}
-                        name={this.props.tenant.name}
-                        description={this.props.tenant.description}
-                        decorationIconClassName={this.props.decorationIconClassName}
-                        decorationColor={this.props.decorationColor}
-                        decorationTooltip={this.props.decorationTooltip}>
-                        <VXForm id="tenant-view-right-form"
-                            ref={(form) => { this.form = form }}
-                            className="right-panel-form flexi-fixed">
-                            <div className="row">
-                                <div className="col-xs-6">
-                                    <VXFieldBox label={Util.i18n("common.label_your_email_address")}
-                                        value={this.props.userEmail}/>
+                className="flexi-grow lock-exiting-component">
+                {this.props.tenant ? (
+                    <RightPanel>
+                        <RightHeader iconUrl={Util.fetchTenantIconUrl(this.props.tenant._id)}
+                            name={this.props.tenant.name}
+                            description={this.props.tenant.description}
+                            decorationIconClassName={this.props.decorationIconClassName}
+                            decorationColor={this.props.decorationColor}
+                            decorationTooltip={this.props.decorationTooltip}>
+                            <VXForm id="tenant-view-right-form"
+                                ref={(form) => { this.form = form }}
+                                className="right-panel-form flexi-fixed">
+                                <div className="row">
+                                    <div className="col-xs-6">
+                                        <VXFieldBox label={Util.i18n("common.label_your_email_address")}
+                                            value={this.props.userEmail}/>
+                                    </div>
+                                    <div className="col-xs-6 margin-top-26">
+                                        <VXCheck id="role-tenant-admin"
+                                            label={Util.i18n("common.label_tenant_admin")}
+                                            checked={this.props.isUserTenantAdmin}
+                                            disabled={true}/>
+                                    </div>
                                 </div>
-                                <div className="col-xs-6 margin-top-26">
-                                    <VXCheck id="role-tenant-admin"
-                                        label={Util.i18n("common.label_tenant_admin")}
-                                        checked={this.props.isUserTenantAdmin}
-                                        disabled={true}/>
-                                </div>
-                            </div>
-                        </VXForm>
-                    </RightHeader>
-                    <EntityListHeader label={Util.i18n("my_tenants.label_domains_header")}/>
-                    <DomainEntityList id="tenant-view-right-list"
-                        domains={this.props.domains}
-                        currentDomainId={this.props.currentDomainId}
-                        selectable={true}
-                        chevrons={true}
-                        rightPanel={true}
-                        roleCheckboxes={true}
-                        roleCheckboxesDisabled={true}
-                        domainRolesChecked={this.props.domainRolesChecked}
-                        onSelect={this.handleSelectDomain.bind(this)}/>
-                </RightPanel>
+                            </VXForm>
+                        </RightHeader>
+                        <EntityListHeader label={Util.i18n("my_tenants.label_domains_header")}/>
+                        <DomainEntityList id="tenant-view-right-list"
+                            domains={this.props.domains}
+                            currentDomainId={this.props.currentDomainId}
+                            selectable={true}
+                            chevrons={true}
+                            rightPanel={true}
+                            roleCheckboxes={true}
+                            roleCheckboxesDisabled={true}
+                            domainRolesChecked={this.props.domainRolesChecked}
+                            onSelect={this.handleSelectDomain.bind(this)}/>
+                    </RightPanel>
+                ) : (
+                    <EmptyRightPanel emptyMessage={Util.i18n("common.empty_tenant_rhs_details")}/>
+                )}
             </div>
         )
     }

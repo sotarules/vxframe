@@ -43,6 +43,16 @@ Routes = {
         ])
     },
 
+    isValidRoute(path) {
+        const routes = Routes.getRoutes()
+        return !!_.find(routes, route => {
+            const pathSegment = UX.firstSegment(path)
+            const routeSegment = UX.firstSegment(route.path)
+            OLog.debug(`routes.jsx isValidRoute pathSegment=${pathSegment} routeSegment=${routeSegment}`)
+            return pathSegment === routeSegment
+        })
+    },
+
     renderRoutes() {
         return (
             <Router history={BrowserHistory}>
@@ -120,10 +130,8 @@ Routes = {
         const routeObjects = _.filter(Routes.getRoutes(), routeObject => layoutName === routeObject.layoutName)
         return routeObjects.map((routeObject, index) => {
             return (<Route path={routeObject.path} key={index} exact={true} render={props => {
-                const isLoggedIn = !!Meteor.userId()
                 const Component = routeObject.component
-                return isLoggedIn || VXApp.isExemptRoute(routeObject.path) ?
-                    <Component {...props} /> : <Redirect to={{ pathname: "/", state: { from: props.location } }} />
+                return <Component {...props} />
             }}/>)
         })
     }
