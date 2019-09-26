@@ -118,6 +118,10 @@ Meteor.methods({
         return VXApp.executeDeploymentAction(formObject)
     },
 
+    createEvent(eventType, eventData, variables) {
+        return VXApp.createEvent(eventType, null, eventData, variables)
+    },
+
     performanceSetCapture(capture) {
         return Performance.setCapture(capture)
     },

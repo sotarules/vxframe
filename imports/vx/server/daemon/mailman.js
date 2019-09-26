@@ -15,7 +15,7 @@ Mailman = {
         mailRequest.options = { sort : { date : 1 } }
         Notifications.find(mailRequest.criteria, mailRequest.options).forEach(notification => {
             let desired = Util.isNotificationDesired(notification, "EMAIL")
-            OLog.debug("mailman.js EMAIL for " + Util.fetchFullName(notification.recipientId) + " desired=" + desired)
+            // OLog.debug("mailman.js EMAIL for " + Util.fetchFullName(notification.recipientId) + " desired=" + desired)
             if (desired) {
                 Mailman.sendEmail(notification)
             }
@@ -28,7 +28,7 @@ Mailman = {
         mailRequest.options = { sort : { date : 1 } }
         Notifications.find(mailRequest.criteria, mailRequest.options).forEach(notification => {
             let desired = Util.isNotificationDesired(notification, "SMS")
-            OLog.debug("mailman.js SMS for " + Util.fetchFullName(notification.recipientId) + " desired=" + desired)
+            // OLog.debug("mailman.js SMS for " + Util.fetchFullName(notification.recipientId) + " desired=" + desired)
             if (desired) {
                 Mailman.sendSms(notification)
             }

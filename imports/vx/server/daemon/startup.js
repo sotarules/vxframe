@@ -36,6 +36,16 @@ Meteor.startup(() => {
         }
     })
 
+    console.log("startup.js (vx) *init* user status monitoring");
+
+    UserStatus.events.on("connectionLogin", fields => {
+        VXApp.onLogin(fields.userId)
+    })
+
+    UserStatus.events.on("connectionLogout", fields => {
+        VXApp.onLogout(fields.userId)
+    })
+
     // Must initialize Reporter on all node.js instances so users can create
     // reports on demand:
     Reporter.init()

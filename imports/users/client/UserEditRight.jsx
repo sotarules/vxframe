@@ -5,7 +5,6 @@ import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
 import RightHeader from "/imports/vx/client/RightHeader"
 import VXForm from "/imports/vx/client/VXForm"
 import VXInput from "/imports/vx/client/VXInput"
-import VXSelect from "/imports/vx/client/VXSelect"
 import VXButton from "/imports/vx/client/VXButton"
 import EntityListHeader from "/imports/vx/client/EntityListHeader"
 import DomainEntityList from "/imports/vx/client/DomainEntityList"
@@ -38,7 +37,18 @@ export default class UserEditRight extends Component {
     }
 
     componentDidMount() {
-        UX.registerIosButtonDelegate("ios-button-done-editing", this.handleDoneEditing.bind(this))
+        this.registerDelegates()
+    }
+
+    componentDidUpdate() {
+        this.registerDelegates()
+    }
+
+    registerDelegates() {
+        UX.unregisterIosButtonDelegates()
+        if (this.props.user) {
+            UX.registerIosButtonDelegate("ios-button-done-editing", this.handleDoneEditing.bind(this))
+        }
     }
 
     render() {

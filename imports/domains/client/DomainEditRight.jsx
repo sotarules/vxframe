@@ -41,7 +41,18 @@ export default class DomainEditRight extends Component {
     }
 
     componentDidMount() {
-        UX.registerIosButtonDelegate("ios-button-done-editing", this.handleDoneEditing.bind(this))
+        this.registerDelegates()
+    }
+
+    componentDidUpdate() {
+        this.registerDelegates()
+    }
+
+    registerDelegates() {
+        UX.unregisterIosButtonDelegates()
+        if (this.props.domain) {
+            UX.registerIosButtonDelegate("ios-button-done-editing", this.handleDoneEditing.bind(this))
+        }
     }
 
     render() {

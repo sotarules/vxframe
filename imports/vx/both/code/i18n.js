@@ -488,8 +488,8 @@ Meteor.i18nMessages.common = {
     },
 
     alert_deployment_message_restore : {
-        en : "If you press [Confirm] the system will records into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}.",
-        rx : "$If you press [Confirm] the system will records into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}.$"
+        en : "If you press [Confirm] the system will restore all Functions, Wizards, Forms, Composites and Counties into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}.",
+        rx : "$If you press [Confirm] the system will restore all Functions, Wizards, Forms, Composites and Counties into {{targetDomainName}} using data from a snapshot taken on {{dateTime}}..$"
     },
 
     alert_deployment_message_no_history : {
@@ -515,6 +515,16 @@ Meteor.i18nMessages.common = {
     alert_deployment_name_issues : {
         en : "{{issues}}",
         rx : "${{issues}}$"
+    },
+
+    alert_user_logged_in: {
+        en : "{{userName}} has logged in",
+        rx : "${{userName}} has logged in$"
+    },
+
+    alert_user_logged_out: {
+        en : "{{userName}} has logged out",
+        rx : "${{userName}} has logged out$"
     },
 
     message_loading : {

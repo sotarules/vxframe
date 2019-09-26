@@ -44,3 +44,4 @@ static-html
 underscore@1.0.10
 react-meteor-data
 standard-minifier-js
+mizzao:user-status

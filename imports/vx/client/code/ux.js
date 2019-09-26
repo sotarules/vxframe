@@ -507,34 +507,33 @@ UX = {
      * Get iOS button bar visibility state.
      *
      * @param {object} iosState iOS state object.
-     * @param {object} visible Visibility parameters object.
-     * @return {boolean} True if iOS button bar visible.
+     * @return {boolean} True if iOS button bar is visible.
      */
-    isIosButtonBarVisible(iosState, visible) {
-        // If something is on stack the bar certainly will be shown
-        // because at minimum we need to show the back button:
-        if (iosState.stack && iosState.stack.length > 0) {
-            return true
-        }
-        // Nothing is on stack so no back button. In normal mode the visibility of the
-        // bar is therefore contingent on whether there are any iOS buttons visible.
-        // But in slide mode, if we're on the LEFT panel, there is no back button,
-        // so we can conserve space by not showing the iOS button bar:
-        if (iosState.slideMode && UX.getCurrentPanel(Util.routePath()) === "LEFT") {
-            return false
-        }
-        // See if any iOS buttons are visible:
-        let result = _.reduce(Object.keys(visible), (memo, key) => {
-            return memo || visible[key]
-        }, false)
-        return result
+    isIosButtonBarVisible(iosState) {
+        return UX.isIosBackButtonVisible(iosState) || UX.isIosButtonBarDelegatesVisible(iosState)
     },
 
+    /**
+     * Get iOS back button visibility state.
+     *
+     * @param {object} iosState iOS state object.
+     * @return {boolean} True if back button is visible.
+     */
     isIosBackButtonVisible(iosState) {
         if (iosState && iosState.stack && iosState.stack.length > 0) {
             return (iosState.slideMode ? !!iosState.minorBackLabel : !!iosState.majorBackLabel)
         }
         return false
+    },
+
+    /**
+     * Get iOS button bar delegates visibility state.
+     *
+     * @param {object} iosState iOS state object.
+     * @return {boolean} True if any iOS button bar delegates are visible.
+     */
+    isIosButtonBarDelegatesVisible(iosState) {
+        return iosState.delegatesVisible && Object.keys(iosState.delegatesVisible).length > 0
     },
 
     /**
@@ -2164,8 +2163,12 @@ UX = {
      * @param {function} delegate Delegate function.
      */
     registerIosButtonDelegate(componentId, delegate) {
-        OLog.debug(`ux.js registerIosButtonDelegate componentId=${componentId} register delegate`)
+        OLog.debug(`ux.js registerIosButtonDelegate componentId=${componentId}`)
         UXState[componentId] = delegate
+        const iosState = Store.getState().iosState
+        iosState.delegatesVisible = iosState.delegatesVisible || {}
+        iosState.delegatesVisible[componentId] = true
+        Store.dispatch(setIosState(iosState))
     },
 
     /**
@@ -2176,6 +2179,25 @@ UX = {
     unregisterIosButtonDelegate(componentId) {
         OLog.debug(`ux.js unregisterIosButtonDelegate componentId=${componentId}`)
         delete UXState[componentId]
+        const iosState = Store.getState().iosState
+        iosState.delegatesVisible = iosState.delegatesVisible || {}
+        delete iosState.delegatesVisible[componentId]
+        Store.dispatch(setIosState(iosState))
+    },
+
+    /**
+     * Unregister all delegate functions (note plural).
+     */
+    unregisterIosButtonDelegates() {
+        OLog.debug("ux.js unregisterIosButtonDelegates *purging*")
+        const iosState = Store.getState().iosState
+        delete iosState.delegatesVisible
+        Store.dispatch(setIosState(iosState))
+        Object.keys(UXState).forEach(componentId => {
+            if (componentId.startsWith("ios-button")) {
+                delete UXState[componentId]
+            }
+        })
     },
 
     /**

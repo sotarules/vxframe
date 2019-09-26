@@ -815,6 +815,41 @@ Schema.UserProfile = new SimpleSchema({
     }
 })
 
+Schema.UserStatusLastLogin = new SimpleSchema({
+    date: {
+        type: Date,
+        optional: true
+    },
+    ipAddr: {
+        type: String,
+        optional: true,
+        regEx: SimpleSchema.RegEx.IP
+    },
+    userAgent: {
+        type: String,
+        optional: true
+    }
+});
+
+Schema.UserStatus = new SimpleSchema({
+    online: {
+        type: Boolean,
+        optional: true
+    },
+    lastLogin: {
+        type: Schema.UserStatusLastLogin,
+        optional: true
+    },
+    idle: {
+        type: Boolean,
+        optional: true
+    },
+    lastActivity: {
+        type: Date,
+        optional: true
+    },
+});
+
 Schema.Users = new SimpleSchema({
     username : {
         type : String,
@@ -846,6 +881,10 @@ Schema.Users = new SimpleSchema({
         type : Object,
         optional : true,
         blackbox : true
+    },
+    status: {
+        type: Schema.UserStatus,
+        optional: true
     }
 })
 

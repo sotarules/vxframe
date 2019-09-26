@@ -9,15 +9,10 @@ Meteor.startup(() => {
     Log._ensureIndex({ date : 1 })
     Log._ensureIndex({ date : 1, hrtime : 1 })
 
-    Events._ensureIndex({ domain : 1, "eventData.limeLightInstanceId" : 1, "eventData.gatewayId" : 1, date : 1, type : 1 })
     Events._ensureIndex({ domain : 1 })
     Events._ensureIndex({ type : 1 })
     Events._ensureIndex({ date : 1 })
-    Events._ensureIndex({ "eventData.limeLightInstanceId" : 1 })
-    Events._ensureIndex({ "eventData.gatewayId" : 1 })
-    Events._ensureIndex({ "eventData.cardId" : 1 })
-    Events._ensureIndex({ "eventData.prospectId" : 1 })
-    Events._ensureIndex({ "eventData.productId" : 1 })
+    Events._ensureIndex({ type : 1, domain : 1, "eventData.userId" : 1, date : 1, })
 
     Notifications._ensureIndex({ domain : 1 })
     Notifications._ensureIndex({ date : 1 })

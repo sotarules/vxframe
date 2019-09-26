@@ -38,9 +38,20 @@ export default class UserDomainViewRight extends Component {
     }
 
     componentDidMount() {
-        UX.registerIosButtonDelegate("ios-button-edit", this.handleEdit.bind(this))
-        UX.registerIosButtonDelegate("ios-button-clone", this.handleClone.bind(this))
-        UX.registerIosButtonDelegate("ios-button-delete", this.handleDelete.bind(this))
+        this.registerDelegates()
+    }
+
+    componentDidUpdate() {
+        this.registerDelegates()
+    }
+
+    registerDelegates() {
+        UX.unregisterIosButtonDelegates()
+        if (this.props.user) {
+            UX.registerIosButtonDelegate("ios-button-edit", this.handleEdit.bind(this))
+            UX.registerIosButtonDelegate("ios-button-clone", this.handleClone.bind(this))
+            UX.registerIosButtonDelegate("ios-button-delete", this.handleDelete.bind(this))
+        }
     }
 
     render() {

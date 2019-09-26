@@ -41,7 +41,18 @@ export default class TenantEditRight extends Component {
     }
 
     componentDidMount() {
-        UX.registerIosButtonDelegate("ios-button-done-editing", this.handleDoneEditing.bind(this))
+        this.registerDelegates()
+    }
+
+    componentDidUpdate() {
+        this.registerDelegates()
+    }
+
+    registerDelegates() {
+        UX.unregisterIosButtonDelegates()
+        if (this.props.tenant) {
+            UX.registerIosButtonDelegate("ios-button-done-editing", this.handleDoneEditing.bind(this))
+        }
     }
 
     render() {

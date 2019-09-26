@@ -1614,7 +1614,8 @@ Meteor.i18nMessages.codes = {
             notification : {
                 type : "INFO",
                 icon : "RETIRE",
-                key : "common.alert_domain_retire"
+                key : "common.alert_domain_retire",
+                scope : "ALL"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1636,6 +1637,30 @@ Meteor.i18nMessages.codes = {
                 type : "INFO",
                 icon : "BULLHORN",
                 key : "common.alert_tenant_retire",
+                scope : "ALL"
+            },
+            notificationDefaults : [ "PNOTIFY" ]
+        },
+        USER_LOGIN : {
+            en : "When a user logs in",
+            rx : "$When a user logs in$",
+            role : "SYSTEMADMIN",
+            notification : {
+                type : "INFO",
+                icon : "BULLHORN",
+                key : "common.alert_user_logged_in",
+                scope : "ALL"
+            },
+            notificationDefaults : [ "PNOTIFY" ]
+        },
+        USER_LOGOUT : {
+            en : "When a user logs out",
+            rx : "$When a user logs out$",
+            role : "SYSTEMADMIN",
+            notification : {
+                type : "INFO",
+                icon : "BULLHORN",
+                key : "common.alert_user_logged_out",
                 scope : "ALL"
             },
             notificationDefaults : [ "PNOTIFY" ]

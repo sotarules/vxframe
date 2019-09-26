@@ -16,6 +16,7 @@ import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
 import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
 import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
 import { setLoading } from "/imports/vx/client/code/actions"
+import { setIosState } from "/imports/vx/client/code/actions"
 
 VXApp = _.extend(VXApp || {}, {
 
@@ -292,20 +293,28 @@ VXApp = _.extend(VXApp || {}, {
      * Perform a variety of functions immediately when the route changes.
      */
     routeBefore() {
+
         OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *fire*`)
         if (VXApp.isExemptRoute()) {
             return
         }
+
         let userId = Meteor.userId()
         if (!userId) {
             OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] user is not logged in`)
             return
         }
+
         let email = Util.getUserEmail(userId)
         if (!email) {
             OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] userId=${userId} subscription is not yet ready`)
             return
         }
+
+        const iosState = Store.getState().iosState
+        delete iosState.delegatesVisible
+        Store.dispatch(setIosState(iosState))
+
         let tenantId = Util.getCurrentTenantId(userId)
         let domainId = Util.getCurrentDomainId(userId)
         let currentDomainId = Store.getState().currentDomainId
@@ -322,6 +331,7 @@ VXApp = _.extend(VXApp || {}, {
             Store.dispatch(setCurrentPublishingMode(publishingMode))
             VXApp.setSessionVariables(userId)
         }
+
         let currentUserId = Store.getState().currentUserId
         if (userId !== currentUserId) {
             if (email && domainId) {
@@ -346,10 +356,12 @@ VXApp = _.extend(VXApp || {}, {
         else {
             OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} *matching* userId=${userId} currentUserId=${currentUserId}`)
         }
+
         if (Util.routePath() && UXState.previousBefore === Util.routePath()) {
             OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} route is unchanged from previous=${UXState.previousBefore} before action will be suppressed`)
             return
         }
+
         UXState.previousBefore = Util.routePath()
         OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] invoking doRouteBefore`)
         Routes.doRouteBefore()
@@ -852,75 +864,6 @@ VXApp = _.extend(VXApp || {}, {
         })
     },
 
-    isEditVisible() {
-        if (Util.isRoutePath("/templates") ) {
-            return Util.isUserAdmin()
-        }
-        if (Util.isRoutePath("/users-domains") ) {
-            return Util.isUserAdmin()
-        }
-        if (Util.isRoutePath("/domains-users") ) {
-            return Util.isUserAdmin()
-        }
-        if (Util.isRoutePath("/tenants")) {
-            return Util.isUserSuperAdmin()
-        }
-        return false
-    },
-
-    isCloneVisible() {
-        if (Util.isRoutePath("/templates") ) {
-            return Util.isUserAdmin()
-        }
-        if (Util.isRoutePath("/users-domains")) {
-            return Util.isUserAdmin()
-        }
-        if (Util.isRoutePath("/domains-users") ) {
-            return Util.isUserAdmin()
-        }
-        return false
-    },
-
-    isDeleteVisible() {
-        if (Util.isRoutePath("/templates") ) {
-            return Util.isUserAdmin()
-        }
-        if (Util.isRoutePath("/users-domains")) {
-            return Util.isUserAdmin()
-        }
-        if (Util.isRoutePath("/domains-users") ) {
-            return Util.isUserAdmin()
-        }
-        if (Util.isRoutePath("/tenants")) {
-            return Util.isUserSuperAdmin()
-        }
-        return false
-    },
-
-    isUndoVisible() {
-        return false
-    },
-
-    isRedoVisible() {
-        return false
-    },
-
-    isDoneEditingVisible() {
-        if (Util.isRoutePath("/template/") ) {
-            return true
-        }
-        if (Util.isRoutePath("/user/")) {
-            return true
-        }
-        if (Util.isRoutePath("/domain/")) {
-            return true
-        }
-        if (Util.isRoutePath("/tenant/")) {
-            return true
-        }
-        return false
-    },
-
     /**
      * Get the color class for the given record's subsystem.
      *
@@ -1118,5 +1061,23 @@ VXApp = _.extend(VXApp || {}, {
             UX.afterAnimate()
             callback()
         })
+    },
+
+    /**
+     * Create an event (also create accompanying notification(s) if applicable).
+     *
+     * @param {string} Event type (e.g., ORDER_CREATED).
+     * @param {object} Event data in object form.
+     * @param {object} Variables to be inserted into notifications.
+     * @return {string} MongoDB ID of new event.
+     */
+    async createEvent(eventType, eventData, variables) {
+        try {
+            await UX.call("createEvent", eventType, eventData, variables)
+        }
+        catch (error) {
+            OLog.error(`vxapp.js createEvent error=${error}`)
+            return
+        }
     }
 })

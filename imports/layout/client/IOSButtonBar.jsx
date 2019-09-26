@@ -7,28 +7,21 @@ export default class IOSButtonBar extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        isButtonBarVisible : PropTypes.bool.isRequired,
-        isBackVisible : PropTypes.bool.isRequired,
-        isEditVisible : PropTypes.bool.isRequired,
-        isCloneVisible : PropTypes.bool.isRequired,
-        isDeleteVisible : PropTypes.bool.isRequired,
-        isUndoVisible : PropTypes.bool.isRequired,
-        isRedoVisible : PropTypes.bool.isRequired,
-        isDoneEditingVisible : PropTypes.bool.isRequired
+        iosState : PropTypes.object.isRequired
     }
 
     static defaultProps = {
         id : "ios-button-bar"
     }
 
-    constructor(props) {
-        super(props)
-        this.state = { isButtonBarVisible : props.isButtonBarVisible }
-        this.locked = false
+    static getDerivedStateFromProps(newProps) {
+        return { isButtonBarVisible : UX.isIosButtonBarVisible(newProps.iosState) }
     }
 
-    UNSAFE_componentWillReceiveProps(newProps) {
-        this.setState({ isButtonBarVisible : newProps.isButtonBarVisible })
+    constructor(props) {
+        super(props)
+        this.state = { isButtonBarVisible : UX.isIosButtonBarVisible(props.iosState) }
+        this.locked = false
     }
 
     shouldComponentUpdate() {
@@ -40,49 +33,50 @@ export default class IOSButtonBar extends Component {
     }
 
     render() {
-        OLog.debug("IOSButtonBar.jsx render state=" + OLog.debugString(this.state) + " props=" + OLog.debugString(this.props))
+        OLog.debug(`IOSButtonBar.jsx render state=${OLog.debugString(this.state)} props=${OLog.debugString(this.props)}`)
+        const delegatesVisible = this.props.iosState.delegatesVisible || {}
         return (
             <div id={this.props.id} className={this.className()}>
                 {this.state.isButtonBarVisible &&
                     <div className="row">
                         <div className="col-sm-12">
                             <div>
-                                {this.props.isBackVisible &&
+                                {UX.isIosBackButtonVisible(this.props.iosState) &&
                                     <IOSBackButton id="ios-button-back"
-                                        backLabel={this.props.backLabel}/>
+                                        backLabel={UX.backLabel(this.props.iosState)}/>
                                 }
                                 <div className="ios-button-group pull-right">
-                                    {this.props.isEditVisible &&
+                                    {delegatesVisible["ios-button-edit"] &&
                                         <IOSButton id="ios-button-edit"
                                             key="ios-button-edit"
                                             iconClass="fa-edit"
                                             title={Util.i18n("common.popup_menu_edit")}/>
                                     }
-                                    {this.props.isCloneVisible &&
+                                    {delegatesVisible["ios-button-clone"] &&
                                         <IOSButton  id="ios-button-clone"
                                             key="ios-button-clone"
                                             iconClass="fa-copy"
                                             title={Util.i18n("common.popup_menu_clone")}/>
                                     }
-                                    {this.props.isDeleteVisible &&
+                                    {delegatesVisible["ios-button-delete"] &&
                                         <IOSButton id="ios-button-delete"
                                             key="ios-button-delete"
                                             iconClass="fa-times"
                                             title={Util.i18n("common.popup_menu_delete")}/>
                                     }
-                                    {this.props.isUndoVisible &&
+                                    {delegatesVisible["ios-button-undo"]  &&
                                         <IOSButton id="ios-button-undo"
                                             key="ios-button-undo"
                                             iconClass="fa-undo"
                                             title={Util.i18n("common.popup_menu_undo")}/>
                                     }
-                                    {this.props.isRedoVisible &&
+                                    {delegatesVisible["ios-button-redo"] &&
                                         <IOSButton id="ios-button-redo"
                                             key="ios-button-redo"
                                             iconClass="fa-repeat"
                                             title={Util.i18n("common.popup_menu_redo")}/>
                                     }
-                                    {this.props.isDoneEditingVisible &&
+                                    {delegatesVisible["ios-button-done-editing"] &&
                                         <IOSButton id="ios-button-done-editing"
                                             key="ios-button-done-editing"
                                             iconClass="fa-check-square-o"

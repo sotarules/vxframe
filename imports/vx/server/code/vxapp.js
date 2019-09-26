@@ -80,7 +80,7 @@ VXApp = _.extend(VXApp || {}, {
             notificationEvents.forEach(notificationEvent => {
                 modifier.$set[mode + "_" + notificationEvent] = moment().toDate()
             })
-            OLog.debug("vxapp.js updateNotification notificationId=" + notificationId + " modifier=" + OLog.debugString(modifier))
+            // OLog.debug("vxapp.js updateNotification notificationId=" + notificationId + " modifier=" + OLog.debugString(modifier))
             Notifications.update(notificationId, modifier)
             return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
         }
@@ -101,23 +101,23 @@ VXApp = _.extend(VXApp || {}, {
      */
     createEvent(eventType, domainId, eventData, variables) {
         try {
-            let event = {}
-            event.domain = domainId
+            const event = {}
+            event.domain = domainId || Util.getCurrentDomainId(Meteor.userId())
             event.type = eventType
             event.eventData = eventData
-            OLog.debug("vxapp.js createEvent eventType=" + event.type + " domain=" + event.domain + " eventData=" + OLog.debugString(event.eventData))
-            let eventId = Events.insert(event)
-            OLog.debug("vxapp.js createEvent *success* eventId=" + eventId)
+            OLog.debug(`vxapp.js createEvent eventType=${event.type} domain=${event.domain} eventData=${OLog.debugString(event.eventData)}`)
+            const eventId = Events.insert(event)
+            OLog.debug(`vxapp.js createEvent *success* eventId=${eventId}`)
             if (Util.isNotificationWarranted(event)) {
                 VXApp.createNotifications(domainId, eventType, eventId, variables)
             }
             else {
-                OLog.debug("vxapp.js createEvent notifications *not* warranted for eventId=" + eventId)
+                OLog.debug(`vxapp.js createEvent notifications *not* warranted for eventId=${eventId}`)
             }
             return eventId
         }
         catch (error) {
-            OLog.error("vxapp.js createEvent error=" + error)
+            OLog.error(`vxapp.js createEvent error=${error}`)
             return
         }
     },
@@ -1311,5 +1311,58 @@ VXApp = _.extend(VXApp || {}, {
                 ` targetRecordId=${targetRecord._id}`)
             collection.direct.remove(targetRecord._id)
         })
+    },
+
+    /**
+     * Generate events and notifications when a user logs in.
+     *
+     * @param {string} userId User ID.
+     */
+    onLogin(userId) {
+        if (!userId) {
+            return
+        }
+        OLog.debug(`vxapp.js onLogin email=${Util.getUserEmail(userId)}`)
+        const domainId = Util.getCurrentDomainId(userId)
+        const eventData = { userId: userId, email: Util.getUserEmail(userId) }
+        if (VXApp.isRecentEvent("USER_LOGIN", domainId, userId, 3600)) {
+            return
+        }
+        VXApp.createEvent("USER_LOGIN", domainId, eventData, { userName: Util.fetchFullName(userId) } )
+    },
+
+    /**
+     * Generate events and notifications when a user logs out.
+     *
+     * @param {string} userId User ID.
+     */
+    onLogout(userId) {
+        if (!userId) {
+            return
+        }
+        OLog.debug(`vxapp.js onLogout email=${Util.getUserEmail(userId)}`)
+        const domainId = Util.getCurrentDomainId(userId)
+        const eventData = { userId: userId, email: Util.getUserEmail(userId) };
+        if (VXApp.isRecentEvent("USER_LOGOUT", domainId, userId, 3600)) {
+            return
+        }
+        VXApp.createEvent("USER_LOGOUT", domainId, eventData, { userName: Util.fetchFullName(userId) } )
+    },
+
+    /**
+     * Determine whether there is a recent event of specified type and key.
+     *
+     * @param {string} type Event type.
+     * @param {string} domainId Domain ID.
+     * @param {string} userId  User ID to match with event data.
+     * @param {number} seconds Number of seconds that defines "recent".
+     * @return {boolean} True if there exists a recent event of the specified type.
+     */
+    isRecentEvent : function(type, domainId, userId, seconds) {
+        const cutoff = moment().subtract(seconds, "seconds").toDate()
+        const event = Events.findOne( { type: type, domain: domainId, "eventData.userId" : userId, date: { $gte: cutoff } } );
+        OLog.debug(`vxapp.js isRecentEvent=${type} domainId=${domainId} userId=${userId} seconds=${seconds} ` +
+            ` after cutoff=${cutoff} event=${event}`)
+        return !!event
     }
 })
