@@ -1,6 +1,7 @@
 import React, { Component } from "react"
 import PropTypes from "prop-types"
-import Spinner from "spin.js"
+import { Spinner } from "spin.js"
+import "spin.js/spin.css"
 
 export default class ReactSpinner extends Component {
 

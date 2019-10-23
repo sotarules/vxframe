@@ -1,6 +1,8 @@
 import React, { Component } from "react"
 import PropTypes from "prop-types"
 import Ladda from "ladda"
+import "ladda/dist/ladda-themeless.min.css"
+import "spin.js/spin.css"
 
 const XS = "xs"
 const S = "s"

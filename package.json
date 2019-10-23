@@ -7,19 +7,19 @@
   "repository": "https://github.com/sotarules/vxframe",
   "dependencies": {
     "@babel/runtime": "^7.6.3",
-    "aws-sdk": "^2.553.0",
+    "aws-sdk": "^2.554.0",
     "bcrypt": "^3.0.6",
     "core-js": "^3.3.3",
     "domready": "^1.0.8",
     "fibers": "^4.0.1",
     "html-react-parser": "^0.9.1",
-    "ladda": "^1.0.6",
+    "ladda": "^2.0.1",
     "node-sass": "^4.12.0",
     "prop-types": "^15.7.2",
-    "react": "^16.10.2",
+    "react": "^16.11.0",
     "react-bootstrap": "^1.0.0-beta.14",
     "react-contexify": "^4.1.1",
-    "react-dom": "^16.10.2",
+    "react-dom": "^16.11.0",
     "react-fast-compare": "^2.0.4",
     "react-fastclick": "^3.0.2",
     "react-helmet": "^5.2.1",
@@ -29,7 +29,7 @@
     "redux": "^4.0.4",
     "redux-actions": "^2.6.5",
     "redux-persist": "^6.0.0",
-    "spin.js": "2.3.2"
+    "spin.js": "^4.1.0"
   },
   "devDependencies": {
     "@meteorjs/eslint-config-meteor": "^1.0.5",
