@@ -1,4 +1,4 @@
-"use strict"
+import AWS from "aws-sdk"
 
 /**
  * Server start-up functions
@@ -17,9 +17,11 @@ let logLevel = config.logLevel
 
 OLog.setLogLevel(logLevel)
 
-console.log("startup.js (vx) " + CX.SYSTEM_NAME + " " + Meteor.appVersion.version +
-    " Node.js " + process.version + " Meteor " + Meteor.release +
-    " port=" + port + " environment=" + environment + " nobatch=" + nobatch + " logLevel=" + logLevel)
+AWS.config.update( {region: process.env.AMAZON_REGION} )
+S3 = new AWS.S3( { apiVersion: "2006-03-01", accessKeyId: process.env.AMAZON_KEY_ID, secretAccessKey: process.env.AMAZON_KEY } )
+
+console.log(`startup.js (vx) ${CX.SYSTEM_NAME} ${Meteor.appVersion.version} Node.js ${process.version} Meteor ${Meteor.release} ` +
+    `port=${port} environment=${environment} nobatch=${nobatch} logLevel=${logLevel}`)
 
 Meteor.startup(() => {
 
@@ -92,7 +94,7 @@ Meteor.startup(() => {
             }, reporterSleepInterval)
         })
 
-        Serv.sched("RecordRemover", RecordRemover.removeAllRecords, 0)
+        Serv.sched("RecordRemover", RecordRemover.removeAllRecords, 0, 60)
     }
 })
 

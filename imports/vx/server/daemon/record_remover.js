@@ -19,9 +19,9 @@ RecordRemover = {
         let purgeBeforeDate = moment().subtract(2, "days").toDate()
         let selector = { "date": { "$lte": purgeBeforeDate } }
 
-        //let count = Log.find(selector).count()
-        //OLog.debug("record_remover.js (vx) removeRecordsLog *fire* purgeBeforeDate=" + purgeBeforeDate +
-        //    " selector=" + JSON.stringify(selector) + " remove count=" + count)
+        let count = Log.find(selector).count()
+        OLog.debug("record_remover.js (vx) removeRecordsLog *fire* purgeBeforeDate=" + purgeBeforeDate +
+            " selector=" + JSON.stringify(selector) + " remove count=" + count)
 
         Log.remove(selector)
     },
@@ -31,9 +31,9 @@ RecordRemover = {
         let purgeBeforeDate = moment().subtract(1, "days").toDate()
         let selector = { "date": { "$lte": purgeBeforeDate } }
 
-        //let count = Notifications.find(selector).count()
-        //OLog.debug("record_remover.js (vx) removeRecordsNotifications *fire* purgeBeforeDate=" + purgeBeforeDate +
-        //    " selector=" + JSON.stringify(selector) + " remove count=" + count)
+        let count = Notifications.find(selector).count()
+        OLog.debug("record_remover.js (vx) removeRecordsNotifications *fire* purgeBeforeDate=" + purgeBeforeDate +
+            " selector=" + JSON.stringify(selector) + " remove count=" + count)
 
         Notifications.remove(selector)
     }

@@ -19,5 +19,4 @@ CX.TWILIO_FROM_PHONE_TEST = process.env.TWILIO_FROM_PHONE_TEST
 CX.TWILIO_API_URL_PREFIX = "https://api.twilio.com/2010-04-01/Accounts"
 CX.TWILIO_API_URL_SUFFIX = "Messages.json"
 
-CX.PKGCLOUD_CLIENT_OPTIONS = { provider : "amazon",  keyId : process.env.AMAZON_KEY_ID, key: process.env.AMAZON_KEY, region: process.env.AMAZON_REGION }
 CX.PKGCLOUD_CONTAINER = "vxframe"

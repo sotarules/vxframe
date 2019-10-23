@@ -31,7 +31,7 @@ Meteor.publish("olog", function(request) {
         request.criteria.message = new RegExp(request.criteria.message, "i")
     }
     const cursor = Log.find(request.criteria, request.options);
-    OLog.debug(`publications.js olog count=${cursor.count()} request=${OLog.debugString(request)}`, this.userId)
+    OLog.debug(`publications.js olog request=${OLog.debugString(request)}`, this.userId)
     return cursor
 })
 
@@ -41,7 +41,7 @@ Meteor.publish("events", function(request) {
     }
     VXApp.adjustPublishingRequest(request, this.userId)
     let cursor = Events.find(request.criteria, request.options)
-    OLog.debug(`publications.js events count=${cursor.count()} request=${OLog.debugString(request)}`, this.userId)
+    OLog.debug(`publications.js events request=${OLog.debugString(request)}`, this.userId)
     return cursor
 })
 
@@ -50,7 +50,7 @@ Meteor.publish("my_notifications", function(request) {
         return [];
     }
     const cursor = Notifications.find(request.criteria, request.options)
-    OLog.debug(`publications.js my_notifications count=${cursor.count()} publish=${OLog.debugString(request)}`, this.userId)
+    OLog.debug(`publications.js my_notifications publish=${OLog.debugString(request)}`, this.userId)
     return cursor
 })
 

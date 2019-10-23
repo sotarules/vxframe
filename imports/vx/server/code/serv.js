@@ -111,7 +111,7 @@ Serv = {
                 " msToTop=" + msToTop + " minutesBetweenFirings=" + minutesBetweenFirings + " fireDelay=" + fireDelay + " fn=" + fn)
         }
         Meteor.setTimeout(() => {
-            //OLog.debug("serv.js sched job=" + job + " *fire* " + moment().format("HH:mm:ss.SSSS"))
+            OLog.debug("serv.js sched job=" + job + " *fire* " + moment().format("HH:mm:ss.SSSS"))
             fn()
             Serv.sched(job, fn, secondToFire, minutesBetweenFirings)
         }, fireDelay)

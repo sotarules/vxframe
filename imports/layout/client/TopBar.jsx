@@ -9,7 +9,7 @@ export default class TopBar extends Component {
 
     render() {
         return (
-            <div className="navbar navbar-custom navbar-custom-fixed flexi-fixed">
+            <div className="navbar navbar-custom navbar-custom-fixed flexi-fixed hidden-print">
                 <table className="nav-table">
                     <tbody>
                         <tr>
