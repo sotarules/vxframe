@@ -76,6 +76,12 @@ export default class IOSButtonBar extends Component {
                                             iconClass="fa-repeat"
                                             title={Util.i18n("common.popup_menu_redo")}/>
                                     }
+                                    {delegatesVisible["ios-button-print"] &&
+                                        <IOSButton id="ios-button-print"
+                                            key="ios-button-print"
+                                            iconClass="fa-print"
+                                            title={Util.i18n("common.popup_menu_print")}/>
+                                    }
                                     {delegatesVisible["ios-button-done-editing"] &&
                                         <IOSButton id="ios-button-done-editing"
                                             key="ios-button-done-editing"

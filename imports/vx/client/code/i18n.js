@@ -385,6 +385,11 @@
         rx : "$Redo$"
     },
 
+    popup_menu_print : {
+        en : "Print",
+        rx : "$Print$"
+    },
+
     popup_menu_done_editing : {
         en : "Done",
         rx : "$Done$"
