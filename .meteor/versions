@@ -1,5 +1,5 @@
 accounts-base@1.4.4
-accounts-password@1.5.1
+accounts-password@1.5.2
 afruth:bootstrap-touchspin@3.0.1
 aldeed:collection2@2.10.0
 aldeed:collection2-core@1.2.0
@@ -12,7 +12,7 @@ babel-compiler@7.5.0-beta190.1
 babel-runtime@1.5.0-beta190.1
 base64@1.0.12
 binary-heap@1.0.11
-blaze@2.3.3
+blaze@2.3.4
 blaze-tools@1.0.10
 boilerplate-generator@1.6.0
 caching-compiler@1.2.1
@@ -113,5 +113,5 @@ tsega:bootstrap3-datetimepicker@4.17.37_1
 twbs:bootstrap@3.3.6
 underscore@1.0.10
 url@1.2.0
-webapp@1.7.4
+webapp@1.7.5
 webapp-hashing@1.0.9
