@@ -825,10 +825,9 @@ body {
     margin-bottom: 0px;
 }
 
-// This causes Flexbox to compute the correct height on entity lists and RHS.
-// Browsers: Safari (OSX) Firefox Quantum (All) Edge (Windows 10)
+// Starting with Chrome 79, this is apparently necessary again:
 .zero-height-hack {
-    // height: 0px;
+    height: 0px;
 }
 
 .diag-container {
