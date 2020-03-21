@@ -5,14 +5,14 @@
 # but you can also edit it by hand.
 
 meteor-base@1.4.0             # Packages every Meteor app needs to have
-mobile-experience@1.0.5       # Packages for a great mobile UX
-mongo@1.8.0                   # The database Meteor supports right now
+mobile-experience@1.1.0       # Packages for a great mobile UX
+mongo@1.9.0                   # The database Meteor supports right now
 session@1.2.0                 # Client-side reactive dictionary for your app
 jquery@1.11.10                  # Helpful client-side library
 tracker@1.2.0                 # Meteor's client-side reactive programming library
 
 es5-shim@4.8.0                # ECMAScript 5 compatibility for older browsers.
-ecmascript@0.14.0              # Enable ECMAScript2015+ syntax in app code
+ecmascript@0.14.2              # Enable ECMAScript2015+ syntax in app code
 
 aldeed:collection2@2.10.0
 email@1.2.3
@@ -21,8 +21,8 @@ less@2.8.0
 kidovate:pnotify
 mrt:moment-timezone
 pcel:loading
-accounts-base@1.5.0
-accounts-password@1.5.2
+accounts-base@1.6.0
+accounts-password@1.6.0
 tsega:bootstrap3-datetimepicker
 ejson@1.1.1
 
@@ -30,8 +30,8 @@ ejson@1.1.1
 lepozepo:accounting
 afruth:bootstrap-touchspin
 reactive-var@1.0.11
-random@1.1.0
-shell-server@0.4.0
+random@1.2.0
+shell-server@0.5.0
 dsyko:holder
 lookback:emails
 momentjs:moment@2.15.1

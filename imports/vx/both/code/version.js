@@ -4,6 +4,6 @@
  * Application version and date.
  */
 Meteor.appVersion = {
-    version: "1.1.7",
-    buildDate: new Date("2020-02-01T12:24:00-08:00")
+    version: "1.1.8",
+    buildDate: new Date("2020-03-21T13:20:00-07:00")
 }
