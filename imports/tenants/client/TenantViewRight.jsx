@@ -54,7 +54,7 @@ export default class TenantViewRight extends Component {
 
     registerDelegates() {
         UX.unregisterIosButtonDelegates()
-        if (this.props.tenant) {
+        if (this.props.tenant && Util.isUserSuperAdmin()) {
             UX.registerIosButtonDelegate("ios-button-edit", this.handleEdit.bind(this))
             UX.registerIosButtonDelegate("ios-button-delete", this.handleDelete.bind(this))
         }

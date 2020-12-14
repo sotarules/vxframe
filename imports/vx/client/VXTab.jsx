@@ -5,7 +5,8 @@ export default class VXTab extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        name : PropTypes.string.isRequired
+        name : PropTypes.string.isRequired,
+        group : PropTypes.string
     }
 
     render() {

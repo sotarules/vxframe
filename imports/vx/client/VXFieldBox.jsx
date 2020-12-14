@@ -25,7 +25,7 @@ export default class VXFieldBox extends Component {
                     <label htmlFor={this.props.id}
                         className={`control-label ${this.props.labelClassName || ""}`}
                         title={this.props.tooltip}>
-                    {this.props.label}
+                        {this.props.label}
                     </label>
                 }
                 {!this.props.dangerous ? (

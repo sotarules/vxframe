@@ -15,6 +15,8 @@ export default class RightHeader extends Component {
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltip : PropTypes.string,
         isShowButton : PropTypes.bool,
+        isShowRightImage : PropTypes.bool,
+        rightIconUrl : PropTypes.string,
         buttonId : PropTypes.string,
         buttonText : PropTypes.string,
         buttonClassName : PropTypes.string,
@@ -68,6 +70,12 @@ export default class RightHeader extends Component {
                                                 {this.props.buttonText}
                                             </VXButton>
                                         </td>
+                                    }
+                                    {this.props.isShowRightImage &&
+                                       <td className="top-right">
+                                           <img className="top-image"
+                                               src={this.props.rightIconUrl}/>
+                                       </td>
                                     }
                                 </tr>
                             </tbody>

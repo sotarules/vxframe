@@ -27,12 +27,14 @@ export default class VXDate extends Component {
         fetchHandler : PropTypes.func,
         updateHandler : PropTypes.func,
         invalidHandler : PropTypes.func,
-        modifyHandler : PropTypes.func
+        modifyHandler : PropTypes.func,
+        showButton : PropTypes.bool
     }
 
     static defaultProps = {
         popoverPlacement : "bottom",
-        format : "MM/DD/YYYY HH:mm:ss"
+        format : "MM/DD/YYYY HH:mm:ss",
+        showButton : true
     }
 
     constructor(props) {
@@ -50,6 +52,7 @@ export default class VXDate extends Component {
         let selector = this.getSelector()
         $(selector).datetimepicker({
             format: this.props.format,
+            dayViewHeaderFormat: this.props.format,
             icons: CX.DATEPICKER_ICONS,
             showClear: true,
             useCurrent: false,
@@ -115,20 +118,22 @@ export default class VXDate extends Component {
         return (
             <div className={"form-group" + (this.state.error ? " " + CX.CLASS_HAS_ERROR : "")}>
                 {this.props.label &&
-                    <label htmlFor={this.props.id} className="control-label"  title={this.props.tooltip}>
-                    {this.props.label}{" "}
-                    {this.props.star &&
-                        <span className="fa fa-star-o icon-required"></span>
-                    }
+                    <label htmlFor={this.props.id} className="control-label" title={this.props.tooltip}>
+                        {this.props.label}{" "}
+                        {this.props.star &&
+                            <span className="fa fa-star-o icon-required"></span>
+                        }
                     </label>
                 }
                 <div id={this.props.id + "-picker"} className={`input-group date ${this.props.pickerClassName || ""}`}>
                     <input id={this.props.id} type="text" className="form-control" placeholder={this.props.placeholder}/>
-                    <div className="input-group-btn">
-                        <button className="btn btn-default add-on datepickerbutton" type="button">
-                            <span className="fa fa-calendar"></span>
-                        </button>
-                    </div>
+                    {this.props.showButton &&
+                        <div className="input-group-btn">
+                            <button className="btn btn-default add-on datepickerbutton" type="button">
+                                <span className="fa fa-calendar"></span>
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
         )

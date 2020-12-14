@@ -10,7 +10,7 @@ export default withTracker(() => {
         domain : Domains.findOne(Util.getCurrentDomainId(Meteor.userId())),
         logLevels : UX.makeLogLevelsArray(false, true),
         campaignUnits : UX.makeCodeArray("campaignUnit"),
-        admins : UX.makeUserArray("TENANTADMIN"),
+        admins : UX.makeUserArray(true, ["TENANTADMIN"]),
         states : UX.makeCodeArray("state"),
         countries : UX.makeCodeArray("country")
     }

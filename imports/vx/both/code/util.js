@@ -240,6 +240,17 @@ Util = {
     },
 
     /**
+     * Givne a code set and code, return the local value.
+     *
+     * @param {string} codeSet Code set name (e.g., state).
+     * @param {string} codeName Code name (e.g., NY).
+     * @return {string} Localized result.
+     */
+    localizeCode(codeSet, codeName) {
+        return codeName ? Util.i18n(`codes.${codeSet}.${codeName}`) : null
+    },
+
+    /**
      * Extract the MIME type from the supplied data URI.
      *
      * @param {string} Data URI.
@@ -587,13 +598,15 @@ Util = {
      *
      * @param {object} date Date object.
      * @param {string} timezone Optional timezone.
+     * @param {string} format Optional format.
      * @return {string} Date formatted as string.
      */
-    formatDate(date, timezone) {
+    formatDate(date, timezone, format) {
         if (!timezone) {
             return Util.pad(date.getMonth() + 1, 2) + "/" + Util.pad(date.getDate(), 2) + "/" + Util.pad(date.getFullYear(), 4)
         }
-        return moment.tz(date, timezone).format("MM/DD/YYYY")
+        format = format || "MM/DD/YYYY"
+        return moment.tz(date, timezone).format(format)
     },
 
     /**

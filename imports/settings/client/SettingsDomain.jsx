@@ -5,9 +5,7 @@ import RightBody from "/imports/vx/client/RightBody"
 import VXForm from "/imports/vx/client/VXForm"
 import VXFieldSet from "/imports/vx/client/VXFieldSet"
 import VXInput from "/imports/vx/client/VXInput"
-import VXSelect from "/imports/vx/client/VXSelect"
 import CheckboxRow from "/imports/vx/client/CheckboxRow"
-import SettingsDomainTppCreds from "/imports/settings/client/SettingsDomainTppCreds"
 import FooterCancelSave from "/imports/vx/client/FooterCancelSave"
 
 export default class SettingsDomain extends Component {

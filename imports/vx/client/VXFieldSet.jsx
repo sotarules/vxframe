@@ -5,13 +5,14 @@ export default class VXFieldSet extends Component {
 
     static propTypes = {
         legend : PropTypes.string.isRequired,
-        className : PropTypes.string
+        className : PropTypes.string,
+        legendClassName : PropTypes.string
     }
 
     render() {
         return (
             <fieldset className={this.props.className}>
-                <legend>{this.props.legend}</legend>
+                <legend className={this.props.legendClassName}>{this.props.legend}</legend>
                 {this.props.children}
             </fieldset>
         )

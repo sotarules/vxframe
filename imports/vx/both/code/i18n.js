@@ -594,11 +594,6 @@ Meteor.i18nMessages.common = {
     status_twilio_green : {
         en : "Twilio API is functioning properly",
         rx : "$Twilio API is functioning properly$"
-    },
-
-    status_tpp_error : {
-        en : "TPP error - {{errorString}}",
-        rx : "$TPP error - {{errorString}}$"
-    },
+    }
 }
 

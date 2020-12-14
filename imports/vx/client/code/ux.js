@@ -184,14 +184,14 @@ UX = {
      * Return an array of all users with the specified role suitable for populating a VXSelect
      * component.
      *
-     * @param {string} roleName Role name (e.g., MANAGER).
-     * @param {string} includeBlank True to add blank row to beginning.
+     * @param {string} tenant True to include users from the entire tenant.
+     * @param {array} roleNames Optional array of role names to use as filter.
      * @return {array} Array of users bearing given role (prepared for <select>).
      */
-    makeUserArray(roleName, includeBlank) {
-        let criteria = {}
+    makeUserArray(tenant, roleNames) {
+        const criteria = {}
         criteria["profile.dateRetired"] = { $exists: false }
-        if (Util.isTenantRole(roleName)) {
+        if (tenant) {
             criteria["profile.domains"] = { $elemMatch: { domainId : { $in: Util.getDomainIdsOfCurrentTenant() } } }
         }
         else {
@@ -199,17 +199,25 @@ UX = {
         }
         let codeArray = []
         Meteor.users.find(criteria).forEach(user => {
-            if (Util.isUserRole(user._id, roleName)) {
-                let localized = Util.fetchFullName(user._id)
+            let qualified
+            if (roleNames) {
+                _.each(roleNames, roleName => {
+                    if (Util.isUserRole(user._id, roleName)) {
+                        qualified = true
+                    }
+                })
+            }
+            else {
+                qualified = true
+            }
+            if (qualified) {
+                const localized = Util.fetchFullName(user._id)
                 codeArray.push( { code : user._id, localized : localized } )
             }
         })
         codeArray.sort((userA, userB) => {
             return userA.localized.localeCompare(userB.localized)
         })
-        if (includeBlank) {
-            codeArray.unshift( { code: "", localized: "" } )
-        }
         return codeArray
     },
 
@@ -1496,16 +1504,23 @@ UX = {
      * @param {object} component Component.
      */
     updateDatabase(component) {
-        // If a custom update handle has been specified, use it and bypass boilerplate logic:
         if (component.props.updateHandler) {
-            OLog.debug("ux.js updateDatabase invoking custom update handler " + Util.functionName(component.props.updateHandler))
+            OLog.debug("ux.js updateDatabase invoking *component* custom update handler " +
+                Util.functionName(component.props.updateHandler))
             let value = component.getValue()
             component.props.updateHandler.call(this, component, value)
             return
         }
-        let modifier = {}
+        const formProps = UX.getFormProps(component)
+        if (formProps.updateHandler) {
+            OLog.debug("ux.js updateDatabase invoking *form* custom update handler " +
+                Util.functionName(formProps.updateHandler))
+            const value = component.getValue()
+            formProps.updateHandler.call(this, component, value)
+            return
+        }
+        const modifier = {}
         UX.mutateModifier(component, modifier)
-        let formProps = UX.getFormProps(component)
         OLog.debug("ux.js updateDatabase dynamic update " + formProps.collection._name + " _id=" + formProps._id +
             " modifier=" + OLog.debugString(modifier))
         formProps.collection.update(formProps._id, modifier, error => {
@@ -2425,5 +2440,24 @@ UX = {
                 }
             }
         })
+    },
+
+    /**
+     * Format a given date in a specified format.
+     *
+     * @param {date} date Date to format.
+     * @param {string} format Moment-style format (e.g., MM/DD/YYYY)
+     * @param {?} userOrId User object or user ID.
+     * @return {string} Formatted date.
+     */
+    formatDate(date, format, userOrId) {
+        userOrId = userOrId || Meteor.userId()
+        const user = Util.user(userOrId)
+        if (!user) {
+            OLog.error(`ux.js formatDate unable to locate userOrId=${userOrId}`)
+            return
+        }
+        const timezone = Util.getUserTimezone(user._id)
+        return Util.formatDate(date, timezone, format)
     }
 }

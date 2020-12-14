@@ -20,8 +20,8 @@ less@2.8.0
 kidovate:pnotify
 mrt:moment-timezone
 pcel:loading
-accounts-base@1.6.0
-accounts-password@1.6.0
+accounts-base@1.7.0
+accounts-password@1.6.2
 tsega:bootstrap3-datetimepicker
 ejson@1.1.1
 
@@ -43,6 +43,7 @@ underscore@1.0.10
 react-meteor-data
 standard-minifier-js@2.6.0
 mizzao:user-status
-email@~2.0.0!
+email@2.0.0
 
-lookback:emails
+matb33:collection-hooks
+dburles:mongo-collection-instances

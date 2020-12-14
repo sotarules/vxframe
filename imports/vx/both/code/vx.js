@@ -355,7 +355,6 @@ VX.common = {
      * @return {object} Result object.
      */
     url : (url) => {
-
         if (url && !CX.REGEX_URL.test(url)) {
             return { success : false, icon : "TRIANGLE", key : "common.invalid_url" }
         }
