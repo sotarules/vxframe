@@ -8,16 +8,21 @@ export default class EntityItem extends Component {
 
     static propTypes = {
         _id : PropTypes.string.isRequired,
-        iconUrl : PropTypes.string.isRequired,
         name : PropTypes.string,
         description : PropTypes.string,
         message : PropTypes.string,
+        iconUrl : PropTypes.string.isRequired,
+        rounded : PropTypes.bool,
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltip : PropTypes.string,
+        iconUrlRight : PropTypes.string,
+        roundedRight : PropTypes.bool,
+        decorationIconClassNameRight : PropTypes.string,
+        decorationColorRight : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
+        decorationTooltipRight : PropTypes.string,
         chevrons : PropTypes.bool,
         selectable : PropTypes.bool,
-        rounded : PropTypes.bool,
         control : PropTypes.bool,
         controlClassName : PropTypes.string,
         controlTooltip : PropTypes.string,
@@ -67,6 +72,20 @@ export default class EntityItem extends Component {
                                     </div>
                                 </td>
                                 {this.props.children}
+                                {this.props.iconUrlRight &&
+                                    <td className="entity-right entity-handle">
+                                        <div className="decoration-container">
+                                            <img className={this.props.roundedRight ? "entity-list-image-rounded" : "entity-list-image"}
+                                                src={this.props.iconUrlRight}/>
+                                            {this.props.decorationIconClassNameRight &&
+                                                <Decoration iconClassName={this.props.decorationIconClassNameRight}
+                                                    color={this.props.decorationColorRight}
+                                                    size="small"
+                                                    tooltip={this.props.decorationTooltipRight}/>
+                                            }
+                                        </div>
+                                    </td>
+                                }
                                 {this.props.chevrons &&
                                     <td className="chevron-list">
                                         <span className="fa fa-chevron-right"></span>

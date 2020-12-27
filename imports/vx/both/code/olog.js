@@ -1,3 +1,5 @@
+import safestringify from "fast-safe-stringify"
+
 OLog = {
 
     logLevel : 1,
@@ -12,48 +14,46 @@ OLog = {
         MAX : 6
     },
 
-    setLogLevel : (logLevel) => {
+    setLogLevel(logLevel) {
         OLog.logLevel = logLevel
     },
 
-    getLogLevel : () => {
+    getLogLevel() {
         return OLog.logLevel
     },
 
-    debug : (message, userId) => {
+    debug(message, userId) {
         if (OLog.logLevel >= OLog.logLevelMap.DEBUG) {
             OLog.log("DEBUG", message, userId)
         }
     },
 
-    info : (message, userId) => {
+    info(message, userId) {
         if (OLog.logLevel >= OLog.logLevelMap.INFO) {
             OLog.log("INFO", message, userId)
         }
     },
 
-    warn : (message, userId) => {
+    warn(message, userId) {
         if (OLog.logLevel >= OLog.logLevelMap.WARN) {
             OLog.log("WARN", message, userId)
         }
     },
 
-    error : (message, userId) => {
+    error(message, userId) {
         if (OLog.logLevel >= OLog.logLevelMap.ERROR) {
             OLog.log("ERROR", message, userId)
         }
     },
 
-    fatal : (message, userId) => {
+    fatal(message, userId) {
         if (OLog.logLevel >= OLog.logLevelMap.FATAL) {
             OLog.log("FATAL", message, userId)
         }
     },
 
-    log : (severity, message, userId) => {
-
-        let user, row, domainId
-
+    log(severity, message, userId) {
+        let user, domainId
         try {
             userId = userId || Meteor.userId()
             user = Util.getUserEmail(userId)
@@ -63,10 +63,8 @@ OLog = {
             user = "SYSTEM"
             domainId = null
         }
-
-        row = {}
+        const row = {}
         row.date = new Date()
-
         if (Meteor.isClient) {
             if (window && window.performance && window.performance.now == "function") {
                 row.hrtime = window.performance.now()
@@ -75,57 +73,55 @@ OLog = {
         else {
             row.hrtime = process.hrtime()[1]
         }
-
         row.domain = domainId
         row.user = user
         row.severity = severity
         row.message = message
         row.server = Meteor.isServer
-
         Log.insert(row, (error) => {
             if (error) {
-                //console.log("olog.js unable to log message=" + message + " error=" + error)
+                console.log(`olog.js unable to log message=${message} error=${error}`)
             }
         })
     },
 
-    debugString : (object) => {
+    debugString(object) {
         if (OLog.logLevel >= OLog.logLevelMap.DEBUG) {
             return OLog.stringify(object)
         }
     },
 
-    infoString : (object) => {
+    infoString(object) {
         if (OLog.logLevel >= OLog.logLevelMap.INFO) {
             return OLog.stringify(object)
         }
     },
 
-    warnString : (object) => {
+    warnString(object) {
         if (OLog.logLevel >= OLog.logLevelMap.WARN) {
             return OLog.stringify(object)
         }
     },
 
-    errorString : (object) => {
+    errorString(object) {
         if (OLog.logLevel >= OLog.logLevelMap.ERROR) {
             return OLog.stringify(object)
         }
     },
 
-    fatalString : (object) => {
+    fatalString(object) {
         if (OLog.logLevel >= OLog.logLevelMap.FATAL) {
             return OLog.stringify(object)
         }
     },
 
-    stringify : (object) => {
+    stringify(object) {
 
         try {
-            return EJSON.stringify(object)
+            return safestringify(object)
         }
         catch (error) {
-            OLog.error("olog.js error during stringify=" + error)
+            OLog.error(`olog.js stringify error=${error}`)
         }
     }
 }

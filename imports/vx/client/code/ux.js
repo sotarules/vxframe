@@ -469,6 +469,81 @@ UX = {
     },
 
     /**
+     * Make a component draggable via jQuery UI sortable.
+     *
+     * @param {string} id HTML element ID to made draggable.
+     * @param {string} dragClassName Drag class name (needed to correct problem with momentum scrolling).
+     * @param {string} dropClassName Drop class name (used with connectWith).
+     * @param {string} placeholderClassName Placeholder class name.
+     */
+    makeDraggable(id, dragClassName, dropClassName, placeholderClassName) {
+        const $entitySource = $(`#${id}`)
+        if ($entitySource.exists()) {
+            OLog.debug(`ux.js makeDraggable configuring drag source id=${id} ` +
+                `dragClassName=${dragClassName} dropClassName=${dropClassName}`)
+            $entitySource.sortable({
+                helper : "clone",
+                cursor : "move",
+                handle : ".entity-handle",
+                placeholder : placeholderClassName,
+                change : (event, ui) => {
+                    UX.initPlaceholder(ui, dropClassName)
+                },
+                opacity : ".7",
+                start : (event, ui) => {
+                    $(ui.item).show()
+                    // If we don't defeat momentum scrolling, the skill helper will
+                    // not be visible outside the bounds of the source list:
+                    $(`.${dragClassName}`).removeClass("scroll-momentum")
+                },
+                stop : () => {
+                    $entitySource.sortable("cancel")
+                    // If we don't defeat momentum scrolling, the skill helper will
+                    // not be visible outside the bounds of the source list:
+                    $(`.${dragClassName}`).addClass("scroll-momentum")
+                },
+                connectWith : `.${dropClassName}`,
+                scroll : false
+            })
+        }
+        else {
+            OLog.error(`ux.js makeDraggable drag source id=${id} not found`)
+        }
+    },
+
+    /**
+     * Make a component droppable via jQuery UI sortable.
+     *
+     * @param {string} id HTML element ID to made droppable.
+     * @param {object} component Component to receive drop notification via onDrop.
+     */
+    makeDroppable(id, component) {
+        const $entityTarget = $(`#${id}`)
+        if ($entityTarget.exists()) {
+            OLog.debug(`ux.js makeDroppable configuring drop target id=${id}`)
+            $entityTarget.sortable({
+                handle : ".entity-handle",
+                start : (event, ui) => {
+                    $(ui.item).attr("data-previndex", ui.item.index())
+                },
+                stop : (event, ui) => {
+                    $(ui.item).removeAttr("data-previndex")
+                    $(ui.item).removeAttr("style")
+                },
+                update : (event, ui) => {
+                    OLog.debug(`ux.js makeDroppable onDrop *fire* id=${component.props.id}`)
+                    if (component.props.onDrop) {
+                        component.props.onDrop(event, $entityTarget, ui, component)
+                    }
+                }
+            })
+        }
+        else {
+            OLog.error(`ux.js makeDroppable drop target id=${id} not found`)
+        }
+    },
+
+    /**
      * Initialize placeholder display setting for jQuery UI.
      *
      * @param {object} ui jQuery UI object.
@@ -541,7 +616,7 @@ UX = {
      * @return {boolean} True if any iOS button bar delegates are visible.
      */
     isIosButtonBarDelegatesVisible(iosState) {
-        return iosState.delegatesVisible && Object.keys(iosState.delegatesVisible).length > 0
+        return iosState.iosButtonState && Object.keys(iosState.iosButtonState).length > 0
     },
 
     /**
@@ -929,6 +1004,9 @@ UX = {
         let form = UX.findForm(component.props.id)
         let validateArgs = UX.prepareValidateArgs(component)
         let result = { success: true }
+        if (!form) {
+            return result
+        }
         if (form.props.dynamic && Util.isNullish(validateArgs[0])) {
             if (component.props.required) {
                 if (component.props.missingReset) {
@@ -2016,6 +2094,18 @@ UX = {
     },
 
     /**
+     * Add an "All" selection to the beginning of a code array.
+     *
+     * @param {array} codeArray Traditional code array.
+     * @return {array} New array with "All" value added to beginning
+     */
+    addAllSelection(codeArray) {
+        let newArray = codeArray ? codeArray.slice() : []
+        newArray.unshift( { code: "ALL", localized: "All" } )
+        return newArray
+    },
+
+    /**
      * Given a value and a code array, if the value is null, select the
      * first value from the code array.  This allows us to set the state
      * of VXSelect controls to behave as they do when no value is selected.
@@ -2176,13 +2266,18 @@ UX = {
      *
      * @param {string} componentId Component ID.
      * @param {function} delegate Delegate function.
+     * @param {boolean} showLoading True to enable loading indicator for iOS button.
+     * @param {number} minimumDuration Minimum duration in milliseconds for loading indicator.
      */
-    registerIosButtonDelegate(componentId, delegate) {
+    registerIosButtonDelegate(componentId, delegate, showLoading, minimumDuration) {
         OLog.debug(`ux.js registerIosButtonDelegate componentId=${componentId}`)
         UXState[componentId] = delegate
         const iosState = Store.getState().iosState
-        iosState.delegatesVisible = iosState.delegatesVisible || {}
-        iosState.delegatesVisible[componentId] = true
+        iosState.iosButtonState = iosState.iosButtonState || {}
+        iosState.iosButtonState[componentId] = iosState.iosButtonState[componentId] || {}
+        iosState.iosButtonState[componentId].delegateVisible = true
+        iosState.iosButtonState[componentId].showLoading = showLoading
+        iosState.iosButtonState[componentId].minimumDuration = minimumDuration
         Store.dispatch(setIosState(iosState))
     },
 
@@ -2195,8 +2290,7 @@ UX = {
         OLog.debug(`ux.js unregisterIosButtonDelegate componentId=${componentId}`)
         delete UXState[componentId]
         const iosState = Store.getState().iosState
-        iosState.delegatesVisible = iosState.delegatesVisible || {}
-        delete iosState.delegatesVisible[componentId]
+        delete iosState.iosButtonState?.[componentId]
         Store.dispatch(setIosState(iosState))
     },
 
@@ -2206,7 +2300,7 @@ UX = {
     unregisterIosButtonDelegates() {
         OLog.debug("ux.js unregisterIosButtonDelegates *purging*")
         const iosState = Store.getState().iosState
-        delete iosState.delegatesVisible
+        delete iosState.iosButtonState
         Store.dispatch(setIosState(iosState))
         Object.keys(UXState).forEach(componentId => {
             if (componentId.startsWith("ios-button")) {
@@ -2418,7 +2512,7 @@ UX = {
     },
 
     /**
-     * Compare two objects and find differences between them.
+     * For React debugging, compare two objects and find differences between them.
      * This can be used on either properties or state objects.
      *
      * @param {object} oldObject Old object.
@@ -2459,5 +2553,50 @@ UX = {
         }
         const timezone = Util.getUserTimezone(user._id)
         return Util.formatDate(date, timezone, format)
-    }
+    },
+
+    /**
+     * Create pop-over for a field in error.
+     *
+     * @param {string} popoverContainer Popover container selector (e.g., "body", ".right-body").
+     * @param {object} $element Element to be decorated with popover.
+     * @param {string} localized message for pop-over.
+     * @param {string} popoverPlacement Placement relative to element (defaults to bottom).
+     */
+    createPopover(popoverContainer, $element, localizedMessage, popoverPlacement) {
+        popoverContainer = popoverContainer || false
+        popoverPlacement = popoverPlacement || "bottom"
+        $element.popover({
+            content: localizedMessage,
+            trigger: "manual",
+            container: popoverContainer,
+            placement: popoverPlacement
+        });
+        $element.popover("show")
+        $element.addClass("ux-popover-shown")
+    },
+
+    /**
+     * Clear a popover.
+     *
+     * @param {object} element Element to be clearned of popover.
+     */
+    clearPopover($element) {
+        if (!$element.exists()) {
+            return
+        }
+        $element.popover("destroy")
+    },
+
+    /**
+     * Given an anchor clicked event and a web page URL, open that web page
+     * in a new tab.
+     *
+     * @param {string} url URL of page including protocol http or https.
+     * @param {object} event Event allowing system to prevent default behavior.
+     */
+    openWebPage(url, event) {
+        event.preventDefault()
+        window.open(url, "_blank");
+    },
 }

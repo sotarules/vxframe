@@ -17,6 +17,7 @@ import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
 import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
 import { setLoading } from "/imports/vx/client/code/actions"
 import { setIosState } from "/imports/vx/client/code/actions"
+import {get, set} from "lodash"
 
 VXApp = _.extend(VXApp || {}, {
 
@@ -312,7 +313,7 @@ VXApp = _.extend(VXApp || {}, {
         }
 
         const iosState = Store.getState().iosState
-        delete iosState.delegatesVisible
+        delete iosState.iosButtonState
         Store.dispatch(setIosState(iosState))
 
         let tenantId = Util.getCurrentTenantId(userId)
@@ -624,22 +625,24 @@ VXApp = _.extend(VXApp || {}, {
         if (!Util.isWholeNumber(oldIndex)) {
             // Resist duplicates:
             if (_.findWhere(domains, { domainId: domainId })) {
-                OLog.debug("vxapp.js updateUserDomain " + Util.fetchFullName(user._id) + " already has domain " + Util.fetchDomainName(domainId) + " duplicates suppressed")
+                OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} already has domain ` +
+                    `${Util.fetchDomainName(domainId)} duplicates suppressed`)
                 return
             }
         }
         // If we have an old index we're moving dragging the domain from one place to another:
         if (Util.isWholeNumber(oldIndex)) {
-            OLog.debug("vxapp.js updateUserDomain " + Util.fetchFullName(user._id) + " domain " + Util.fetchDomainName(domainId) + " dragged from " + oldIndex + " to " + newIndex)
+            OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} domain ` +
+                `${Util.fetchDomainName(domainId)} dragged from ${oldIndex} to ${newIndex}`)
             dropTarget.sortable("cancel")
             // Currently MongoDB cannot do a $pull and $push operation in a single transaction.  There is
             // an open issue about this but for now we have to do this in two steps.
             let modifier = {}
             modifier.$pull = {}
-            modifier.$pull["profile.domains"] = domains[oldIndex]
+            modifier.$pull["profile.domains"] = { domainId : domainId }
             Meteor.users.update(user._id, modifier, error => {
                 if (error) {
-                    OLog.error("vxapp.js updateUserDomain error returned from MongoDB update=" + error)
+                    OLog.error(`vxapp.js updateUserDomain error returned from MongoDB update=${error}`)
                     UX.notifyForDatabaseError(error)
                     return
                 }
@@ -649,30 +652,32 @@ VXApp = _.extend(VXApp || {}, {
             modifier.$push["profile.domains"] = { $each: [ domains[oldIndex] ], $position: newIndex }
             Meteor.users.update(user._id, modifier, error => {
                 if (error) {
-                    OLog.error("vxapp.js updateUserDomain error returned from MongoDB update=" + error)
+                    OLog.error(`vxapp.js updateUserDomain error returned from MongoDB update=${error}`)
                     UX.notifyForDatabaseError(error)
                     return
                 }
             })
         }
         else {
-            OLog.debug("vxapp.js updateUserDomain " + Util.fetchFullName(user._id)  + " domain " + Util.fetchDomainName(domainId) + " dragged from LHS list to index " + newIndex)
+            OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} domain ` +
+                `${Util.fetchDomainName(domainId)} dragged from LHS list to index ${newIndex}`)
             let modifier = {}
             modifier.$push = {}
             modifier.$push["profile.domains"] = { $each: [ { domainId : domainId, roles : [ ] } ], $position: newIndex }
             let tenantId = Util.getTenantId(domainId)
             if (!tenantId) {
-                OLog.error("vxapp.js updateUserDomain cannot find tenant of domainId=" + domainId)
+                OLog.error(`vxapp.js updateUserDomain cannot find tenant of domainId=${domainId}`)
                 return
             }
             if (!_.findWhere(tenants, { tenantId: tenantId })) {
-                OLog.debug("vxapp.js updateUserDomain " + Util.fetchFullName(user._id) + " will get tenant " + Util.fetchTenantName(tenantId))
+                OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} will get tenant ` +
+                    `${Util.fetchTenantName(tenantId)}`)
                 modifier.$push["profile.tenants"] = { tenantId: tenantId, roles : [ ]  }
             }
-            OLog.debug("vxapp.js updateUserDomain " + Util.fetchFullName(user._id) + " modifier=" + OLog.debugString(modifier))
+            OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} modifier=${OLog.debugString(modifier)}`)
             Meteor.users.update(user._id, modifier, error => {
                 if (error) {
-                    OLog.error("vxapp.js updateUserDomain error returned from MongoDB update=" + error)
+                    OLog.error(`vxapp.js updateUserDomain error returned from MongoDB update=${error}`)
                     UX.notifyForDatabaseError(error)
                     return
                 }
@@ -773,9 +778,7 @@ VXApp = _.extend(VXApp || {}, {
         OLog.debug("vxapp.js deleteUserDomain for user " + Util.fetchFullName(userId) + " deleting domain " + Util.fetchDomainName(domainIdDeleted))
         if (!tenantStillUsed) {
             OLog.debug("vxapp.js deleteUserDomain deleting domain " + Util.fetchDomainName(domainIdDeleted) + " tenant " + Util.fetchTenantName(tenantIdDeleted) + " will no longer be required and will be removed")
-            modifier.$pull["profile.tenants"] = {
-                tenantId: tenantIdDeleted
-            }
+            modifier.$pull["profile.tenants"] = { tenantId: tenantIdDeleted }
         }
         if (user.profile.currentDomain === domainIdDeleted) {
             if (domains.length < 1) {
@@ -1079,5 +1082,232 @@ VXApp = _.extend(VXApp || {}, {
             OLog.error(`vxapp.js createEvent error=${error}`)
             return
         }
+    },
+
+
+    /**
+     * Simple update handler to use when overriding default behavior at component level.
+     * You can upate any collection and field by supplying the parameters below.
+     *
+     * @param {object} collection MongoDB collection to update.
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath Lodash-style update path.
+     * @param {?} value New value.
+     */
+    updateHandlerSimple(collection, record, rowsPath, value) {
+        const mongoPath = Util.toMongoPath(rowsPath)
+        const modifier = {}
+        modifier.$set = {}
+        modifier.$set[mongoPath] = value
+        OLog.debug(`vxapp.js updateHandlerSimple collection=${collection._name} recordId=${record._id} ` +
+            `rowsPath=${rowsPath} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
+        collection.update(record._id, modifier, error => {
+            if (error) {
+                UX.notifyForError(error)
+                return
+            }
+            OLog.debug(`vxapp.js updateHandlerSimple collection=${collection._name} recordId=${record._id} *success*`)
+        })
+    },
+
+    /**
+     * Add handler for VXRowPanel and VXRowList.
+     *
+     * @param {object} collection MongoDB collection to update.
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath JSON path to array of rows to be updated.     *
+     * @param {string} rowId Name of a property that uniquely identifies row.
+     */
+    addRow(collection, record,  rowsPath, rowId) {
+        const mongoPath = Util.toMongoPath(rowsPath)
+        const row = {}
+        row[rowId] = Util.getGuid()
+        const modifier = {}
+        modifier.$push = {}
+        modifier.$push[mongoPath] = row
+        OLog.debug(`vxapp.js addRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
+            `modifier=${OLog.debugString(modifier)}`)
+        collection.update(record._id, modifier, error => {
+            if (error) {
+                UX.notifyForError(error)
+                return
+            }
+            OLog.debug(`vxapp.js addRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
+                `id=${row[rowId]} *success*`)
+        })
+    },
+
+    /**
+     * Add handler for VXRowPanel and VXRowList.
+     *
+     * @param {object} collection MongoDB collection to update.
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath JSON path to array of rows to be updated.
+     * @param {string} rowId Name of a property that uniquely identifies row.
+     * @param {string} id Unique ID of this row (typically GUID).
+     */
+    removeRow(collection, record, rowsPath, rowId, id) {
+        const rows = get(record, rowsPath)
+        if (!(rows && rows.length > 0)) {
+            return
+        }
+        id = id || rows[rows.length - 1][rowId]
+        const mongoPath = Util.toMongoPath(rowsPath)
+        const modifier = {}
+        modifier.$pull = {}
+        modifier.$pull[mongoPath] = { id }
+        OLog.debug(`vxapp.js removeRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} id=${id} ` +
+            `modifier=${OLog.debugString(modifier)}`)
+        collection.update(record._id, modifier, error => {
+            if (error) {
+                UX.notifyForError(error)
+                return
+            }
+            OLog.debug(`vxapp.js removeRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
+                `id=${id} *success*`)
+        })
+    },
+
+    /**
+     * Update handler for VXRowPanel and VXRowList.
+     *
+     * @param {object} collection MongoDB collection to update.
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath JSON path to array of rows to be updated.
+     * @param {object} component Component whose state was changed resulting in this update.
+     * @param {?} value New value.
+     */
+    updateRow(collection, record, rowsPath, component, value) {
+        // The IDs of all components must start with the row ID
+        const componentRowId = component.props.id.split("-")[0]
+        if (!componentRowId) {
+            return
+        }
+        const rows = get(record, rowsPath)
+        const mongoPath = Util.toMongoPath(rowsPath)
+        const index = Util.indexOf(rows, "id", componentRowId)
+        if (index < 0) {
+            return
+        }
+        const modifier = {}
+        modifier.$set = {}
+        modifier.$set[`${mongoPath}.${index}.${component.props.dbName}`] = value
+        OLog.debug(`vxapp.js updateRow recordId=${record._id} componentId=${component.props.id} ` +
+            `rowsPath=${rowsPath} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
+        collection.update(record._id, modifier, error => {
+            if (error) {
+                UX.notifyForError(error)
+                return
+            }
+            OLog.debug(`vxapp.js updateRow recordId=${record._id} *success*`)
+        })
+    },
+
+    /**
+     * This function provides update service a special type of data structure, where the user
+     * experience is a list of rows with checkboxes, but the internal database format is an array
+     * of codes that map to the "checked" rows. This type of data structure saves space and is more
+     * concise in cases where there are many potential rows, but only a tiny subset are checked.
+     *
+     * @param {array} codeArray Invariant array of codes typically from codes.js.
+     * @param {object} collection Collection to be updated.
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath Path to array within record.
+     * @param {string} rowId Name of the property that uniquely identifies the row.
+     * @param {string} checkboxdbName Name of the checkbox property that controls whether the element exists.
+     * @param {object} component Component that has been updated.
+     * @param {?} value Value that has been updated.
+     */
+    updateCodeArray(codeArray, collection, record, rowsPath, rowId, checkboxdbName, component, value) {
+        // The IDs of all components must start with the row ID
+        const componentRowId = component.props.id.split("-")[0]
+        if (!componentRowId) {
+            return
+        }
+        const rebuiltArray = []
+        codeArray.forEach(code => {
+            let element = _.find(get(record, rowsPath), element => {
+                return element[rowId] === code
+            })
+            if (componentRowId === code) {
+                if (component.props.dbName === checkboxdbName && !value) {
+                    return
+                }
+                if (!element) {
+                    element = {}
+                    element[rowId] = code
+                }
+                set(element, component.props.dbName, value)
+            }
+            if (element) {
+                rebuiltArray.push(element)
+            }
+        })
+        const modifier = {}
+        modifier.$set = {}
+        modifier.$set[rowsPath] = rebuiltArray
+        OLog.debug(`vxapp.js updateCodeArray recordId=${record._id} componentId=${component.props.id} ` +
+            `rowsPath=${rowsPath} componentRowId=${componentRowId} modifier=${OLog.debugString(modifier)}`)
+        collection.update(record._id, modifier, error => {
+            if (error) {
+                UX.notifyForError(error)
+                return
+            }
+            OLog.debug(`vxapp.js updateCodeArray recordId=${record._id} *success*`)
+        })
+    },
+
+    /**
+     * Determine the MongoDB modifier to push an object bearing a code into a destination
+     * array while preserving the order determined by a source array. This function can
+     * be used in drag/drop operation where the goal is to ensure that the drop zone order
+     * matches the drag list order.
+     *
+     * @param {array} sourceArray Array of codes in canonical sequence.
+     * @param {array} destinationArray Array of codes in order matching drop zone.
+     * @param {array} newCodeName Code to be inserted.
+     * @param {object} newObject New object bearing code to be inserted.
+     * @return {string} MongoDB modifier either newObject unchanged or wrapped with $each and $position.
+     */
+    codeArrayPushModifier(sourceArray, destinationArray, newCodeName, newObject) {
+        const newObjectCanonicalIndex = sourceArray.indexOf(newCodeName)
+        if (newObjectCanonicalIndex < 0) {
+            OLog.error(`vxapp.js codeArrayPushModifier sourceArray=${sourceArray} does not contain newCodeName=${newCodeName}`)
+            return
+        }
+        for (let destinationIndex = 0; destinationIndex < destinationArray.length; destinationIndex++) {
+            const existingCode = destinationArray[destinationIndex]
+            const existingObjectCanonicalIndex = sourceArray.indexOf(existingCode)
+            if (newObjectCanonicalIndex < existingObjectCanonicalIndex) {
+                return { $each: [ newObject ], $position: destinationIndex }
+            }
+        }
+        return newObject
+    },
+
+    /**
+     * Apply filters to a standard publishing object. There are two types of filters: criteria or text.
+     * Criteria filters are simply additional properties added to the criteria. Text filters leverage
+     * Regex expressions to search text fields within the collection, and the caller must supply an
+     * object such as { searchPhrase: "Aetna", propertyNames: [ "name", "description" ] }.
+     *
+     * @param {object} publish Standard publishing object.
+     * @param {object} criteria Standard criteria filter is an object merged with publishing criteria.
+     * @param {object} text String used to form
+     * @return {object} Standard publishing object adjusted with filters.
+     */
+    applyFilters(publish, criteria, text) {
+        const publishAdjusted = { ...publish }
+        if (criteria) {
+            publishAdjusted.criteria = { ...publish.criteria, ...criteria }
+        }
+        if (text) {
+            const searchRegex = new RegExp(text.searchPhrase, "i")
+            publishAdjusted.criteria.$or = []
+            text.propertyNames.forEach(propertyName => {
+                publishAdjusted.criteria.$or.push({ [propertyName]: searchRegex })
+            })
+        }
+        return publishAdjusted
     }
 })

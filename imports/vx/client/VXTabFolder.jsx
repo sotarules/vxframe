@@ -22,7 +22,7 @@ export default class VXTabFolder extends Component {
 
     registerListeners() {
         React.Children.forEach(this.props.children, child => {
-            OLog.debug(`VXTabFolder.jsx registerListeners *init* id=${this.props.id}-${child.props.id}`)
+            //OLog.debug(`VXTabFolder.jsx registerListeners *init* id=${this.props.id}-${child.props.id}`)
             $(`#tab-${this.props.id}-${child.props.id}`).on("shown.bs.tab", (event) => {
                 OLog.debug(`VXTabFolder.jsx registerListeners shown.bs.tab id=$${this.props.id}-${child.props.id}`)
                 this.setState( { activeTabId : child.props.id } )
@@ -39,7 +39,7 @@ export default class VXTabFolder extends Component {
 
     componentWillUnmount() {
         React.Children.forEach(this.props.children, child => {
-            OLog.debug(`VXTabFolder.jsx componentWillUnmount unregister listeners shown.bs.tab id=${this.props.id}-${child.props.id}`)
+            //OLog.debug(`VXTabFolder.jsx componentWillUnmount unregister listeners shown.bs.tab id=${this.props.id}-${child.props.id}`)
             $(`#tab-${this.props.id}-${child.props.id}`).off("shown.bs.tab")
         })
     }

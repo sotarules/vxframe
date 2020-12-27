@@ -53,7 +53,7 @@ export default class DeploymentModal extends Component {
 
     renderBody() {
         return (
-            <React.Fragment>
+            <>
                 <div className="row">
                     <div className="col-xs-12">
                         <VXSelect id="deploymentAction"
@@ -102,7 +102,7 @@ export default class DeploymentModal extends Component {
                     </div>
                 }
                 {this.state.deploymentAction === "RESTORE" &&
-                    <React.Fragment>
+                    <>
                         <div className="row">
                             <div className="col-xs-12">
                                 <VXSelect id="snapshotIndex"
@@ -124,9 +124,9 @@ export default class DeploymentModal extends Component {
                                     resize={false}/>
                             </div>
                         </div>
-                    </React.Fragment>
+                    </>
                 }
-            </React.Fragment>
+            </>
         )
     }
 

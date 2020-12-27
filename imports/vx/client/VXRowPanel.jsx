@@ -2,8 +2,7 @@ import { Component } from "react"
 import PropTypes from "prop-types"
 import { get } from "lodash"
 import VXTinyButton from "./VXTinyButton"
-import EmptyEntityList from "./EmptyEntityList"
-import VXForm from "./VXForm"
+import VXRowList from "./VXRowList"
 
 export default class VXRowPanel extends Component {
 
@@ -20,7 +19,6 @@ export default class VXRowPanel extends Component {
         rowsPath : PropTypes.string.isRequired,
         rowId : PropTypes.string.isRequired,
         component : PropTypes.elementType.isRequired,
-        passProps : PropTypes.object,
         emptyMessage : PropTypes.string.isRequired,
         onClickAdd : PropTypes.func,
         onClickRemove : PropTypes.func
@@ -60,109 +58,34 @@ export default class VXRowPanel extends Component {
                         </div>
                     }
                 </div>
-                <div className={`flexi-grow ${this.props.bodyClassName || ""}`}>
-                    {this.anyRows() ? (
-                        <VXForm id={`${this.props.id}-form`}
-                            ref={form => {this.form = form}}
-                            formElement="ul"
-                            className={this.listClassName()}
-                            dynamic={true}
-                            updateHandler={this.handleUpdate.bind(this)}>
-                            {this.renderRows()}
-                        </VXForm>
-                    ) : (
-                        <EmptyEntityList id={`${this.props.id}-panel-body}`}
-                            emptyListSize="large"
-                            emptyMessage={this.props.emptyMessage} />
-                    )}
-                </div>
+                <VXRowList {...this.props}
+                    id={`${this.props.id}-row-list`}
+                    editable={this.props.editable}
+                    borders={false}
+                    bodyClassName={this.props.bodyClassName}
+                    rows={get(this.props.record, this.props.rowsPath)}
+                    rowId="id"
+                    component={this.props.component}
+                    emptyMessage={this.props.emptyMessage}
+                    onSelectRow={this.handleSelectRow.bind(this)}
+                    onUpdateRow={this.handleUpdateRow.bind(this)}/>
             </div>
         )
     }
 
-    renderRows() {
-        const rows = get(this.props.record, this.props.rowsPath)
-        return rows.map(row => {
-            const Component = this.props.component
-            const id = get(row, this.props.rowId)
-            return (
-                <Component id={id}
-                    key={id}
-                    row={row}
-                    {...this.props.passProps} />
-            )
-        })
-    }
-
-    anyRows() {
-        const rows = get(this.props.record, this.props.rowsPath)
-        return rows?.length > 0
-    }
-
-    listClassName() {
-        return "list-group scroll-y scroll-momentum scroll-fix flexi-grow zero-height-hack dropzone-container-large " +
-            (this.props.editable ? "row-panel-background-edit" : "row-panel-background-view")
+    handleSelectRow(event, selectedRowId) {
+        this.setSelectedRowId(selectedRowId)
     }
 
     handleClickAdd() {
-        const row = {}
-        row[this.props.rowId] = Util.getGuid()
-        const modifier = {}
-        modifier.$push = {}
-        modifier.$push[this.props.rowsPath] = row
-        OLog.debug(`VXRowPanel.jsx handleClickAdd recordId=${this.props.record._id} rowsPath=${this.props.rowsPath} ` +
-            `modifier=${OLog.debugString(modifier)}`)
-        this.props.collection.update(this.props.record._id, modifier, error => {
-            if (error) {
-                UX.notifyForError(error)
-                return
-            }
-            OLog.debug(`VXRowPanel.jsx handleClickAdd recordId=${this.props.record._id} *success*`)
-        })
+        VXApp.addRow(this.props.collection, this.props.record, this.props.rowsPath, this.props.rowId)
     }
 
     handleClickRemove() {
-        const rows = get(this.props.record, this.props.rowsPath)
-        const row = _.findWhere(rows, { id: this.selectedRowId })
-        if (!row) {
-            return
-        }
-        const modifier = {}
-        modifier.$pull = {}
-        modifier.$pull[this.props.rowsPath] = row
-        OLog.debug(`VXRowPanel.jsx handleClickRemove recordId=${this.props.record._id} rowsPath=${this.props.rowsPath} ` +
-            `modifier=${OLog.debugString(modifier)}`)
-        this.props.collection.update(this.props.record._id, modifier, error => {
-            if (error) {
-                UX.notifyForError(error)
-                return
-            }
-            OLog.debug(`VXRowPanel.jsx handleClickRemove recordId=${this.props.record._id} *success*`)
-        })
+        VXApp.removeRow(this.props.collection, this.props.record, this.props.rowsPath, this.props.rowId, this.selectedRowId)
     }
 
-    handleUpdate(component, value) {
-        // The IDs of all components must start with the row ID
-        const componentRowId = component.props.id.split("-")[0]
-        if (!componentRowId) {
-            return
-        }
-        const rows = get(this.props.record, this.props.rowsPath)
-        const index = _.indexOf(_.pluck(rows, "id"), componentRowId)
-        if (index < 0) {
-            return
-        }
-        const modifier = {}
-        modifier.$set = {}
-        modifier.$set[`${this.props.rowsPath}.${index}.${component.props.dbName}`] = value
-        OLog.debug(`VXRowPanel.jsx handleUpdate recordId=${this.props.record._id} rowsPath=${this.props.rowsPath} ` +
-            `modifier=${OLog.debugString(modifier)}`)
-        this.props.collection.update(this.props.record._id, modifier, error => {
-            if (error) {
-                UX.notifyForError(error)
-                return
-            }
-            OLog.debug(`VXRowPanel.jsx handleUpdate recordId=${this.props.record._id} *success*`)
-        })
+    handleUpdateRow(component, value) {
+        VXApp.updateRow(this.props.collection, this.props.record, this.props.rowsPath, component, value)
     }
 }

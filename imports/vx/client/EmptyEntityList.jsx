@@ -6,6 +6,7 @@ export default class EmptyEntityList extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
+        className : PropTypes.string,
         emptyMessage : PropTypes.string.isRequired,
         emptyListSize : PropTypes.oneOf(["small", "large"]).isRequired,
         dropClassName : PropTypes.string
@@ -17,17 +18,13 @@ export default class EmptyEntityList extends Component {
                 className={this.dropZoneClassNames()}>
                 <span className={`empty-list-text-${this.props.emptyListSize}`}>
                     <span className="fa fa-lightbulb-o"></span>
-                    {Parser(" " + this.props.emptyMessage)}
+                    {Parser(` ${this.props.emptyMessage}`)}
                 </span>
             </div>
         )
     }
 
     dropZoneClassNames() {
-        let myReturn = "empty-list flexi-grow flex-section-center"
-        if (this.props.dropClassName) {
-            myReturn += " " + this.props.dropClassName
-        }
-        return myReturn
+        return `empty-list flexi-grow flex-section-center ${this.props.className || ""} ${this.props.dropClassName || ""}`
     }
 }

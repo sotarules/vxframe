@@ -76,13 +76,15 @@ export default class UserDomainViewRight extends Component {
                                 <div className="row">
                                     <div className="col-xs-6">
                                         <VXFieldBox label={Util.i18n("common.label_phone")}
-                                            value={Util.fetchUserPhone(this.props.user)}/>
+                                            value={Util.fetchUserPhone(this.props.user)}
+                                            linkType="phone"/>
                                     </div>
                                 </div>
                                 <div className="row">
                                     <div className="col-xs-6">
                                         <VXFieldBox label={Util.i18n("common.label_mobile")}
-                                            value={Util.fetchUserMobile(this.props.user)}/>
+                                            value={Util.fetchUserMobile(this.props.user)}
+                                            linkType="phone"/>
                                     </div>
                                 </div>
                             </VXForm>

@@ -5,7 +5,8 @@ export default class RadioButtonGroup extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        activeButtonId : PropTypes.string
+        activeButtonId : PropTypes.string,
+        className : PropTypes.string
     }
 
     constructor(props) {
@@ -20,7 +21,8 @@ export default class RadioButtonGroup extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className="btn-group btn-group-justified btn-group-list-header flex-section-fixed"
+                className={"btn-group btn-group-justified btn-group-list-header flex-section-fixed " +
+                    `${this.props.className || ""}`}
                 data-toggle="buttons">
                 {UX.augmentChildren(this.props.children, () => true, {
                     getActiveButtonId : () => {

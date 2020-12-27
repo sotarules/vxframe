@@ -55,25 +55,36 @@ Util = {
     /**
      * Return an array of the "raw" codes names.
      *
-     * @param {string} name Name of code set.
+     * @param {string} codeSet Name of code set.
      * @param {string} filter Optional filter criteria.
      * @return {array} Array of code names.
      */
-    getCodes(name, filter) {
-        let codeArray = []
-        _.each(Meteor.i18nMessages.codes[name], (codeDefinition, codeName) => {
+    getCodes(codeSet, filter) {
+        let codeNameArray = []
+        _.each(Meteor.i18nMessages.codes[codeSet], (codeDefinition, codeName) => {
             if (!filter) {
-                codeArray.push(codeName)
+                codeNameArray.push(codeName)
                 return
             }
             _.each(filter, (filterValue, filterName) => {
                 if (codeDefinition[filterName] === filterValue) {
-                    codeArray.push(codeName)
+                    codeNameArray.push(codeName)
                     return
                 }
             })
         })
-        return codeArray
+        return codeNameArray
+    },
+
+    /**
+     * Get the localization of a given code name.
+     *
+     * @param {string} codeSet Name of code set (e.g., timeUnit)
+     * @param {string} codeName Code (e.g., MINUTE).
+     * @return {string} Localized value of code.
+     */
+    getCodeLocalized(codeSet, codeName) {
+        return Util.i18n(`codes.${codeSet}.${codeName}`)
     },
 
     /**
@@ -96,6 +107,27 @@ Util = {
             return
         }
         return codeObject[propertyName]
+    },
+
+    /**
+     * Return the raw code objects of a specified code set.
+     *
+     * @param {string} codeSet Code set.
+     * @return {object} Code set object.
+     */
+    getCodeObjects(codeSet) {
+        return Meteor.i18nMessages.codes[codeSet]
+    },
+
+    /**
+     * Return the raw code object for a given code set and code name.
+     *
+     * @param {string} codeSet Code set.
+     * @param {string} codeName Code name
+     * @return {object} Code set object.
+     */
+    getCodeObject(codeSet, codeName) {
+        return Util.getCodeObjects(codeSet)?.[codeName]
     },
 
     /**
@@ -2379,5 +2411,29 @@ Util = {
      */
     getCollection(collectionName) {
         return Mongo.Collection.get(collectionName)
+    },
+
+    /**
+     * Convert a object traversal path from lodash "get" form to a MongoDB modifier path.
+     * Example: coverages[0].options -> coverages.0.options
+     *
+     * @param {string} lodashPath Input path in lodash "get" form.
+     * @return {string} Path suitable for MongoDB $set or $pull modifier.
+     */
+    toMongoPath(lodashPath) {
+        return lodashPath.replaceAll("[", ".").replaceAll("]", "")
+    },
+
+    /**
+     * Given an array of objects, return the index of an object that has an id field matching a supplied value.
+     *
+     * @param {array} array Array of objects.
+     * @param {string} name Name of ID property.
+     * @param {string} value Value of ID property.
+     * @return {number} Index of object.
+     */
+    indexOf(array, name, value) {
+        const ids = _.pluck(array, name)
+        return ids.indexOf(value)
     }
 }

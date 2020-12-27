@@ -1,10 +1,9 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
-import RightHeaderBasic from "/imports/vx/client/RightHeaderBasic"
+import RightHeaderEdit from "/imports/vx/client/RightHeaderEdit"
 import VXForm from "/imports/vx/client/VXForm"
-import VXImage from "/imports/vx/client/VXImage"
 import VXInput from "/imports/vx/client/VXInput"
 import VXSelect from "/imports/vx/client/VXSelect"
 import EntityListHeader from "/imports/vx/client/EntityListHeader"
@@ -61,38 +60,19 @@ export default class DomainEditRight extends Component {
                 className="flexi-grow lock-exiting-component">
                 {this.props.domain ? (
                     <RightPanel>
-                        <RightHeaderBasic>
+                        <RightHeaderEdit id={`${this.props.id}-right-header`}
+                            record={this.props.domain}
+                            collection={Domains}
+                            imageType="domain"
+                            iconUrlDbName="iconUrl"
+                            nameDbName="name"
+                            descriptionDbName="description">
                             <VXForm id="domain-edit-right-form"
                                 ref={(form) => { this.form = form }}
                                 className="right-panel-form flexi-fixed"
                                 dynamic={true}
                                 collection={Domains}
                                 _id={this.props.domain._id}>
-                                <div className="row">
-                                    <div className="col-sm-12">
-                                        <table className="top-table">
-                                            <tbody>
-                                                <tr>
-                                                    <td className="top-left">
-                                                        <VXImage id="iconUrl"
-                                                            size="small"
-                                                            imageType="domain"
-                                                            value={this.props.domain.iconUrl}/>
-                                                    </td>
-                                                    <td className="top-center">
-                                                        <div className="top-input">
-                                                            <VXInput id="name"
-                                                                required={true}
-                                                                value={this.props.domain.name}/>
-                                                            <VXInput id="description"
-                                                                value={this.props.domain.description}/>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
                                 <div className="row">
                                     <div className="col-xs-12">
                                         <VXInput id="billingAddress1"
@@ -126,7 +106,7 @@ export default class DomainEditRight extends Component {
                                     </div>
                                 </div>
                             </VXForm>
-                        </RightHeaderBasic>
+                        </RightHeaderEdit>
                         <EntityListHeader label={Util.i18n("user_domain.label_users_header")}/>
                         <UserEntityList id="domain-edit-right-list"
                             users={this.props.users}

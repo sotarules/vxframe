@@ -34,7 +34,7 @@ export default class IOSButtonBar extends Component {
 
     render() {
         OLog.debug(`IOSButtonBar.jsx render state=${OLog.debugString(this.state)} props=${OLog.debugString(this.props)}`)
-        const delegatesVisible = this.props.iosState.delegatesVisible || {}
+        const iosButtonState = this.props.iosState.iosButtonState
         return (
             <div id={this.props.id} className={this.className()}>
                 {this.state.isButtonBarVisible &&
@@ -46,46 +46,60 @@ export default class IOSButtonBar extends Component {
                                         backLabel={UX.backLabel(this.props.iosState)}/>
                                 }
                                 <div className="ios-button-group pull-right">
-                                    {delegatesVisible["ios-button-edit"] &&
+                                    {iosButtonState?.["ios-button-edit"]?.delegateVisible &&
                                         <IOSButton id="ios-button-edit"
                                             key="ios-button-edit"
                                             iconClass="fa-edit"
+                                            showLoading={iosButtonState?.["ios-button-edit"]?.showLoading}
+                                            minimumDuration={iosButtonState?.["ios-button-edit"]?.minimumDuration}
                                             title={Util.i18n("common.popup_menu_edit")}/>
                                     }
-                                    {delegatesVisible["ios-button-clone"] &&
+                                    {iosButtonState?.["ios-button-clone"]?.delegateVisible &&
                                         <IOSButton  id="ios-button-clone"
                                             key="ios-button-clone"
                                             iconClass="fa-copy"
+                                            showLoading={iosButtonState?.["ios-button-clone"]?.showLoading}
+                                            minimumDuration={iosButtonState?.["ios-button-clone"]?.minimumDuration}
                                             title={Util.i18n("common.popup_menu_clone")}/>
                                     }
-                                    {delegatesVisible["ios-button-delete"] &&
+                                    {iosButtonState?.["ios-button-delete"]?.delegateVisible &&
                                         <IOSButton id="ios-button-delete"
                                             key="ios-button-delete"
                                             iconClass="fa-times"
+                                            showLoading={iosButtonState?.["ios-button-delete"]?.showLoading}
+                                            minimumDuration={iosButtonState?.["ios-button-delete"]?.minimumDuration}
                                             title={Util.i18n("common.popup_menu_delete")}/>
                                     }
-                                    {delegatesVisible["ios-button-undo"]  &&
+                                    {iosButtonState?.["ios-button-undo"]?.delegateVisible &&
                                         <IOSButton id="ios-button-undo"
                                             key="ios-button-undo"
                                             iconClass="fa-undo"
+                                            showLoading={iosButtonState?.["ios-button-undo"]?.showLoading}
+                                            minimumDuration={iosButtonState?.["ios-button-undo"]?.minimumDuration}
                                             title={Util.i18n("common.popup_menu_undo")}/>
                                     }
-                                    {delegatesVisible["ios-button-redo"] &&
+                                    {iosButtonState?.["ios-button-redo"]?.delegateVisible &&
                                         <IOSButton id="ios-button-redo"
                                             key="ios-button-redo"
                                             iconClass="fa-repeat"
+                                            showLoading={iosButtonState?.["ios-button-redo"]?.showLoading}
+                                            minimumDuration={iosButtonState?.["ios-button-redo"]?.minimumDuration}
                                             title={Util.i18n("common.popup_menu_redo")}/>
                                     }
-                                    {delegatesVisible["ios-button-print"] &&
+                                    {iosButtonState?.["ios-button-print"]?.delegateVisible &&
                                         <IOSButton id="ios-button-print"
                                             key="ios-button-print"
                                             iconClass="fa-print"
+                                            showLoading={iosButtonState?.["ios-button-print"]?.showLoading}
+                                            minimumDuration={iosButtonState?.["ios-button-print"]?.minimumDuration}
                                             title={Util.i18n("common.popup_menu_print")}/>
                                     }
-                                    {delegatesVisible["ios-button-done-editing"] &&
+                                    {iosButtonState?.["ios-button-done-editing"]?.delegateVisible &&
                                         <IOSButton id="ios-button-done-editing"
                                             key="ios-button-done-editing"
                                             iconClass="fa-check-square-o"
+                                            showLoading={iosButtonState?.["ios-button-done-editing"]?.showLoading}
+                                            minimumDuration={iosButtonState?.["ios-button-done-editing"]?.minimumDuration}
                                             title={Util.i18n("common.popup_menu_done_editing")}/>
                                     }
                                 </div>

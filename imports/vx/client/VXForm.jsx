@@ -1,6 +1,5 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import { Overlay, Popover } from "react-bootstrap"
 
 export default class VXForm extends Component {
 
@@ -30,6 +29,7 @@ export default class VXForm extends Component {
         super(props)
         this.state = { errors : new Set() }
         this.components = []
+        this.popoverComponent = null
     }
 
     render() {
@@ -42,9 +42,12 @@ export default class VXForm extends Component {
                 style={this.props.style}
                 onSubmit={()=>false}>
                 {this.makeChildren(this.props.children)}
-                {this.renderPopover()}
             </FormElement>
         )
+    }
+
+    componentDidUpdate() {
+        this.updatePopover()
     }
 
     makeChildren(children) {
@@ -68,41 +71,36 @@ export default class VXForm extends Component {
         return newChildren
     }
 
-    renderPopover() {
-        if (this.state.errors.size === 0) {
-            return null
+    updatePopover() {
+        if (this.state.errors.size === 0 && this.popoverComponent) {
+            OLog.debug(`VXForm.jsx updatePopover *clear* id=${this.popoverComponent.props.id}`)
+            UX.clearPopover($(this.popoverComponent.inputElement))
+            this.popoverComponent = null
+            return
         }
-        let component = Array.from(this.state.errors).pop()
-        OLog.debug("VXForm.jsx renderPopover id=" + component.props.id + " error=" + this.popoverText(component))
-        return (
-            <Overlay show={true}
-                placement={component.props.popoverPlacement}
-                containerPadding={20}
-                target={component.inputElement}
-                container={this.popoverContainer()}>
-                <Popover id="popover-contained">
-                    {this.popoverText(component)}
-                </Popover>
-            </Overlay>
-        )
+        const component = Array.from(this.state.errors).pop()
+        if (component) {
+            if (this.popoverComponent) {
+                OLog.debug(`VXForm.jsx updatePopover clear *existing* popover id=${this.popoverComponent.props.id}`)
+                UX.clearPopover($(this.popoverComponent.inputElement))
+            }
+            const popoverContainer = this.popoverContainer()
+            const popoverText = component.state.localizedMessage
+            OLog.debug(`VXForm.jsx updatePopover *create* id=${component.props.id} popoverContainer=${popoverContainer} ` +
+                `popoverPlacement=${component.props.popoverPlacement} popoverText=${popoverText}`)
+            UX.createPopover(popoverContainer, $(component.inputElement), popoverText, component.props.popoverPlacement)
+            this.popoverComponent = component
+        }
     }
 
     popoverContainer() {
         if (this.props.popoverContainer === "body") {
-            return document.body
+            return "body"
         }
-        let containerId = this.props.popoverContainer === "this" ? this.props.id : this.props.popoverContainer
-        let $form = $("#" + containerId)
-        if (!$form.exists()) {
-            OLog.error("VXForm.jsx popoverContainer unable to find containerId=" + containerId)
-            return
+        if (this.props.popoverContainer === "this") {
+            return `#${this.props.id}`
         }
-        let element = $form[0]
-        return element
-    }
-
-    popoverText(component) {
-        return component.state.localizedMessage
+        return false
     }
 
     register(component) {

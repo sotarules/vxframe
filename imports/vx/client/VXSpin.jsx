@@ -102,10 +102,10 @@ export default class VXSpin extends Component {
             <div className={"form-group top-touchspin top-fieldbox-header-center" + (this.state.error ? " " + CX.CLASS_HAS_ERROR : "")}>
                 {this.props.label &&
                     <label htmlFor={this.props.id} className={`control-label ${this.props.labelClassName || ""}`}  title={this.props.tooltip}>
-                    {this.props.label}{" "}
-                    {this.props.star &&
+                        {this.props.label}{" "}
+                        {this.props.star &&
                         <span className="fa fa-star-o icon-required"></span>
-                    }
+                        }
                     </label>
                 }
                 {/* zIndex to 3 so invalid rectangle RHS will be displayed */}
