@@ -822,10 +822,9 @@ VXApp = _.extend(VXApp || {}, {
      */
     handleUpdate(collection, userId, doc, fieldNames) {
         try {
-            const transactions = VXApp.findTransactions(collection, userId, doc)
+            let transactions = VXApp.findTransactions(collection, userId, doc)
             if (!transactions) {
-                VXApp.makeTransactions(collection, Util.getCurrentDomainId(userId), userId, doc)
-                return
+                transactions = VXApp.makeTransactions(collection, Util.getCurrentDomainId(userId), userId, doc)
             }
             const undoStackSize = Util.getConfigValue("undoStackSize") || 100
             const selector = VXApp.makeTransactionsSelector(collection, userId, doc)
@@ -887,6 +886,7 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} domainId User ID.
      * @param {string} userId User ID.
      * @param {object} doc Record being inserted or updated.
+     * @param {object} Transactions object created.
      */
     makeTransactions(collection, domainId, userId, doc) {
         const transactions = {}
@@ -898,6 +898,7 @@ VXApp = _.extend(VXApp || {}, {
         transactions.history = [ doc ]
         OLog.debug(`vxapp.js makeTransactions transactions=${OLog.debugString(transactions)}`)
         Transactions.insert(transactions)
+        return transactions
     },
 
     /**

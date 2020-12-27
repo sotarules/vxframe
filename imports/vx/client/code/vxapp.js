@@ -1,22 +1,23 @@
 "use strict";
 
-import { setCurrentDomainId } from "/imports/vx/client/code/actions"
-import { setCurrentLocale } from "/imports/vx/client/code/actions"
-import { setCurrentUserId } from "/imports/vx/client/code/actions"
-import { setCurrentPublishingMode } from "/imports/vx/client/code/actions"
-import { setPublishingModeClient } from "/imports/vx/client/code/actions"
-import { setPublishingModeServer } from "/imports/vx/client/code/actions"
-import { setSubscriptionParameters } from "/imports/vx/client/code/actions"
-import { setPublishCurrentTenants } from "/imports/vx/client/code/actions"
-import { setPublishCurrentDomains } from "/imports/vx/client/code/actions"
-import { setPublishCurrentUsers } from "/imports/vx/client/code/actions"
-import { setPublishCurrentTenant } from "/imports/vx/client/code/actions"
-import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
-import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
-import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
-import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
-import { setLoading } from "/imports/vx/client/code/actions"
-import { setIosState } from "/imports/vx/client/code/actions"
+import {
+    setCurrentDomainId,
+    setCurrentLocale,
+    setCurrentPublishingMode,
+    setCurrentUserId,
+    setIosState,
+    setPublishAuthoringDomain,
+    setPublishAuthoringTemplate,
+    setPublishAuthoringUser,
+    setPublishCurrentDomain,
+    setPublishCurrentDomains,
+    setPublishCurrentTenant,
+    setPublishCurrentTenants,
+    setPublishCurrentUsers,
+    setPublishingModeClient,
+    setPublishingModeServer,
+    setSubscriptionParameters
+} from "/imports/vx/client/code/actions"
 import {get, set} from "lodash"
 
 VXApp = _.extend(VXApp || {}, {
@@ -46,8 +47,9 @@ VXApp = _.extend(VXApp || {}, {
      * Perform goDefault to go programmatically to the default route for this user.
      */
     afterLogin() {
-        UX.showLoading()
         OLog.debug("vxapp.js afterLogin *fire*")
+        UX.showLoading()
+        UX.setLoading(true)
         UX.goDefault()
     },
 
@@ -211,12 +213,12 @@ VXApp = _.extend(VXApp || {}, {
         }
 
         OLog.debug("vxapp.js globalSubscriptions prepare to *wait*")
-        Store.dispatch(setLoading(true))
+        UX.setLoading(true)
         UX.waitSubscriptions(handles, (error, result) => {
             if (VXApp.onAppChangeSubscriptionsReady) {
                 VXApp.onAppChangeSubscriptionsReady()
             }
-            Store.dispatch(setLoading(false))
+            UX.setLoading(false)
             OLog.debug(`vxapp.js globalSubscriptions ready domain count=${Domains.find().count()}`)
             callback(error, result)
             return

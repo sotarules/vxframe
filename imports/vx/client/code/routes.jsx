@@ -1,5 +1,5 @@
 import React from "react"
-import { Router, Route, Switch, Redirect } from "react-router-dom"
+import { Router, Route, Switch } from "react-router-dom"
 import DomainEdit from "/imports/domains/client/DomainEdit"
 import DomainUserView from "/imports/usersdomains/client/DomainUserView"
 import DomainView from "/imports/domains/client/DomainView"
@@ -101,7 +101,9 @@ Routes = {
      * Do any special functions after route.
      */
     doRouteAfter() {
-        UX.setLoading(false)
+        if (VXApp.isExemptRoute()) {
+            UX.setLoading(false)
+        }
         if (Routes.doAppRouteAfter) {
             Routes.doAppRouteAfter()
         }

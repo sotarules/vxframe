@@ -1,9 +1,9 @@
-"use strict";
+import { version } from "/package.json"
 
 /**
  * Application version and date.
  */
 Meteor.appVersion = {
-    version: "1.1.9",
-    buildDate: new Date("2020-12-26T21:36-08:00")
+    version: version,
+    buildDate: new Date("2020-12-27T15:03:00-08:00")
 }

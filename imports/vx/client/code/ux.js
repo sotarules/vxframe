@@ -872,6 +872,7 @@ UX = {
         if (UXState.loading) {
             return
         }
+        OLog.debug("ux.js showLoading *fire*")
         let message =  "<p class='loading-message'>" + Util.i18n("common.message_loading") + "</p>"
         let circle = "<div class='sk-spinner sk-spinner-wordpress'><span class='sk-inner-circle'></span></div>"
         UXState.loading = window.pleaseWait({ logo : CX.LOGO_PATH, backgroundColor : "#FFFFFF", loadingHtml : message + circle })
@@ -882,6 +883,7 @@ UX = {
      */
     clearLoading() {
         if (UXState.loading) {
+            OLog.debug("ux.js clearLoading *fire*")
             UXState.loading.finish()
             UXState.loading = null
         }
@@ -893,6 +895,7 @@ UX = {
      * @param {boolean} loading Loading indicator.
      */
     setLoading(loading) {
+        OLog.debug(`ux.js setLoading loading=${loading}`)
         if (Store.getState().loading !== loading) {
             Store.dispatch(setLoading(loading))
         }

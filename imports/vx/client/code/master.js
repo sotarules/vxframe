@@ -11,7 +11,7 @@ ReactDOM = require("react-dom")
 
 console.log("master.js (VX) *init*")
 
-const persistConfig = { key: "root", storage }
+const persistConfig = { key: "root", storage, blacklist: ["loading"] }
 const persistedReducer = persistReducer(persistConfig, combineReducers(allReducersVx))
 Store = createStore(persistedReducer)
 Persistor = persistStore(Store)
