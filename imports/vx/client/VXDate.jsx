@@ -33,8 +33,9 @@ export default class VXDate extends Component {
 
     static defaultProps = {
         popoverPlacement : "bottom",
-        format : "MM/DD/YYYY HH:mm:ss",
-        showButton : true
+        format : "MM/DD/YYYY hh:mm:ss A",
+        showButton : true,
+        timezone : Util.getUserTimezone(Meteor.userId())
     }
 
     constructor(props) {
@@ -72,8 +73,8 @@ export default class VXDate extends Component {
             else {
                 date = ""
             }
-            OLog.debug("VXDate.jsx componentDidMount on dp.change componentId=" + this.props.id +
-                " event.date=" + event.date + " date=" + date)
+            OLog.debug(`VXDate.jsx componentDidMount on dp.change componentId=${this.props.id} ` +
+                ` event.date=${event.date} date=${date}`)
             this.setState({ value : date })
             UX.validateComponent(this)
             if (this.props.onChange) {
@@ -84,14 +85,12 @@ export default class VXDate extends Component {
 
     UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug("VXDate.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
             this.setValue(newProps.value)
         }
     }
 
     componentWillUnmount() {
         let selector = this.getSelector()
-        //OLog.debug("VXDate.jsx componentWillUnmount selector=" + selector)
         $(selector).off("dp.change")
         $(selector).data("DateTimePicker").destroy()
         UX.unregister(this)
@@ -105,7 +104,7 @@ export default class VXDate extends Component {
         this.setState({value: value}, () => {
             let selector = this.getSelector()
             let dateString = value ? moment.tz(value, this.props.timezone).format(this.props.format) : null
-            OLog.debug("VXDate.jsx setValue componentId=" + this.props.id + " value=" + value + " dateString=" + dateString)
+            OLog.debug(`VXDate.jsx setValue componentId=${this.props.id} value=${value} dateString=${dateString}`)
             $(selector).data("DateTimePicker").date(dateString)
         })
     }

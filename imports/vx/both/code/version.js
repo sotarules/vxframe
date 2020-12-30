@@ -1,9 +1,9 @@
-import { version } from "/package.json"
+import { version, buildDate } from "/package.json"
 
 /**
- * Application version and date.
+ * Pull application version and build date from package.json.
  */
 Meteor.appVersion = {
     version: version,
-    buildDate: new Date("2020-12-27T15:03:00-08:00")
+    buildDate: new Date(buildDate)
 }

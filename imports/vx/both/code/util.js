@@ -103,7 +103,6 @@ Util = {
         }
         const codeObject = codeSetObject[codeName]
         if (!codeObject) {
-            OLog.error(`util.js getCodeProperty codeSet=${codeSet} codeName=${codeName} is not defined`)
             return
         }
         return codeObject[propertyName]
@@ -637,7 +636,7 @@ Util = {
         if (!timezone) {
             return Util.pad(date.getMonth() + 1, 2) + "/" + Util.pad(date.getDate(), 2) + "/" + Util.pad(date.getFullYear(), 4)
         }
-        format = format || "MM/DD/YYYY"
+        format = format || "MM/DD/YYYY hh:mm:ss A"
         return moment.tz(date, timezone).format(format)
     },
 

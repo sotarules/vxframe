@@ -40,7 +40,7 @@ mrt:jquery-ui-sortable
 static-html
 
 underscore@1.0.10
-react-meteor-data
+react-meteor-data@2.1.4
 standard-minifier-js@2.6.0
 mizzao:user-status
 email@~2.0.0!

@@ -9,7 +9,6 @@ import "/imports/vx/server/code/cx"
 //import "/imports/app/server/code/cx"
 
 import "/imports/vx/both/code/version"
-//import "/imports/app/both/code/version"
 
 import "/imports/vx/both/code/collections"
 //import "/imports/app/both/code/collections"

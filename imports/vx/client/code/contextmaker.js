@@ -1,10 +1,11 @@
 "use strict"
 
-import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
-import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
-import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
-import { setPublishCurrentTenant } from "/imports/vx/client/code/actions"
-import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
+import {
+    setPublishAuthoringDomain,
+    setPublishAuthoringTemplate,
+    setPublishAuthoringUser,
+    setPublishCurrentDomain
+} from "/imports/vx/client/code/actions"
 
 ContextMaker = {
 
@@ -53,31 +54,15 @@ ContextMaker = {
     },
 
     user() {
-        let publishAuthoringUser = {}
-        if (Util.isRoutePath("/user/")) {
-            publishAuthoringUser.criteria = { _id : UX.lastSegment() }
-            OLog.debug(`contextmaker.js route [user] *correct* publishAuthoringUser=${OLog.debugString(publishAuthoringUser)}`)
-            Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
-        }
-        else {
-            publishAuthoringUser = Store.getState().publishAuthoringUser
-            OLog.debug(`contextmaker.js route [user] *incorrect* publishAuthoringUser=${OLog.debugString(publishAuthoringUser)}`)
-        }
-        return Meteor.users.findOne(publishAuthoringUser.criteria)
+        const criteria = { _id : UX.lastSegment() }
+        OLog.debug(`contextmaker.js route [user] criteria=${OLog.debugString(criteria)}`)
+        return  Meteor.users.findOne(criteria)
     },
 
     domain() {
-        let publishAuthoringDomain = {}
-        if (Util.isRoutePath("/domain/")) {
-            publishAuthoringDomain.criteria = { _id : UX.lastSegment() }
-            OLog.debug(`contextmaker.js route [domain] *correct* publishAuthoringDomain=${OLog.debugString(publishAuthoringDomain)}`)
-            Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
-        }
-        else {
-            publishAuthoringDomain = Store.getState().publishAuthoringDomain
-            OLog.debug(`contextmaker.js route [domain] *incorrect* publishAuthoringDomain=${OLog.debugString(publishAuthoringDomain)}`)
-        }
-        return Domains.findOne(publishAuthoringDomain.criteria)
+        const criteria = { _id : UX.lastSegment() }
+        OLog.debug(`contextmaker.js route [domain] criteria=${OLog.debugString(criteria)}`)
+        return Domains.findOne(criteria)
     },
 
     tenants() {
@@ -105,17 +90,9 @@ ContextMaker = {
     },
 
     tenant() {
-        let publishCurrentTenant = {}
-        if (Util.isRoutePath("/tenant/")) {
-            publishCurrentTenant.criteria = { _id : UX.lastSegment() }
-            OLog.debug(`contextmaker.js route [tenant] *correct* publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
-            Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
-        }
-        else {
-            publishCurrentTenant = Store.getState().publishCurrentTenant
-            OLog.debug(`contextmaker.js route [tenant] *incorrect* publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
-        }
-        return Tenants.findOne(publishCurrentTenant.criteria)
+        const criteria = { _id : UX.lastSegment() }
+        OLog.debug(`contextmaker.js route [tenant] criteria=${OLog.debugString(criteria)}`)
+        return Tenants.findOne(criteria)
     },
 
     domains() {
@@ -185,16 +162,8 @@ ContextMaker = {
     },
 
     template() {
-        let publishAuthoringTemplate = {}
-        if (Util.isRoutePath("/template/")) {
-            publishAuthoringTemplate.criteria = { _id : UX.lastSegment() }
-            OLog.debug(`contextmaker.js route [template] *correct* publishAuthoringTemplate=${OLog.debugString(publishAuthoringTemplate)}`)
-            Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
-        }
-        else {
-            publishAuthoringTemplate = Store.getState().publishAuthoringTemplate
-            OLog.debug(`contextmaker.js route [template] *incorrect* publishAuthoringTemplate=${OLog.debugString(publishAuthoringTemplate)}`)
-        }
-        return Templates.findOne(publishAuthoringTemplate.criteria)
+        const criteria = { _id : UX.lastSegment() }
+        OLog.debug(`contextmaker.js route [template] criteria=${OLog.debugString(criteria)}`)
+        return Templates.findOne(criteria)
     }
 }

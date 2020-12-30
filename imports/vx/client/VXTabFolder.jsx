@@ -21,7 +21,8 @@ export default class VXTabFolder extends Component {
     }
 
     registerListeners() {
-        React.Children.forEach(this.props.children, child => {
+        const children = React.Children.toArray(this.props.children)
+        children.forEach(child => {
             //OLog.debug(`VXTabFolder.jsx registerListeners *init* id=${this.props.id}-${child.props.id}`)
             $(`#tab-${this.props.id}-${child.props.id}`).on("shown.bs.tab", (event) => {
                 OLog.debug(`VXTabFolder.jsx registerListeners shown.bs.tab id=$${this.props.id}-${child.props.id}`)
@@ -38,7 +39,8 @@ export default class VXTabFolder extends Component {
     }
 
     componentWillUnmount() {
-        React.Children.forEach(this.props.children, child => {
+        const children = React.Children.toArray(this.props.children)
+        children.forEach(child => {
             //OLog.debug(`VXTabFolder.jsx componentWillUnmount unregister listeners shown.bs.tab id=${this.props.id}-${child.props.id}`)
             $(`#tab-${this.props.id}-${child.props.id}`).off("shown.bs.tab")
         })
@@ -166,7 +168,8 @@ export default class VXTabFolder extends Component {
     }
 
     renderTabPanels() {
-        return React.Children.map(this.props.children, child => (
+        const children = React.Children.toArray(this.props.children)
+        return children.map(child => (
             <div id={`${this.props.id}-${child.props.id}`}
                 key={`${this.props.id}-${child.props.id}`}
                 role="tabpanel"

@@ -42,10 +42,10 @@ export default class EntityItem extends Component {
                             <tr>
                                 <td className="entity-left entity-handle">
                                     <div className="decoration-container">
-                                        <img className={this.props.rounded ? "entity-list-image-rounded" : "entity-list-image"}
+                                        <img className={this.roundedClassName()}
                                             src={this.props.iconUrl}/>
                                         {this.props.decorationIconClassName &&
-                                            <Decoration iconClassName={this.props.decorationIconClassName}
+                                            <Decoration iconClassName={this.decorationIconClassName()}
                                                 color={this.props.decorationColor}
                                                 size="small"
                                                 tooltip={this.props.decorationTooltip}/>
@@ -75,10 +75,10 @@ export default class EntityItem extends Component {
                                 {this.props.iconUrlRight &&
                                     <td className="entity-right entity-handle">
                                         <div className="decoration-container">
-                                            <img className={this.props.roundedRight ? "entity-list-image-rounded" : "entity-list-image"}
+                                            <img className={this.roundedRightClassName()}
                                                 src={this.props.iconUrlRight}/>
                                             {this.props.decorationIconClassNameRight &&
-                                                <Decoration iconClassName={this.props.decorationIconClassNameRight}
+                                                <Decoration iconClassName={this.decorationIconClassNameRight()}
                                                     color={this.props.decorationColorRight}
                                                     size="small"
                                                     tooltip={this.props.decorationTooltipRight}/>
@@ -109,6 +109,22 @@ export default class EntityItem extends Component {
                 </div>
             </li>
         )
+    }
+
+    roundedClassName() {
+        return this.props.rounded ? "entity-list-image-rounded" : "entity-list-image"
+    }
+
+    roundedRightClassName() {
+        return this.props.roundedRight ? "entity-list-image-rounded" : "entity-list-image"
+    }
+
+    decorationIconClassName() {
+        return `${this.props.decorationIconClassName} entity-decoration-icon-small`
+    }
+
+    rightDecorationIconClassName() {
+        return `${this.props.decorationIconClassNameRight} entity-decoration-icon-medium`
     }
 
     handleFocus(event) {

@@ -13,7 +13,6 @@ import "/imports/vx/client/code/cx"
 //import "/imports/app/client/code/cx"
 
 import "/imports/vx/both/code/version"
-//import "/imports/app/both/code/version"
 
 import "/imports/vx/both/code/collections"
 //import "/imports/app/both/code/collections"

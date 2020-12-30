@@ -93,10 +93,10 @@ VXApp = _.extend(VXApp || {}, {
     /**
      * Create an event (also create accompanying notification(s) if applicable).
      *
-     * @param {string} Event type (e.g., ORDER_CREATED).
+     * @param {string} eventType Event type (e.g., ORDER_CREATED).
      * @param {string} domainId Domain ID.
-     * @param {object} Event data in object form.
-     * @param {object} Variables to be inserted into notifications.
+     * @param {object} eventData Event data in object form.
+     * @param {object} variables Variables to be inserted into notifications.
      * @return {string} MongoDB ID of new event.
      */
     createEvent(eventType, domainId, eventData, variables) {
@@ -105,7 +105,8 @@ VXApp = _.extend(VXApp || {}, {
             event.domain = domainId || Util.getCurrentDomainId(Meteor.userId())
             event.type = eventType
             event.eventData = eventData
-            OLog.debug(`vxapp.js createEvent eventType=${event.type} domain=${event.domain} eventData=${OLog.debugString(event.eventData)}`)
+            OLog.debug(`vxapp.js createEvent eventType=${event.type} domain=${event.domain} ` +
+                `eventData=${OLog.debugString(event.eventData)} variables=${OLog.debugString(variables)}`)
             const eventId = Events.insert(event)
             OLog.debug(`vxapp.js createEvent *success* eventId=${eventId}`)
             if (Util.isNotificationWarranted(event)) {

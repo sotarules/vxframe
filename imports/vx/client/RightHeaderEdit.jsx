@@ -14,8 +14,7 @@ export default class RightHeaderEdit extends Component {
         iconUrlDbName : PropTypes.string.isRequired,
         nameDbName : PropTypes.string.isRequired,
         descriptionDbName : PropTypes.string.isRequired,
-        isShowRightImage : PropTypes.bool,
-        rightIconUrl : PropTypes.string
+        iconUrlRight : PropTypes.string
     }
 
     render() {
@@ -50,10 +49,10 @@ export default class RightHeaderEdit extends Component {
                                                     dbName={this.props.descriptionDbName}/>
                                             </div>
                                         </td>
-                                        {this.props.isShowRightImage &&
+                                        {this.props.iconUrlRight &&
                                            <td className="top-right">
                                                <img className="top-image"
-                                                   src={this.props.rightIconUrl}/>
+                                                   src={this.props.iconUrlRight}/>
                                            </td>
                                         }
                                     </tr>

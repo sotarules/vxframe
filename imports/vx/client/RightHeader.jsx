@@ -6,17 +6,20 @@ import VXButton from "/imports/vx/client/VXButton"
 export default class RightHeader extends Component {
 
     static propTypes = {
-        iconUrl : PropTypes.string.isRequired,
-        rounded : PropTypes.bool,
         name : PropTypes.string,
         description : PropTypes.string,
         message : PropTypes.string,
+        iconUrl : PropTypes.string.isRequired,
+        rounded : PropTypes.bool,
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltip : PropTypes.string,
+        iconUrlRight : PropTypes.string,
+        roundedRight : PropTypes.bool,
+        decorationIconClassNameRight : PropTypes.string,
+        decorationColorRight : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
+        decorationTooltipRight : PropTypes.string,
         isShowButton : PropTypes.bool,
-        isShowRightImage : PropTypes.bool,
-        rightIconUrl : PropTypes.string,
         buttonId : PropTypes.string,
         buttonText : PropTypes.string,
         buttonClassName : PropTypes.string,
@@ -33,10 +36,10 @@ export default class RightHeader extends Component {
                                 <tr>
                                     <td className="top-left">
                                         <div className="decoration-container">
-                                            <img className={this.props.rounded ? "top-image-rounded" : "top-image"}
+                                            <img className={this.roundedClassName()}
                                                 src={this.props.iconUrl}/>
                                             {this.props.decorationIconClassName &&
-                                                <Decoration iconClassName={this.props.decorationIconClassName}
+                                                <Decoration iconClassName={this.decorationIconClassName()}
                                                     color={this.props.decorationColor}
                                                     size="medium"
                                                     tooltip={this.props.decorationTooltip}/>
@@ -71,11 +74,19 @@ export default class RightHeader extends Component {
                                             </VXButton>
                                         </td>
                                     }
-                                    {this.props.isShowRightImage &&
-                                       <td className="top-right">
-                                           <img className="top-image"
-                                               src={this.props.rightIconUrl}/>
-                                       </td>
+                                    {this.props.iconUrlRight &&
+                                        <td className="top-left">
+                                            <div className="decoration-container">
+                                                <img className={this.roundedRightClassName()}
+                                                    src={this.props.iconUrlRight}/>
+                                                {this.props.decorationIconClassNameRight &&
+                                                <Decoration iconClassName={this.rightDecorationIconClassName()}
+                                                    color={this.props.decorationColorRight}
+                                                    size="medium"
+                                                    tooltip={this.props.decorationTooltipRight}/>
+                                                }
+                                            </div>
+                                        </td>
                                     }
                                 </tr>
                             </tbody>
@@ -97,6 +108,22 @@ export default class RightHeader extends Component {
                 }
             </div>
         )
+    }
+
+    roundedClassName() {
+        return this.props.rounded ? "top-image-rounded" : "top-image"
+    }
+
+    roundedRightClassName() {
+        return this.props.roundedRight ? "top-image-rounded" : "top-image"
+    }
+
+    decorationIconClassName() {
+        return `${this.props.decorationIconClassName} fa-lg entity-decoration-icon-medium`
+    }
+
+    rightDecorationIconClassName() {
+        return `${this.props.decorationIconClassNameRight} fa-lg entity-decoration-icon-medium`
     }
 
     handleClickCollapse(event) {
