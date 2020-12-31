@@ -9,12 +9,16 @@ import { setCurrentLocale } from "/imports/vx/client/code/actions"
 React = require("react")
 ReactDOM = require("react-dom")
 
-console.log("master.js (VX) *init*")
+console.log("master.js (vx) *init*")
 
 const persistConfig = { key: "root", storage, blacklist: ["loading"] }
 const persistedReducer = persistReducer(persistConfig, combineReducers(allReducersVx))
 Store = createStore(persistedReducer)
-Persistor = persistStore(Store)
+
+Persistor = persistStore(Store, null, () => {
+    const keyCount = Object.keys(Store.getState()).length
+    console.log(`master.js (vx) persistor *rehydration* finished property keyCount=${keyCount}`)
+})
 
 document.title = Util.i18n("master.page_title")
 
@@ -52,7 +56,6 @@ window.onerror = (error, url, line) => {
  */
 Tracker.autorun(() => {
     let logLevel = Util.getProfileValue("logLevel")
-    console.log("master.js autorun logLevel retrieved from profile=" + logLevel)
     if (_.isNumber(logLevel)) {
         OLog.setLogLevel(logLevel)
     }
@@ -60,7 +63,6 @@ Tracker.autorun(() => {
 
 Tracker.autorun(() => {
     let locale = Util.getProfileValue("locale")
-    console.log("master.js autorun locale retrieved from profile=" + locale)
     Store.dispatch(setCurrentLocale(locale))
 })
 

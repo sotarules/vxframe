@@ -12,6 +12,7 @@ export default withTracker(props => {
     else {
         mode = "NORMAL"
     }
+    OLog.debug(`SigninContainer.jsx withTracker *fire* mode=${mode}`)
     return {
         mode : mode,
         content : props.content

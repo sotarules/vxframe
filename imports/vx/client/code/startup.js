@@ -12,6 +12,7 @@ if (Meteor.absoluteUrl().indexOf("sota.ddns.net") >= 0) {
 }
 
 const doRoute = () => {
+    OLog.debug(`startup.js doRoute [${Util.routePath()}] *init*`)
     const routePath = Util.routePath()
     if (routePath !== Store.getState().routePath) {
         Store.dispatch(setRoutePath(routePath))
@@ -48,6 +49,8 @@ const doRoute = () => {
 }
 
 Meteor.startup(() => {
+
+    OLog.debug(`startup.js startup *genesis* welcome to ${CX.SYSTEM_NAME}`)
 
     // Default loading to hold off any rendering until subscriptions are loaded (see below).
     UX.setLoading(true)

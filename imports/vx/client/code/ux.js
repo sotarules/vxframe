@@ -872,7 +872,7 @@ UX = {
         if (UXState.loading) {
             return
         }
-        OLog.debug("ux.js showLoading *fire*")
+        OLog.warn("ux.js showLoading *fire*")
         let message =  "<p class='loading-message'>" + Util.i18n("common.message_loading") + "</p>"
         let circle = "<div class='sk-spinner sk-spinner-wordpress'><span class='sk-inner-circle'></span></div>"
         UXState.loading = window.pleaseWait({ logo : CX.LOGO_PATH, backgroundColor : "#FFFFFF", loadingHtml : message + circle })
@@ -883,7 +883,7 @@ UX = {
      */
     clearLoading() {
         if (UXState.loading) {
-            OLog.debug("ux.js clearLoading *fire*")
+            OLog.warn("ux.js clearLoading *fire*")
             UXState.loading.finish()
             UXState.loading = null
         }
@@ -895,8 +895,8 @@ UX = {
      * @param {boolean} loading Loading indicator.
      */
     setLoading(loading) {
-        OLog.debug(`ux.js setLoading loading=${loading}`)
         if (Store.getState().loading !== loading) {
+            OLog.warn(`ux.js setLoading loading=${loading}`)
             Store.dispatch(setLoading(loading))
         }
     },
@@ -908,15 +908,17 @@ UX = {
      * @param {function} callback Callback.
      */
     waitSubscriptions(handles, callback) {
+        OLog.warn(`ux.js waitSubscriptions *waiting* total of ${handles.length} subscriptions to be published`)
         try {
             if (UX.areSubscriptionsReady(handles)) {
-                OLog.debug("ux.js waitSubscriptions immediately *ready* continue")
+                OLog.warn("ux.js waitSubscriptions immediately *ready* continue")
                 callback(null, { success: true })
                 return
             }
             Tracker.autorun(computation => {
                 if (UX.areSubscriptionsReady(handles)) {
-                    OLog.debug("ux.js waitSubscriptions autorun *ready* stopping subscription wait computation and invoking callback")
+                    OLog.warn(`ux.js waitSubscriptions *ready* total of ${handles.length} subscriptions ` +
+                        "published stopping wait computation and invoking post-publication callback")
                     computation.stop()
                     callback(null, { success: true })
                     return
@@ -2601,5 +2603,5 @@ UX = {
     openWebPage(url, event) {
         event.preventDefault()
         window.open(url, "_blank");
-    },
+    }
 }

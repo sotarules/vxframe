@@ -1,6 +1,5 @@
-"use strict"
-
 import {
+    setPublishCurrentTenant,
     setPublishAuthoringDomain,
     setPublishAuthoringTemplate,
     setPublishAuthoringUser,
@@ -9,161 +8,166 @@ import {
 
 ContextMaker = {
 
-    "users-domains"() {
-        let publishAuthoringUser = Store.getState().publishAuthoringUser
-        if (!publishAuthoringUser) {
-            publishAuthoringUser = {}
-            publishAuthoringUser.criteria = {}
-            let userArray = VXApp.findUserList()
-            if (userArray.length > 0) {
-                publishAuthoringUser.criteria = { _id: userArray[0]._id }
-            }
-            publishAuthoringUser.options = { sort : { "profile.lastName" : 1, "profile.firstName" : 1, createdAt : 1 }, limit : 1 }
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] overriding publishAuthoringUser=" + OLog.debugString(publishAuthoringUser))
-            Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
-        }
-        let user = Meteor.users.findOne(publishAuthoringUser.criteria, publishAuthoringUser.options)
-        if (!user) {
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] no return from findOne, subscription is not ready")
-            return
-        }
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] user selected, data ready=" + OLog.debugString(publishAuthoringUser) + " user=" + OLog.debugString(user))
-        return user
+    "users-domainsBeforeRender"() {
+        VXApp.selectFirstRecord("publishAuthoringUser", setPublishAuthoringUser, VXApp.findUserList)
     },
 
-    "domains-users"() {
-        let publishAuthoringDomain = Store.getState().publishAuthoringDomain
-        if (!publishAuthoringDomain) {
-            publishAuthoringDomain = {}
-            publishAuthoringDomain.criteria = {}
-            let domainArray = VXApp.findDomainList()
-            if (domainArray.length > 0) {
-                publishAuthoringDomain.criteria = { _id: domainArray[0]._id }
-            }
-            publishAuthoringDomain.options = { sort : { "name" : 1, createdAt : 1 }, limit : 1 }
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] overriding publishAuthoringDomain=" + OLog.debugString(publishAuthoringDomain))
-            Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
-        }
-        let domain = Domains.findOne(publishAuthoringDomain.criteria, publishAuthoringDomain.options)
-        if (!domain) {
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] no return from findOne, subscription is not ready")
+    "users-domains"() {
+        const publishAuthoringUser = Store.getState().publishAuthoringUser
+        if (!publishAuthoringUser) {
+            OLog.debug("contextmaker.js users-domains redux variable publishAuthoringUser is *falsy* " +
+                "unable to return user list")
             return
         }
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] domain selected, data ready=" + OLog.debugString(publishAuthoringDomain) + " domain=" + OLog.debugString(domain))
-        return domain
+        const user = Meteor.users.findOne(publishAuthoringUser.criteria, publishAuthoringUser.options)
+        if (!user) {
+            OLog.debug("contextmaker.js users-domains *falsy* return from Meteor.users.findOne, subscription is not ready")
+            return
+        }
+        OLog.debug(`contextmaker.js users-domains publishAuthoringUser=${OLog.debugString(publishAuthoringUser)}`)
+        return user
     },
 
     user() {
         const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js route [user] criteria=${OLog.debugString(criteria)}`)
-        return  Meteor.users.findOne(criteria)
+        OLog.debug(`contextmaker.js route user criteria=${OLog.debugString(criteria)}`)
+        return Meteor.users.findOne(criteria)
+    },
+
+    "domains-usersBeforeRender"() {
+        VXApp.selectFirstRecord("publishAuthoringDomain", setPublishAuthoringDomain, VXApp.findDomainList)
+    },
+
+    "domains-users"() {
+        const publishAuthoringDomain = Store.getState().publishAuthoringDomain
+        if (!publishAuthoringDomain) {
+            OLog.debug("contextmaker.js domains-users redux variable publishAuthoringDomain is *falsy* " +
+                "unable to return domain list")
+            return
+        }
+        const domain = Domains.findOne(publishAuthoringDomain.criteria, publishAuthoringDomain.options)
+        if (!domain) {
+            OLog.debug("contextmaker.js domains-users *falsy* return from Domains.findOne, subscription is not ready")
+            return
+        }
+        OLog.debug(`contextmaker.js domains-users publishAuthoringUser=${OLog.debugString(publishAuthoringDomain)}`)
+        return domain
     },
 
     domain() {
         const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js route [domain] criteria=${OLog.debugString(criteria)}`)
+        OLog.debug(`contextmaker.js route domain criteria=${OLog.debugString(criteria)}`)
         return Domains.findOne(criteria)
     },
 
+    tenantsBeforeRender() {
+        VXApp.selectFirstRecord("publishCurrentTenant", setPublishCurrentTenant, VXApp.findTenantList)
+    },
+
     tenants() {
-        let tenantIds = Util.getTenantIds(Meteor.userId())
-        let publishCurrentTenant = Store.getState().publishCurrentTenant
+        const publishCurrentTenant = Store.getState().publishCurrentTenant
         if (!publishCurrentTenant) {
-            publishCurrentTenant = {}
-            publishCurrentTenant.criteria = { _id: { $in: tenantIds } }
-            publishCurrentTenant.options = { sort : { name : 1, dateCreated : 1 }, limit : 1 }
-        }
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] publishCurrentTenant=" + OLog.debugString(publishCurrentTenant))
-        let tenant = Tenants.findOne(publishCurrentTenant.criteria, publishCurrentTenant.options)
-        if (!tenant) {
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] no return from findOne, subscription is not ready")
+            OLog.debug("contextmaker.js tenants redux variable publishCurrentTenant is *falsy* " +
+                "unable to return tenant list")
             return
         }
-        if (!publishCurrentTenant.criteria._id) {
-            publishCurrentTenant = {}
-            publishCurrentTenant.criteria = { _id : tenant._id }
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] overriding criteria=" + OLog.debugString(publishCurrentTenant))
-            Store.dispatch(setPublishAuthoringTemplate(publishCurrentTenant))
+        const tenant = Tenants.findOne(publishCurrentTenant.criteria, publishCurrentTenant.options)
+        if (!tenant) {
+            OLog.debug("contextmaker.js tenants *falsy* return from Tenants.findOne, subscription is not ready")
+            return
         }
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] selected, data ready=" + OLog.debugString(publishCurrentTenant) + " tenant=" + OLog.debugString(tenant))
+        OLog.debug(`contextmaker.js tenants publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
         return tenant
     },
 
     tenant() {
         const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js route [tenant] criteria=${OLog.debugString(criteria)}`)
+        OLog.debug(`contextmaker.js route tenant criteria=${OLog.debugString(criteria)}`)
         return Tenants.findOne(criteria)
     },
 
-    domains() {
-        let tenantIds = Util.getTenantIds(Meteor.userId())
+    domainsBeforeRender() {
         let publishCurrentTenant = Store.getState().publishCurrentTenant
         if (!publishCurrentTenant) {
             publishCurrentTenant = {}
-            publishCurrentTenant.criteria = { _id: { $in: tenantIds } }
-            publishCurrentTenant.options = { sort : { name : 1, dateCreated : 1 }, limit : 1 }
+            publishCurrentTenant.criteria = { _id: Util.getCurrentTenantId(Meteor.userId()) }
+            publishCurrentTenant.options = {}
+            OLog.debug("contextmaker.js domainsBeforeRender tenant *overriding* " +
+                `publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
+            Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
         }
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] publishCurrentTenant=" + OLog.debugString(publishCurrentTenant))
-        let tenant = Tenants.findOne(publishCurrentTenant.criteria, publishCurrentTenant.options)
-        if (!tenant) {
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] no return from findOne, subscription is not ready")
-            return
-        }
-        if (!publishCurrentTenant.criteria._id) {
-            publishCurrentTenant = {}
-            publishCurrentTenant.criteria = { _id : tenant._id }
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] overriding publishCurrentTenant=" + OLog.debugString(publishCurrentTenant))
-            Store.dispatch(setPublishAuthoringTemplate(publishCurrentTenant))
+        else {
+            OLog.debug("contextmaker.js domainsBeforeRender tenant redux already intialized " +
+                `publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
         }
         let publishCurrentDomain = Store.getState().publishCurrentDomain
         if (!publishCurrentDomain) {
             publishCurrentDomain = {}
-            publishCurrentDomain.criteria = { _id: { $in: Util.getDomainIds(Meteor.userId(), tenant._id) } }
-            publishCurrentDomain.options = { sort : { name : 1, dateCreated : 1 }, limit : 1 }
-        }
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] domainRequest=" + OLog.debugString(publishCurrentDomain))
-        let domain = Domains.findOne(publishCurrentDomain.criteria, publishCurrentDomain.options)
-        if (!domain) {
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] no return from findOne, subscription is not ready")
-            return
-        }
-        if (!publishCurrentDomain.criteria._id) {
-            publishCurrentDomain = {}
-            publishCurrentDomain.criteria = { _id : domain._id }
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] overriding criteria=" + OLog.debugString(publishCurrentDomain))
+            publishCurrentDomain.criteria = { _id: Util.getCurrentDomainId(Meteor.userId()) }
+            publishCurrentDomain.options = {}
+            OLog.debug("contextmaker.js domainsBeforeRender domain *overriding* " +
+                `publishCurrentDomain=${OLog.debugString(publishCurrentDomain)}`)
             Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
         }
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] selected, data ready=" + OLog.debugString(publishCurrentDomain) + " domain=" + OLog.debugString(domain))
+        else {
+            OLog.debug("contextmaker.js domainsBeforeRender domain redux already intialized " +
+                `publishCurrentDomain=${OLog.debugString(publishCurrentDomain)}`)
+        }
+    },
+
+    domains() {
+        const publishCurrentTenant = Store.getState().publishCurrentTenant
+        const publishCurrentDomain = Store.getState().publishCurrentDomain
+        if (!(publishCurrentTenant && publishCurrentDomain)) {
+            OLog.error("contextmaker.js domains redux not initialized " +
+                `publishCurrentTenant=${OLog.debugString(publishCurrentTenant)} ` +
+                `publishCurrentDomain=${OLog.debugString(publishCurrentDomain)}`)
+            return
+        }
+        OLog.debug("contextmaker.js domains " +
+            `publishCurrentTenant=${OLog.debugString(publishCurrentTenant)} ` +
+            `publishCurrentDomain=${OLog.debugString(publishCurrentDomain)}`)
+        const tenant = Tenants.findOne(publishCurrentTenant.criteria, publishCurrentTenant.options)
+        if (!tenant) {
+            OLog.error("contextmaker.js domains no return from Tenant.findOne")
+            return
+        }
+        const domain = Domains.findOne(publishCurrentDomain.criteria, publishCurrentDomain.options)
+        if (!domain) {
+            OLog.error("contextmaker.js domains no return from Domains.findOne")
+            return
+        }
+        OLog.debug("contextmaker.js domains data *ready* " +
+            `publishCurrentTenant=${OLog.debugString(publishCurrentTenant)} ` +
+            `publishCurrentDomain=${OLog.debugString(publishCurrentDomain)}`)
         // Augment tenant with domain:
         tenant.domain = domain
         return tenant
     },
 
+    templatesBeforeRender() {
+        VXApp.selectFirstRecord("publishAuthoringTemplate", setPublishAuthoringTemplate, VXApp.findTemplateList)
+    },
+
     templates() {
-        let publishAuthoringTemplate = Store.getState().publishAuthoringTemplate
+        const publishAuthoringTemplate = Store.getState().publishAuthoringTemplate
         if (!publishAuthoringTemplate) {
-            let templateArray = VXApp.findTemplateList()
-            if (!templateArray || templateArray.length === 0) {
-                return
-            }
-            publishAuthoringTemplate = {}
-            publishAuthoringTemplate.criteria = { _id: templateArray[0]._id }
-            publishAuthoringTemplate.options = {}
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] overriding publishAuthoringTemplate=" + OLog.debugString(publishAuthoringTemplate))
-            Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
-        }
-        let template = Templates.findOne(publishAuthoringTemplate.criteria, publishAuthoringTemplate.options)
-        if (!template) {
-            OLog.debug("contextmaker.js route [" + Util.routePath() + "] no return from findOne, subscription is not ready")
+            OLog.debug("contextmaker.js templates redux variable publishAuthoringTemplate is *falsy* " +
+                "unable to return template list")
             return
         }
-        OLog.debug("contextmaker.js route [" + Util.routePath() + "] publishAuthoringTemplate=" + OLog.debugString(publishAuthoringTemplate))
+        const template = Templates.findOne(publishAuthoringTemplate.criteria, publishAuthoringTemplate.options)
+        if (!template) {
+            OLog.debug("contextmaker.js templates *falsy* return from Templates.findOne, subscription is not ready")
+            return
+        }
+        OLog.debug(`contextmaker.js templates publishAuthoringTemplate=${OLog.debugString(publishAuthoringTemplate)}`)
         return template
     },
 
     template() {
         const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js route [template] criteria=${OLog.debugString(criteria)}`)
+        OLog.debug(`contextmaker.js  template criteria=${OLog.debugString(criteria)}`)
         return Templates.findOne(criteria)
     }
 }

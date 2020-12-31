@@ -4,7 +4,7 @@ import TenantViewLeft from "/imports/tenants/client/TenantViewLeft"
 export default withTracker(() => {
 
     return {
-        tenants : VXApp.findTenantList(Meteor.userId())
+        tenants : VXApp.findTenantList()
     }
 
 })(TenantViewLeft)

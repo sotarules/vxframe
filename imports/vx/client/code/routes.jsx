@@ -12,8 +12,8 @@ import ProfileContainer from "/imports/profile/client/ProfileContainer"
 import SettingsContainer from "/imports/settings/client/SettingsContainer"
 import SigninContainer from "/imports/signin/client/SigninContainer"
 import SystemLogContainer from "/imports/systemlog/client/SystemLogContainer"
-import TemplateEditContainer from "/imports/templates/client/TemplateEditContainer"
-import TemplateViewContainer from "/imports/templates/client/TemplateViewContainer"
+import TemplateEdit from "/imports/templates/client/TemplateEdit"
+import TemplateView from "/imports/templates/client/TemplateView"
 import TenantEdit from "/imports/tenants/client/TenantEdit"
 import TenantView from "/imports/tenants/client/TenantView"
 import UserDomainView from "/imports/usersdomains/client/UserDomainView"
@@ -38,8 +38,8 @@ Routes = {
             { path: "/tenant/:_id", layoutName: "LayoutStandardContainer", component: TenantEdit },
             { path: "/domains", layoutName: "LayoutStandardContainer", component: DomainView },
             { path: "/system-settings", layoutName: "LayoutStandardContainer", component: SettingsContainer },
-            { path: "/templates", layoutName: "LayoutStandardContainer", component: TemplateViewContainer },
-            { path: "/template/:_id", layoutName: "LayoutStandardContainer", component: TemplateEditContainer },
+            { path: "/templates", layoutName: "LayoutStandardContainer", component: TemplateView },
+            { path: "/template/:_id", layoutName: "LayoutStandardContainer", component: TemplateEdit },
         ])
     },
 
@@ -101,9 +101,6 @@ Routes = {
      * Do any special functions after route.
      */
     doRouteAfter() {
-        if (VXApp.isExemptRoute()) {
-            UX.setLoading(false)
-        }
         if (Routes.doAppRouteAfter) {
             Routes.doAppRouteAfter()
         }

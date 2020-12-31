@@ -5,6 +5,7 @@ import LayoutNoneConnect from "/imports/layout/client/LayoutNoneConnect"
 
 export default class LayoutNoneContainer extends Component {
     render() {
+        OLog.debug("LayoutNoneContainer.jsx render")
         return (
             <Provider store={Store}>
                 <PersistGate loading={null} persistor={Persistor}>

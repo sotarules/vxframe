@@ -5,6 +5,7 @@ import LayoutDiagConnect from "/imports/layout/client/LayoutDiagConnect"
 
 export default class LayoutDiagContainer extends Component {
     render() {
+        OLog.debug("LayoutDiagContainer.jsx render")
         return (
             <Provider store={Store}>
                 <PersistGate loading={null} persistor={Persistor}>

@@ -5,7 +5,7 @@ export default withTracker(( ) => {
 
     let tenants
 
-    tenants = VXApp.findTenantList(Meteor.userId())
+    tenants = VXApp.findTenantList()
 
     return {
         tenants

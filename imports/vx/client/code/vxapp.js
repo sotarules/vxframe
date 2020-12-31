@@ -1,5 +1,4 @@
-"use strict";
-
+import {get, set} from "lodash"
 import {
     setCurrentDomainId,
     setCurrentLocale,
@@ -14,11 +13,11 @@ import {
     setPublishCurrentTenant,
     setPublishCurrentTenants,
     setPublishCurrentUsers,
+    setPublishCurrentTemplates,
     setPublishingModeClient,
     setPublishingModeServer,
     setSubscriptionParameters
 } from "/imports/vx/client/code/actions"
-import {get, set} from "lodash"
 
 VXApp = _.extend(VXApp || {}, {
 
@@ -184,7 +183,10 @@ VXApp = _.extend(VXApp || {}, {
 
         if (!isEmpty && isSameSubscriptionParameters && isSamePublishingModeClient && isSamePublishingModeServer) {
             OLog.debug(`vxapp.js globalSubscriptions ${newSubscriptionParameters.email} all parameters *match* no action will be taken`)
+            // Initialize redux store prior to rendering to comply with React best practices:
+            VXApp.doContextMakerBeforeRender()
             callback(null, { success: true })
+            UX.setLoading(false)
             return
         }
 
@@ -212,15 +214,17 @@ VXApp = _.extend(VXApp || {}, {
             handles = handles.concat(VXApp.changeAppGlobalSubscriptions(doClient, doServer, newSubscriptionParameters))
         }
 
-        OLog.debug("vxapp.js globalSubscriptions prepare to *wait*")
+        OLog.warn("vxapp.js globalSubscriptions have been computed *wait* for publication")
         UX.setLoading(true)
         UX.waitSubscriptions(handles, (error, result) => {
             if (VXApp.onAppChangeSubscriptionsReady) {
                 VXApp.onAppChangeSubscriptionsReady()
             }
-            UX.setLoading(false)
+            // Initialize redux store prior to rendering to comply with React best practices:
+            VXApp.doContextMakerBeforeRender()
             OLog.debug(`vxapp.js globalSubscriptions ready domain count=${Domains.find().count()}`)
             callback(error, result)
+            UX.setLoading(false)
             return
         })
 
@@ -233,14 +237,20 @@ VXApp = _.extend(VXApp || {}, {
 
         const handles = []
 
-        const publishCurrentTenants = VXApp.makePublishingRequest("current_tenants", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
-        const publishCurrentDomains = VXApp.makePublishingRequest("current_domains", newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
-        const publishCurrentUsers = VXApp.makePublishingRequest("current_users", newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
+        const publishCurrentTenants = VXApp.makePublishingRequest("current_tenants",
+            newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+        const publishCurrentDomains = VXApp.makePublishingRequest("current_domains",
+            newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+        const publishCurrentUsers = VXApp.makePublishingRequest("current_users",
+            newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
+        const publishCurrentTemplates = VXApp.makePublishingRequest("templates",
+            newSubscriptionParameters, { dateRetired : { $exists : false } }, { sort: { "name": 1 } })
 
         if (doClient) {
             Store.dispatch(setPublishCurrentTenants(publishCurrentTenants.client))
             Store.dispatch(setPublishCurrentDomains(publishCurrentDomains.client))
             Store.dispatch(setPublishCurrentUsers(publishCurrentUsers.client))
+            Store.dispatch(setPublishCurrentTemplates(publishCurrentTemplates.client))
         }
 
         if (doServer) {
@@ -249,6 +259,7 @@ VXApp = _.extend(VXApp || {}, {
             handles.push(Meteor.subscribe("current_tenants", publishCurrentTenants.server))
             handles.push(Meteor.subscribe("current_domains", publishCurrentDomains.server))
             handles.push(Meteor.subscribe("current_users", publishCurrentUsers.server))
+            handles.push(Meteor.subscribe("templates", publishCurrentTemplates.server))
         }
 
         return handles
@@ -376,6 +387,7 @@ VXApp = _.extend(VXApp || {}, {
     routeAfter() {
         OLog.debug(`vxapp.js routeAfter [${Util.routePath()}] *fire*`)
         Routes.doRouteAfter()
+        UX.setLoading(false)
         Meteor.setTimeout(() => {
             UX.clearLoading()
         }, 250)
@@ -390,6 +402,51 @@ VXApp = _.extend(VXApp || {}, {
         if (VXApp.setAppSessionVariables) {
             VXApp.setAppSessionVariables(userId)
         }
+    },
+
+    /**
+     * Conditionally set a redux property, which contains the publishing criteria for a
+     * single record, to arbitrarily select the first record in a list. This is nececessary
+     * to initialize the redux store the first time a route is rendered.
+     *
+     * @param {string} reduxPropertyName Name of redux property to initialize.
+     * @param {object} setAction Redux set action.
+     * @param {function} listFunction Function to return an array of records.
+     */
+    selectFirstRecord(reduxPropertyName, setAction, listFunction) {
+        OLog.debug(`vxapp.js selectFirstRecord *init* reduxPropertyName=${reduxPropertyName}`)
+        if (Store.getState()[reduxPropertyName]) {
+            OLog.debug("vxapp.js selectFirstRecord redux already intialized " +
+                `${reduxPropertyName}=${OLog.debugString(Store.getState()[reduxPropertyName])}`)
+            return
+        }
+        OLog.debug(`vxapp.js selectFirstRecord invoking list function ${Util.functionName(listFunction)}`)
+        const array = listFunction()
+        if (!array || array.length === 0) {
+            OLog.error(`vxapp.js selectFirstRecord ${Util.functionName(listFunction)} returned *falsy* ` +
+                `unable to initialize redux variable ${reduxPropertyName}`)
+            return
+        }
+        const publish = {}
+        publish.criteria = { _id: array[0]._id }
+        publish.options = {}
+        OLog.debug(`vxapp.js selectFirstRecord *overriding* ${reduxPropertyName} criteria=${OLog.debugString(publish)}`)
+        Store.dispatch(setAction(publish))
+    },
+
+    /**
+     * Check ContextMaker for the presence of a function named <rotue>BeforeRender, and if that function
+     * exists, invoke it. This is needed to initialize redux store early prior to rendering.
+     */
+    doContextMakerBeforeRender() {
+        const contextMakerFunctionName = `${Util.routeFirstSegment(Util.routePath())}BeforeRender`
+        const func = ContextMaker[contextMakerFunctionName]
+        if (!func) {
+            OLog.debug(`vxapp.js doContextMakerBefore no beforeRoute hook for ContextMaker.${contextMakerFunctionName}`)
+            return
+        }
+        OLog.debug(`vxapp.js doContextMakerBefore *invoke* ContextMaker.${contextMakerFunctionName}`)
+        func()
     },
 
     /**
@@ -409,8 +466,9 @@ VXApp = _.extend(VXApp || {}, {
         OLog.debug("vxapp.js logout function was successful, redirecting to signin page and deferring logout")
         UX.go("/")
         Meteor.setTimeout(() => {
-            OLog.debug("vxapp.js logout purging redux persist store")
+            OLog.debug("vxapp.js logout purging redux persist store and UXState.previousBefore route")
             Persistor.purge().then(() => { return Persistor.flush() }).then(() => { Persistor.pause() })
+            UXState.previousBefore = null
             Meteor.logout(error => {
                 if (error) {
                     OLog.error(`vxapp.js logout function returned unexpected error=${error}`)
@@ -498,20 +556,26 @@ VXApp = _.extend(VXApp || {}, {
         })
     },
 
+
     /**
-     * Return the list of currently-published users.
+     * Return a list of tenants.
      *
-     * @return {array} Array of users.
+     * @param {string} userId Optional user ID to filter tenants.
+     * @return {array} Array of tenants.
      */
-    findUserList() {
-        let publishCurrentUsers = Store.getState().publishCurrentUsers
-        if (!publishCurrentUsers) {
+    findTenantList(userId) {
+        let publishCurrentTenants = Store.getState().publishCurrentTenants
+        if (!publishCurrentTenants) {
             return
         }
-        // Do not include retired records:
-        publishCurrentUsers.criteria["profile.dateRetired"] = { $exists: false }
-        //OLog.debug("vxapp.js findUserList adjusted publishCurrentUsers=" + OLog.debugString(publishCurrentUsers))
-        return Meteor.users.find(publishCurrentUsers.criteria, publishCurrentUsers.options).fetch()
+        userId = userId || Meteor.userId()
+        let tenantIds = Util.getTenantIds(userId)
+        const criteria = { ...publishCurrentTenants.criteria }
+        criteria._id = { $in: tenantIds }
+        OLog.debug(`vxapp.js findTenantList adjusted criteria=${OLog.debugString(criteria)}`)
+        return _.filter(Tenants.find(publishCurrentTenants.criteria, publishCurrentTenants.options).fetch(), tenant => {
+            return Util.isTenantActive(tenant._id)
+        })
     },
 
     /**
@@ -539,6 +603,22 @@ VXApp = _.extend(VXApp || {}, {
             return domainArray.push(domain)
         })
         return domainArray
+    },
+
+    /**
+     * Return the list of currently-published users.
+     *
+     * @return {array} Array of users.
+     */
+    findUserList() {
+        let publishCurrentUsers = Store.getState().publishCurrentUsers
+        if (!publishCurrentUsers) {
+            return
+        }
+        // Do not include retired records:
+        publishCurrentUsers.criteria["profile.dateRetired"] = { $exists: false }
+        //OLog.debug("vxapp.js findUserList adjusted publishCurrentUsers=" + OLog.debugString(publishCurrentUsers))
+        return Meteor.users.find(publishCurrentUsers.criteria, publishCurrentUsers.options).fetch()
     },
 
     /**
@@ -849,27 +929,6 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Return a list of tenants.
-     *
-     * @param {string} userId Optional user ID to filter tenants.
-     * @return {array} Array of tenants.
-     */
-    findTenantList(userId) {
-        let publishCurrentTenants = Store.getState().publishCurrentTenants
-        if (!publishCurrentTenants) {
-            return
-        }
-        if (userId) {
-            let tenantIds = Util.getTenantIds(userId)
-            publishCurrentTenants.criteria._id = { $in: tenantIds }
-        }
-        OLog.debug("vxapp.js findTenantList adjusted publishCurrentTenants=" + OLog.debugString(publishCurrentTenants))
-        return _.filter(Tenants.find(publishCurrentTenants.criteria, publishCurrentTenants.options).fetch(), tenant => {
-            return Util.isTenantActive(tenant._id)
-        })
-    },
-
-    /**
      * Get the color class for the given record's subsystem.
      *
      * @param {string} subsystem Subsystem name (e.g., CARD).
@@ -905,13 +964,9 @@ VXApp = _.extend(VXApp || {}, {
      * @return {array} Array of recipient records.
      */
     findTemplateList() {
-        let request = {}
-        request.criteria = {}
-        request.criteria.dateRetired = { $exists: false }
-        request.options = {}
-        request.options.sort = { name: 1 }
-        OLog.debug("vxapp.js findTemplateList findTemplateList=" + OLog.debugString(request))
-        return Templates.find(request.criteria, request.options).fetch()
+        const publishCurrentTemplates = Store.getState().publishCurrentTemplates
+        OLog.debug(`vxapp.js findTemplateList publishCurrentTemplates=${OLog.debugString(publishCurrentTemplates)}`)
+        return Templates.find(publishCurrentTemplates.criteria, publishCurrentTemplates.options).fetch()
     },
 
     cloneTemplate(templateId) {
