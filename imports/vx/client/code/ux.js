@@ -33,14 +33,22 @@ UX = {
      * class fade-first or fade-second.
      */
     fireFade() {
-        Meteor.defer(() => {
-            Meteor.defer(() => {
+        Meteor.setTimeout(() => {
+            Meteor.setTimeout(() => {
                 $(".fade-first").addClass("fire")
-                Meteor.defer(() => {
+                Meteor.setTimeout(() => {
                     $(".fade-second").addClass("fire")
                 })
             })
         })
+    },
+
+    /**
+     * Remove fire attributes.
+     */
+    clearFade() {
+        $(".fade-first").removeClass("fire")
+        $(".fade-second").removeClass("fire")
     },
 
     /**
@@ -980,9 +988,9 @@ UX = {
     async validateComponent(component) {
         let value = component.getValue()
         let type = value ? value.constructor.name : "undefined"
-        OLog.debug("ux.js validateComponent componentId=" + component.props.id + " type=" + type + " value=" + value)
+        OLog.debug(`ux.js validateComponent componentId=${component.props.id} type=${type}`)
         let result = await UX.validateInstance(component)
-        OLog.debug("ux.js validateComponent componentId=" + component.props.id + " result=" + OLog.debugString(result))
+        OLog.debug(`ux.js validateComponent componentId=${component.props.id} result=${OLog.debugString(result)}`)
         if (!result.success) {
             return
         }
@@ -1045,7 +1053,7 @@ UX = {
      * @param {object} result Result object from validation.
      */
     validateFinish(component, validateArgs, result) {
-        OLog.debug("ux.js validateFinish id=" + component.props.id + " validateArgs=[" + validateArgs + "] result=" + OLog.debugString(result))
+        OLog.debug(`ux.js validateFinish id=${component.props.id} result=${OLog.debugString(result)}`)
         // If the validation rule says the data is valid, send back formatted data
         // into the component and potentially update the database:
         if (result.success) {
@@ -2550,6 +2558,9 @@ UX = {
      * @return {string} Formatted date.
      */
     formatDate(date, format, userOrId) {
+        if (!date) {
+            return null
+        }
         userOrId = userOrId || Meteor.userId()
         const user = Util.user(userOrId)
         if (!user) {

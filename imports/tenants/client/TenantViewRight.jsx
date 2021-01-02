@@ -80,8 +80,9 @@ export default class TenantViewRight extends Component {
                                         <VXFieldBox label={Util.i18n("common.label_your_email_address")}
                                             value={this.props.userEmail}/>
                                     </div>
-                                    <div className="col-xs-6 margin-top-26">
+                                    <div className="col-xs-6">
                                         <VXCheck id="role-tenant-admin"
+                                            className="checkbox-vertical-middle"
                                             label={Util.i18n("common.label_tenant_admin")}
                                             checked={this.props.isUserTenantAdmin}
                                             disabled={true}/>

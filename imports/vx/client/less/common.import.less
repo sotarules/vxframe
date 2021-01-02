@@ -190,6 +190,14 @@
     .justify-content(space-between);
 }
 
+.flex-justify-space-evenly {
+    .justify-content(space-evenly);
+}
+
+.flex-justify-center {
+    .justify-content(center);
+}
+
 .flexi-grow {
     .flex-section;
     .flex-section-grow;
@@ -232,7 +240,7 @@
 
 // Apparent bug in Chrome causes spinner to not apppear with data style zoom-in due to opacity
 .ladda-button {
-    opacity: 1 !important;
+    // opacity: 1 !important;
 }
 
 // VXTabFolder drop-downs:
@@ -690,7 +698,7 @@ body {
 .entity-container-small {
     padding: 0px;
     cursor: pointer;
-    height: 60px;
+    height: 70px;
 }
 
 .entity-control-container:focus {
@@ -727,9 +735,9 @@ body {
 .entity-table {
     width: 100%;
     table-layout: fixed;
-    min-height: 60px;
-    max-height: 60px;
-    height: 60px;
+    min-height: 70px;
+    max-height: 70px;
+    height: 70px;
 }
 
 .entity-left {
@@ -744,10 +752,9 @@ body {
 }
 
 .entity-right {
-    width: 65px;
+    width: 50px;
     vertical-align: middle;
     text-align: center;
-    padding-right: 15px;
 }
 
 .entity-bars {
@@ -766,11 +773,13 @@ body {
 
 .entity-description {
     font-size: 13px;
+    line-height: 20px;
     .truncate;
 }
 
 .entity-message {
     font-size: 13px;
+    line-height: 20px;
     .truncate;
 }
 
@@ -991,7 +1000,7 @@ legend.group-legend {
 .chevron-list {
     margin-left: 0px;
     margin-right: 0px;
-    width: 30px;
+    width: 34px;
     vertical-align: middle;
     text-align: center;
     color: #C0C0C0;
@@ -999,6 +1008,10 @@ legend.group-legend {
 
 .chevron-list-gray {
     background-color: #F5F5F5;
+}
+
+.chevron-list-stand-in {
+    width: 15px;
 }
 
 .decoration-container {
@@ -1175,6 +1188,20 @@ legend.group-legend {
     padding-right: 0px;
     padding-bottom: 0px;
     padding-top: 20px;
+}
+
+.big-button-box {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    .flex-justify-center;
+}
+
+.big-button {
+    width: 100px;
+    height: 100px;
+    margin-left: 20px;
+    margin-right: 20px;
 }
 
 .cell-vertical-top {
@@ -1469,16 +1496,24 @@ legend.group-legend {
     width: 100px;
 }
 
+.margin-top-0 {
+    margin-top: 0px;
+}
+
+.margin-top-5 {
+    margin-top: 5px;
+}
+
 .margin-top-10 {
     margin-top: 10px;
 }
 
-.margin-top-20 {
-    margin-top: 20px;
+.margin-top-15 {
+    margin-top: 15px;
 }
 
-.margin-top-26 {
-    margin-top: 26px;
+.margin-top-20 {
+    margin-top: 20px;
 }
 
 .margin-top-30 {
@@ -1487,6 +1522,10 @@ legend.group-legend {
 
 .margin-top-35 {
     margin-top: 35px;
+}
+
+.margin-top-40 {
+    margin-top: 40px;
 }
 
 .margin-bottom-0 {
@@ -1501,8 +1540,24 @@ legend.group-legend {
     margin-bottom: 10px;
 }
 
+.margin-bottom-15 {
+    margin-bottom: 15px;
+}
+
 .margin-bottom-20 {
     margin-bottom: 20px;
+}
+
+.margin-bottom-30 {
+    margin-bottom: 30px;
+}
+
+.margin-bottom-35 {
+    margin-bottom: 35px;
+}
+
+.margin-bottom-40 {
+    margin-bottom: 40px;
 }
 
 .padding-defeat {
@@ -1705,7 +1760,7 @@ legend.group-legend {
 }
 
 .top-message {
-    font-size: 13px;
+    font-size: 14px;
     .truncate;
 }
 

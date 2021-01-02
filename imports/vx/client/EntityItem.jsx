@@ -9,8 +9,11 @@ export default class EntityItem extends Component {
     static propTypes = {
         _id : PropTypes.string.isRequired,
         name : PropTypes.string,
+        nameClassName : PropTypes.string,
         description : PropTypes.string,
+        descriptionClassName : PropTypes.string,
         message : PropTypes.string,
+        messageClassName : PropTypes.string,
         iconUrl : PropTypes.string.isRequired,
         rounded : PropTypes.bool,
         decorationIconClassName : PropTypes.string,
@@ -55,17 +58,17 @@ export default class EntityItem extends Component {
                                 <td className="entity-center">
                                     <div className="entity-text">
                                         {this.props.name &&
-                                            <div className="entity-name">
+                                            <div className={`entity-name ${this.props.nameClassName || ""}`}>
                                                 {this.props.name}
                                             </div>
                                         }
                                         {this.props.description &&
-                                            <div className="entity-description">
+                                            <div className={`entity-description ${this.props.descriptionClassName || ""}`}>
                                                 {this.props.description}
                                             </div>
                                         }
                                         {this.props.message &&
-                                            <div className="entity-message">
+                                            <div className={`entity-message ${this.props.messageClassName || ""}`}>
                                                 {this.props.message}
                                             </div>
                                         }
@@ -86,11 +89,14 @@ export default class EntityItem extends Component {
                                         </div>
                                     </td>
                                 }
-                                {this.props.chevrons &&
+                                {this.props.chevrons ? (
                                     <td className="chevron-list">
                                         <span className="fa fa-chevron-right"></span>
                                     </td>
-                                }
+                                ) : (
+                                    <td className="chevron-list-stand-in">
+                                    </td>
+                                )}
                             </tr>
                         </tbody>
                     </table>

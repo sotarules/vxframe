@@ -54,7 +54,8 @@ VXApp = _.extend(VXApp || {}, {
                 return { success: false, icon: "BUG", key: "common.alert_transaction_fail_notification_not_found", variables: { notificationId: notificationId } }
             }
             if (notification.recipientId !== Meteor.userId()) {
-                // TODO: DL--lenient here no message
+                OLog.error(`vxapp.js clearPNotify notificationId=${notificationId} recipientId=${notification.recipientId} ` +
+                    `Meteor.userId()=${Meteor.userId()} *mismatch* security violation`)
                 return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
             }
             return VXApp.updateNotification(notificationId, "PNOTIFY", sent ? ["processed", "sent"] : ["processed"])
@@ -688,7 +689,7 @@ VXApp = _.extend(VXApp || {}, {
     validateServerSide(functionName, validateArgs) {
         try {
             if (!(_.isString(functionName) && _.isArray(validateArgs))) {
-                OLog.error("vxapp.js validateServerSide parameter check failed functionName=" + functionName + " validateArgs=" + validateArgs)
+                OLog.error(`vxapp.js validateServerSide parameter check failed functionName=${functionName}`)
                 return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
             }
             if (functionName.indexOf("VX") !== 0) {

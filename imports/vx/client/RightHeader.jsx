@@ -7,8 +7,11 @@ export default class RightHeader extends Component {
 
     static propTypes = {
         name : PropTypes.string,
+        nameClassName : PropTypes.string,
         description : PropTypes.string,
+        descriptionClassName : PropTypes.string,
         message : PropTypes.string,
+        messageClassName : PropTypes.string,
         iconUrl : PropTypes.string.isRequired,
         rounded : PropTypes.bool,
         decorationIconClassName : PropTypes.string,
@@ -28,7 +31,7 @@ export default class RightHeader extends Component {
 
     render() {
         return (
-            <div className="top-header flexi-fixed">
+            <div className={`top-header flexi-fixed ${this.props.className || ""}`}>
                 <div className="row">
                     <div className="col-sm-12">
                         <table className="top-table">
@@ -49,17 +52,17 @@ export default class RightHeader extends Component {
                                     <td className="top-center">
                                         <div className="top-text">
                                             {this.props.name &&
-                                                <div className="top-name">
+                                                <div className={`top-name ${this.props.nameClassName || ""}`}>
                                                     {this.props.name}
                                                 </div>
                                             }
                                             {this.props.description &&
-                                                <div className="top-description">
+                                                <div className={`top-description ${this.props.descriptionClassName || ""}`}>
                                                     {this.props.description}
                                                 </div>
                                             }
                                             {this.props.message &&
-                                                <div className="top-message">
+                                                <div className={`top-message ${this.props.messageClassName || ""}`}>
                                                     {this.props.message}
                                                 </div>
                                             }

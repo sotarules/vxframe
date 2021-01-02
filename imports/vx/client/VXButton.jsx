@@ -46,6 +46,7 @@ const STYLES = [
 
 const OMITTED_PROPS = [
     "iconClass",
+    "iconStacked",
     "tooltip",
     "minimumDuration",
     "defeat"
@@ -59,6 +60,7 @@ export default class VXButton extends Component {
         className: PropTypes.string,
         tooltip: PropTypes.string,
         iconClass: PropTypes.string,
+        iconStacked: PropTypes.bool,
         minimumDuration: PropTypes.number,
         // Ladda props
         // eslint-disable-next-line react/no-unused-prop-types
@@ -128,12 +130,23 @@ export default class VXButton extends Component {
                 data-spinner-color={this.dataSpinnerColor()}
                 disabled={this.props.disabled}
                 onClick={this.handleClick.bind(this)}>
-                <span className="ladda-label">
-                    {this.props.iconClass &&
-                        <i className={this.iconClassName()}></i>
-                    }
-                    {UX.parseHtml(this.props.children)}
-                </span>
+                {this.props.iconStacked ? (
+                    <div className="ladda-label">
+                        {this.props.iconClass &&
+                            <i className={`${this.props.iconClass} margin-bottom-5`}></i>
+                        }
+                        <div>
+                            {UX.parseHtml(this.props.children)}
+                        </div>
+                    </div>
+                ) : (
+                    <span className="ladda-label">
+                        {this.props.iconClass &&
+                            <i className={this.iconClassName()}></i>
+                        }
+                        {UX.parseHtml(this.props.children)}
+                    </span>
+                )}
             </button>
         )
     }

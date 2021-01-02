@@ -23,13 +23,14 @@ export default class LayoutStandard extends Component {
     }
 
     render() {
+        OLog.debug(`LayoutStandard.jsx render id=${this.slidePanelId()} loading=${this.props.loading} ` +
+            ` authorizeRoute=${this.props.authorizedRoute}`)
         if (this.props.loading) {
             return (<LoadingSpinner/>)
         }
-        if (!(this.props.exemptRoute || this.props.authorizedRoute)) {
+        if (!this.props.authorizedRoute) {
             return (<NotAuthorizedPage/>)
         }
-        OLog.debug(`LayoutStandard.jsx render id=${this.slidePanelId()}`)
         return (
             <div id={this.props.id}
                 className="flexi-grow">

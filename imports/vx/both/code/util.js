@@ -84,6 +84,9 @@ Util = {
      * @return {string} Localized value of code.
      */
     getCodeLocalized(codeSet, codeName) {
+        if (!codeName) {
+            return
+        }
         return Util.i18n(`codes.${codeSet}.${codeName}`)
     },
 

@@ -52,7 +52,9 @@ CX.NOTIFICATION_ICON_MAP = {
     "CAMPAIGN" : "fa fa-th",
     "DISCOVERED" : "fa fa-power-off",
     "CARD" : "fa fa-credit-card",
-    "INSURED" : "fa fa-handshake-o"
+    "INSURED" : "fa fa-handshake-o",
+    "PLAY" : "fa fa-play",
+    "PAUSE" : "fa fa-pause"
 }
 
 CX.NOTIFICATION_BOOTSTRAP_CLASS_MAP = {
