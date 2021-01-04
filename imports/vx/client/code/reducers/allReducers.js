@@ -1,40 +1,44 @@
-import buttonUsersDomains from "/imports/vx/client/code/reducers/buttonUsersDomains"
-import currentDomainId from "/imports/vx/client/code/reducers/currentDomainId"
-import currentLocale from "/imports/vx/client/code/reducers/currentLocale"
-import currentUserId from "/imports/vx/client/code/reducers/currentUserId"
-import currentPublishingMode from "/imports/vx/client/code/reducers/currentPublishingMode"
-import iosState from "/imports/vx/client/code/reducers/iosState"
-import publishingModeClient from "/imports/vx/client/code/reducers/publishingModeClient"
-import publishingModeServer from "/imports/vx/client/code/reducers/publishingModeServer"
-import subscriptionParameters from "/imports/vx/client/code/reducers/subscriptionParameters"
-import profileTab from "/imports/vx/client/code/reducers/profileTab"
-import settingsTab from "/imports/vx/client/code/reducers/settingsTab"
-import publishAuthoringDomain from "/imports/vx/client/code/reducers/publishAuthoringDomain"
-import publishAuthoringTemplate from "/imports/vx/client/code/reducers/publishAuthoringTemplate"
-import publishAuthoringUser from "/imports/vx/client/code/reducers/publishAuthoringUser"
-import publishCurrentDomain from "/imports/vx/client/code/reducers/publishCurrentDomain"
-import publishCurrentDomains from "/imports/vx/client/code/reducers/publishCurrentDomains"
-import publishCurrentTemplates from "/imports/vx/client/code/reducers/publishCurrentTemplates"
-import publishCurrentTenant from "/imports/vx/client/code/reducers/publishCurrentTenant"
-import publishCurrentTenants from "/imports/vx/client/code/reducers/publishCurrentTenants"
-import publishCurrentUsers from "/imports/vx/client/code/reducers/publishCurrentUsers"
-import publishCurrentEvents from "/imports/vx/client/code/reducers/publishCurrentEvents"
-import publishCurrentLog from "/imports/vx/client/code/reducers/publishCurrentLog"
-import searchPhrase from "/imports/vx/client/code/reducers/searchPhrase"
-import selectedEventType from "/imports/vx/client/code/reducers/selectedEventType"
-import selectedEventRows from "/imports/vx/client/code/reducers/selectedEventRows"
-import selectedEventEndDate from "/imports/vx/client/code/reducers/selectedEventEndDate"
-import selectedLogLevel from "/imports/vx/client/code/reducers/selectedLogLevel"
-import selectedLogRows from "/imports/vx/client/code/reducers/selectedLogRows"
-import selectedLogEndDate from "/imports/vx/client/code/reducers/selectedLogEndDate"
-import wizardState from "/imports/vx/client/code/reducers/wizardState"
-import formData from "/imports/vx/client/code/reducers/formData"
-import loading from "/imports/vx/client/code/reducers/loading"
-import routePath from "/imports/vx/client/code/reducers/routePath"
-import exemptRoute from "/imports/vx/client/code/reducers/exemptRoute"
-import authorizedRoute from "/imports/vx/client/code/reducers/authorizedRoute"
+import functionUpdateTimestamp from "./functionUpdateTimestamp"
+import buttonUsersDomains from "./buttonUsersDomains"
+import currentDomainId from "./currentDomainId"
+import currentLocale from "./currentLocale"
+import currentUserId from "./currentUserId"
+import currentPublishingMode from "./currentPublishingMode"
+import iosState from "./iosState"
+import publishingModeClient from "./publishingModeClient"
+import publishingModeServer from "./publishingModeServer"
+import subscriptionParameters from "./subscriptionParameters"
+import profileTab from "./profileTab"
+import settingsTab from "./settingsTab"
+import publishAuthoringDomain from "./publishAuthoringDomain"
+import publishAuthoringTemplate from "./publishAuthoringTemplate"
+import publishAuthoringFunction from "./publishAuthoringFunction"
+import publishAuthoringUser from "./publishAuthoringUser"
+import publishCurrentDomain from "./publishCurrentDomain"
+import publishCurrentDomains from "./publishCurrentDomains"
+import publishCurrentTemplates from "./publishCurrentTemplates"
+import publishCurrentFunctions from "./publishCurrentFunctions"
+import publishCurrentTenant from "./publishCurrentTenant"
+import publishCurrentTenants from "./publishCurrentTenants"
+import publishCurrentUsers from "./publishCurrentUsers"
+import publishCurrentEvents from "./publishCurrentEvents"
+import publishCurrentLog from "./publishCurrentLog"
+import searchPhrase from "./searchPhrase"
+import selectedEventType from "./selectedEventType"
+import selectedEventRows from "./selectedEventRows"
+import selectedEventEndDate from "./selectedEventEndDate"
+import selectedLogLevel from "./selectedLogLevel"
+import selectedLogRows from "./selectedLogRows"
+import selectedLogEndDate from "./selectedLogEndDate"
+import wizardState from "./wizardState"
+import formData from "./formData"
+import loading from "./loading"
+import routePath from "./routePath"
+import exemptRoute from "./exemptRoute"
+import authorizedRoute from "./authorizedRoute"
 
 export default {
+    functionUpdateTimestamp,
     buttonUsersDomains,
     currentDomainId,
     currentLocale,
@@ -48,10 +52,12 @@ export default {
     settingsTab,
     publishAuthoringDomain,
     publishAuthoringTemplate,
+    publishAuthoringFunction,
     publishAuthoringUser,
     publishCurrentDomain,
     publishCurrentDomains,
     publishCurrentTemplates,
+    publishCurrentFunctions,
     publishCurrentTenant,
     publishCurrentTenants,
     publishCurrentUsers,

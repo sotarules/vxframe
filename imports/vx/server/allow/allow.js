@@ -302,3 +302,17 @@ Templates.allow({
     },
     fetch: ["domain"]
 })
+
+Functions.allow({
+    insert(userId, doc) {
+        return Serv.isUserDomain(userId, doc.domain, "Functions.allow insert", doc)
+    },
+    update(userId, doc, fields, modifier) {
+        return Serv.isUserDomain(userId, doc.domain, "Functions.allow update", doc, modifier)
+    },
+    remove(userId, doc) {
+        OLog.error(`allow.js Functions.allow remove *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+        return false
+    },
+    fetch: ["domain"]
+})

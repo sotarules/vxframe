@@ -28,6 +28,9 @@ export default class OffCanvasNav extends Component {
                             <OffCanvasNavItem iconClass="fa-file-code-o"
                                 text={Util.i18n("navbar.templates")}
                                 path="/templates"/>
+                            <OffCanvasNavItem iconClass="fa-code"
+                                text={Util.i18n("navbar.functions")}
+                                path="/functions"/>
                             <OffCanvasNavItem iconClass="fa-sitemap"
                                 text={Util.i18n("navbar.members_domains")}
                                 path="/users-domains"/>

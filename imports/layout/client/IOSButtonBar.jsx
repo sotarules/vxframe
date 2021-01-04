@@ -33,7 +33,7 @@ export default class IOSButtonBar extends Component {
     }
 
     render() {
-        OLog.debug(`IOSButtonBar.jsx render state=${OLog.debugString(this.state)} props=${OLog.debugString(this.props)}`)
+        //OLog.debug(`IOSButtonBar.jsx render state=${OLog.debugString(this.state)} props=${OLog.debugString(this.props)}`)
         const iosButtonState = this.props.iosState.iosButtonState
         return (
             <div id={this.props.id} className={this.className()}>

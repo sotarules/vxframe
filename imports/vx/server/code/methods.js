@@ -54,6 +54,10 @@ Meteor.methods({
         return VXApp.retireTemplate(templateId, comment)
     },
 
+    retireFunction(functionId, comment) {
+        return VXApp.retireFunction(functionId, comment)
+    },
+
     sendEnrollmentEmail(userId) {
         return VXApp.sendEnrollmentEmail(userId)
     },

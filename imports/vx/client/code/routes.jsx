@@ -14,6 +14,8 @@ import SigninContainer from "/imports/signin/client/SigninContainer"
 import SystemLogContainer from "/imports/systemlog/client/SystemLogContainer"
 import TemplateEdit from "/imports/templates/client/TemplateEdit"
 import TemplateView from "/imports/templates/client/TemplateView"
+import FunctionView from "/imports/functions/client/FunctionView"
+import FunctionEdit from "/imports/functions/client/FunctionEdit"
 import TenantEdit from "/imports/tenants/client/TenantEdit"
 import TenantView from "/imports/tenants/client/TenantView"
 import UserDomainView from "/imports/usersdomains/client/UserDomainView"
@@ -40,6 +42,8 @@ Routes = {
             { path: "/system-settings", layoutName: "LayoutStandardContainer", component: SettingsContainer },
             { path: "/templates", layoutName: "LayoutStandardContainer", component: TemplateView },
             { path: "/template/:_id", layoutName: "LayoutStandardContainer", component: TemplateEdit },
+            { path: "/functions", layoutName: "LayoutStandardContainer", component: FunctionView },
+            { path: "/function/:_id", layoutName: "LayoutStandardContainer", component: FunctionEdit }
         ])
     },
 

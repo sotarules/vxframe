@@ -1,5 +1,15 @@
 ﻿Meteor.i18nMessages.common = _.extend(Meteor.i18nMessages.common || {}, {
 
+    alert_function_valid : {
+        en : "Function is valid",
+        rx : "$Function is valid$"
+    },
+
+    alert_function_has_errors : {
+        en : "Function has errors, please correct them first",
+        rx : "$Function has errors, please correct them first$"
+    },
+
     required_fields_incomplete : {
         en : "Please complete all required fields",
         rx : "$Please complete all required fields$"
@@ -123,6 +133,21 @@
     button_create_template : {
         en : "Create Email Template",
         rx : "$Create Email Template$"
+    },
+
+    button_functions : {
+        en : "Functions",
+        rx : "$Functions$"
+    },
+
+    button_create_function : {
+        en : "Create Function",
+        rx : "$Create Function$"
+    },
+
+    button_test_function : {
+        en : "Test<br/>Function",
+        rx : "$Test<br/>Function$"
     },
 
     button_send_test_email : {
@@ -260,6 +285,16 @@
         rx : "$Email Template$"
     },
 
+    label_functions : {
+        en : "Functions",
+        rx : "$Functions$"
+    },
+
+    label_function_header : {
+        en : "JavaScript",
+        rx : "$JavaScript$"
+    },
+
     label_name : {
         en : "Name",
         rx : "$Name$"
@@ -328,6 +363,16 @@
     empty_tenant_rhs_details : {
         en : "The details of your selected Tenant will appear here",
         rx : "$The details of your selected Tenant will appear here$"
+    },
+
+    empty_functions : {
+        en : "There are no Functions, press Create Function to add one",
+        rx : "$There are no Functions, press Create Function to add one$"
+    },
+
+    empty_function_rhs_details : {
+        en : "The details of your selected Function will appear here",
+        rx : "$The details of your selected Function will appear here$"
     },
 
     empty_domain_rhs_details : {
@@ -474,6 +519,11 @@ Meteor.i18nMessages.navbar = _.extend(Meteor.i18nMessages.navbar || {}, {
     templates: {
         en: "Templates",
         rx: "$Templates$"
+    },
+
+    functions : {
+        en: "Functions",
+        rx: "$Functions$"
     },
 
     members_domains: {
@@ -994,6 +1044,11 @@ Meteor.i18nMessages.system_settings = _.extend(Meteor.i18nMessages.system_settin
         rx : "$Tenant POC$"
     },
 
+    label_tenant_function_anchor : {
+        en : "Function Anchor",
+        rx : "$Function Anchor$"
+    },
+
     label_tenant_information : {
         en : "Tenant Information",
         rx : "$Tenant Information$"
@@ -1112,6 +1167,11 @@ Meteor.i18nMessages.system_settings = _.extend(Meteor.i18nMessages.system_settin
     tooltip_tenant_account_poc : {
         en : "Select the Point-of-Contact for this tenant",
         rx : "$Select the Point-of-Contact for this tenant$"
+    },
+
+    tooltip_tenant_function_anchor : {
+        en : "Choose the name of a JavaScript global variable to serve as an anchor for user-written functions",
+        rx : "$Choose the name of a JavaScript global variable to serve as an anchor for user-written functions$"
     },
 
     tooltip_domain_mailgun_test : {

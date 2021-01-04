@@ -550,6 +550,61 @@ VXApp = _.extend(VXApp || {}, {
             return
         }
         return VXApp.subsystemStatusMessage(subsystem, record)
+    },
+
+    /**
+     * Return value (body) of a specified function.
+     *
+     * @param {?} functionOrId Function record or ID.
+     * @return {string} Value (body) of function.
+     */
+    fetchFunctionValue(functionOrId) {
+        return VXApp.fetchFunctionField(functionOrId, "value")
+    },
+
+    /**
+     * Return the value of the specified field in a function record.
+     *
+     * @param {?} functionOrId Function record or ID.
+     * @param {string} fieldName Field name (e.g., "name").
+     * @param {string} defaultValue Optional default value.
+     * @return {string} Field value.
+     */
+    fetchFunctionField(functionOrId, fieldName, defaultValue) {
+        let funktion
+        if (!functionOrId) {
+            return
+        }
+        if (_.isObject(functionOrId)) {
+            funktion = functionOrId
+        }
+        else {
+            const fieldList = {}
+            fieldList.fields = {}
+            fieldList.fields[fieldName] = 1
+            funktion = Carriers.findOne(functionOrId, fieldList)
+            if (!funktion) {
+                OLog.error(`vxapp.js fetchFunctionField unable to find functionOrId=${functionOrId}`)
+                return
+            }
+        }
+        return funktion[fieldName] ? funktion[fieldName] : defaultValue
+    },
+
+    /**
+     * Return the function anchor from the current tenant.
+     *
+     * @param {string} tenantId Optional tenant ID.
+     * @return {string} Function anchor or null.
+     */
+    functionAnchor(tenantId) {
+        tenantId = tenantId || Util.getCurrentTenantId(Meteor.userId())
+        const functionAnchor = Util.fetchTenantField(tenantId, "functionAnchor")
+        if (!functionAnchor) {
+            OLog.error("vxapp.js functionAnchor no function anchor defined in tenant settings")
+            return
+        }
+        return functionAnchor
     }
 })
 

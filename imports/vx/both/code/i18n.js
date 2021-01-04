@@ -72,6 +72,11 @@ Meteor.i18nMessages.common = {
         rx : "$Retire Template$"
     },
 
+    label_retire_function : {
+        en : "Retire Function",
+        rx : "$Retire Function$"
+    },
+
     label_enter_comment : {
         en : "Enter Comment (optional)",
         rx : "$Enter Comment (optional)$"
@@ -302,6 +307,11 @@ Meteor.i18nMessages.common = {
         rx : "$Transaction failed, user not found, userId={{userId}}$"
     },
 
+    alert_transaction_fail_user_email_not_found : {
+        en : "Transaction failed, user not found, email={{email}}",
+        rx : "$Transaction failed, user not found, userId={{email}}$"
+    },
+
     alert_transaction_fail_timezone_not_found : {
         en : "Could not determine timezone of current user",
         rx : "$Could not determine timezone of current user$"
@@ -310,6 +320,11 @@ Meteor.i18nMessages.common = {
     alert_transaction_fail_template_not_found : {
         en : "Transaction failed, template not found, templateId={{templateId}}",
         rx : "$Transaction failed, template not found, templateId={{templateId}}$"
+    },
+
+    alert_transaction_fail_function_not_found : {
+        en : "Transaction failed, function not found, functionId={{functionId}}",
+        rx : "$Transaction failed, function not found, functionId={{functionId}}$"
     },
 
     alert_transaction_fail_undo_transactions_not_found : {

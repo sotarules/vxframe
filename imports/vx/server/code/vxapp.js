@@ -456,6 +456,45 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
+     * Retire the specified function.
+     *
+     * @param {string} functionId Function ID.
+     * @param {string} comment Optional comment.
+     * @return {object} Result object.
+     */
+    retireFunction(functionId, comment) {
+        try {
+            if (!(_.isString(functionId) && (!comment || _.isString(comment)))) {
+                OLog.error(`vxapp.js retireFunction parameter check failed functionId=${functionId} comment=${comment}`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
+            }
+            let funktion = Functions.findOne(functionId)
+            if (!funktion) {
+                OLog.error(`vxapp.js retireFunction unable to find functionId=${functionId}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_function_not_found", variables : { functionId : functionId } }
+            }
+            if (!Meteor.userId()) {
+                OLog.error("vxapp.js retireFunction security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            let modifier = {}
+            modifier.$set = {}
+            modifier.$set.dateRetired = new Date()
+            modifier.$set.userRetired = Meteor.userId()
+            if (comment) {
+                modifier.$set.comment = comment
+            }
+            OLog.debug(`vxapp.js retireFunction functionId=${functionId} modifier=${OLog.debugString(modifier)}`)
+            Functions.update(functionId, modifier)
+            return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js retireFunction unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
      * Send an enrollment email to the specified user.
      *
      * @param {string} userId User ID.
@@ -1367,5 +1406,140 @@ VXApp = _.extend(VXApp || {}, {
         OLog.debug(`vxapp.js isRecentEvent=${type} domainId=${domainId} userId=${userId} seconds=${seconds} ` +
             ` after cutoff=${cutoff} event=${event}`)
         return !!event
+    },
+
+    /**
+     * Execute function supplied as string.
+     *
+     * @param {string} functionString Function as string.
+     * @param {object} data Data passed to function
+     * @return {?} Return value
+     */
+    eval(functionString, data) {
+        try {
+            let func = eval(`(${functionString})`)
+            return func.call(data, data)
+        }
+        catch (error) {
+            console.log("vxapp.js eval function error", functionString)
+            console.log("vxapp.js eval error", error)
+        }
+    },
+
+    /**
+     * Deploy all functions. Each tenant has their own function anchor, so we must
+     * iterate over the tenants to create the anchors and deploy the functions.
+     */
+    deployAllFunctions() {
+        Tenants.find( { dateRetired: { $exists: false } }).forEach(tenant => {
+            if (!tenant.functionAnchor) {
+                OLog.debug(`vxapp.js deployAllFunctions tenant ${tenant.name} does not have a function anchor ` +
+                    "no functions will be deployed on their behalf")
+                return
+            }
+            Domains.find( { dateRetired : { $exists: false }, tenant: tenant._id }).forEach(domain => {
+                const functionAnchor = VXApp.functionAnchor(domain._id)
+                const qualifiedFunctionAnchor = VXApp.qualifiedFunctionAnchor(functionAnchor, domain._id)
+                const fullyQualifiedFunctionAnchor = VXApp.fullyQualifiedFunctionAnchor(qualifiedFunctionAnchor)
+                OLog.debug(`vxapp.js deployAllFunctions *instantiating* ${fullyQualifiedFunctionAnchor}`)
+                FunctionAnchors[qualifiedFunctionAnchor] = {}
+                Functions.find({ dateRetired : { $exists: false }, domain: domain._id }).forEach(funktion => {
+                    VXApp.deployFunction(funktion._id)
+                })
+            })
+        })
+    },
+
+    /**
+     * Deploy a user-written function.
+     *
+     * @param {string} functionId Function ID to deploy.
+     */
+    deployFunction(functionId) {
+        try {
+            const newFunction = Functions.findOne(functionId)
+            if (!newFunction) {
+                OLog.error(`vxapp.js deployFunction unable to find functionId=${functionId}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_function_not_found",
+                    variables : { functionId : functionId } }
+            }
+            const functionAnchor = VXApp.functionAnchor(newFunction.domain)
+            const qualifiedFunctionAnchor = VXApp.qualifiedFunctionAnchor(functionAnchor, newFunction.domain)
+            const fullyQualifiedFunctionAnchor = VXApp.fullyQualifiedFunctionAnchor(qualifiedFunctionAnchor)
+            if (!FunctionAnchors[qualifiedFunctionAnchor]) {
+                OLog.debug(`vxapp.js deployFunction *instantiating* ${fullyQualifiedFunctionAnchor}`)
+                FunctionAnchors[qualifiedFunctionAnchor] = {}
+            }
+            if (!newFunction.name) {
+                OLog.debug(`vxapp.js deployFunction no name yet ignoring functionId=${functionId}`)
+                return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
+            }
+            if (typeof newFunction.name === "string") {
+                delete FunctionAnchors[qualifiedFunctionAnchor][newFunction.name]
+            }
+            if (!newFunction.value) {
+                OLog.debug(`vxapp.js deployFunction no value supplied implicitly deleting functionId=${functionId}`)
+                return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
+            }
+            const adjustedFunction =
+                VXApp.replaceFunctionAnchorReferences(newFunction.value, functionAnchor, fullyQualifiedFunctionAnchor)
+            const func = eval(`(${adjustedFunction})`)
+            if (typeof newFunction.name === "string" && typeof func === "function") {
+                FunctionAnchors[qualifiedFunctionAnchor][newFunction.name] = func
+            }
+            OLog.debug(`vxapp.js deployFunction has added ${fullyQualifiedFunctionAnchor}.${newFunction.name} ` +
+                `resulting in keys=${Object.keys(FunctionAnchors[qualifiedFunctionAnchor])}`)
+            return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js deployFunction unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Given a domain ID return the tenant function anchor property.
+     *
+     * @param {string} value Raw function text from function collection.
+     * @param {string} functionAnchor Function anchor from tenant.
+     * @param {string} fullyQualifiedFunctionAnchor Fully-qualified function anchor.
+     * @return {string} Function text with all function fully-qualified references replaced.
+     */
+    replaceFunctionAnchorReferences(value, functionAnchor, fullyQualifiedFunctionAnchor) {
+        const regExp = new RegExp(functionAnchor, "g")
+        return value.replace(regExp, fullyQualifiedFunctionAnchor)
+    },
+
+    /**
+     * Given a domain ID return the tenant function anchor property.
+     *
+     * @param {string} domainId Domain ID.
+     * @return {string} Function anchor from tenant.
+     */
+    functionAnchor(domainId) {
+        const tenantId = Util.getTenantId(domainId)
+        return Util.fetchTenantField(tenantId, "functionAnchor")
+    },
+
+    /**
+     * Given a function anchor and domain ID get form a guaranteed-unique object name
+     * for this domain.
+     *
+     * @param {string} functionAnchor User-declared function anchor in tenant.
+     * @param {string} domainId Domain ID.
+     * @return {string} Guaranteed-unique object "container" for functions.
+     */
+    qualifiedFunctionAnchor(functionAnchor, domainId) {
+        return `${functionAnchor}_${domainId}`
+    },
+
+    /**
+     * Given a qualified function anchor, return fully-qualified function anchor.
+     *
+     * @param {string} qualifiedFunctionAnchor Qualified function anchor.
+     * @return Fully-qualified function anchor.
+     */
+    fullyQualifiedFunctionAnchor(qualifiedFunctionAnchor) {
+        return `FunctionAnchors.${qualifiedFunctionAnchor}`
     }
 })

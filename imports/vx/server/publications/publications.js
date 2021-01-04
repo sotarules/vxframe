@@ -93,3 +93,22 @@ Meteor.publish("templates", function(request) {
     OLog.debug(`publications.js templates count=${cursor.count()} publish=${OLog.debugString(request)}`, this.userId)
     return cursor
 })
+
+Meteor.publish("functions", function(request) {
+    if (!request || !this.userId) {
+        return
+    }
+    VXApp.adjustPublishingRequest(request, this.userId)
+    let cursor = Functions.find(request.criteria, request.options)
+    OLog.debug(`publications.js functions count=${cursor.count()} publish=${OLog.debugString(request)}`, this.userId)
+    return cursor
+})
+
+Meteor.publish("my_functions", function(request) {
+    if (!request || !this.userId) {
+        return [];
+    }
+    const cursor = Functions.find(request.criteria, request.options)
+    OLog.debug(`publications.js my_functions count=${cursor.count()} publish=${OLog.debugString(request)}`, this.userId)
+    return cursor
+})

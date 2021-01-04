@@ -1,5 +1,6 @@
 import {get, set} from "lodash"
 import {
+    setFunctionUpdateTimestamp,
     setCurrentDomainId,
     setCurrentLocale,
     setCurrentPublishingMode,
@@ -7,6 +8,7 @@ import {
     setIosState,
     setPublishAuthoringDomain,
     setPublishAuthoringTemplate,
+    setPublishAuthoringFunction,
     setPublishAuthoringUser,
     setPublishCurrentDomain,
     setPublishCurrentDomains,
@@ -14,12 +16,66 @@ import {
     setPublishCurrentTenants,
     setPublishCurrentUsers,
     setPublishCurrentTemplates,
+    setPublishCurrentFunctions,
     setPublishingModeClient,
     setPublishingModeServer,
     setSubscriptionParameters
 } from "/imports/vx/client/code/actions"
 
 VXApp = _.extend(VXApp || {}, {
+
+    /**
+     * Clear user session settings.
+     */
+    clearSessionSettings() {
+        OLog.debug("vxapp.js clearSessionSettings")
+        Store.dispatch(setPublishAuthoringDomain(null))
+        Store.dispatch(setPublishAuthoringUser(null))
+        Store.dispatch(setPublishAuthoringTemplate(null))
+        Store.dispatch(setPublishAuthoringFunction(null))
+        Store.dispatch(setFunctionUpdateTimestamp(null))
+        if (VXApp.clearAppSessionSettings) {
+            VXApp.clearAppSessionSettings()
+        }
+    },
+
+    changeGlobalSubscriptions(doClient, doServer, newSubscriptionParameters) {
+
+        OLog.debug("vxapp.js changeGlobalSubscriptions *fire*")
+
+        const handles = []
+
+        const publishCurrentTenants = VXApp.makePublishingRequest("current_tenants",
+            newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+        const publishCurrentDomains = VXApp.makePublishingRequest("current_domains",
+            newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
+        const publishCurrentUsers = VXApp.makePublishingRequest("current_users",
+            newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
+        const publishCurrentTemplates = VXApp.makePublishingRequest("templates",
+            newSubscriptionParameters, { dateRetired : { $exists : false } }, { sort: { "name": 1 } })
+        const publishCurrentFunctions = VXApp.makePublishingRequest("functions",
+            newSubscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
+
+        if (doClient) {
+            Store.dispatch(setPublishCurrentTenants(publishCurrentTenants.client))
+            Store.dispatch(setPublishCurrentDomains(publishCurrentDomains.client))
+            Store.dispatch(setPublishCurrentUsers(publishCurrentUsers.client))
+            Store.dispatch(setPublishCurrentTemplates(publishCurrentTemplates.client))
+            Store.dispatch(setPublishCurrentFunctions(publishCurrentFunctions.client))
+        }
+
+        if (doServer) {
+            handles.push(Meteor.subscribe("config"))
+            handles.push(Meteor.subscribe("clipboard"))
+            handles.push(Meteor.subscribe("current_tenants", publishCurrentTenants.server))
+            handles.push(Meteor.subscribe("current_domains", publishCurrentDomains.server))
+            handles.push(Meteor.subscribe("current_users", publishCurrentUsers.server))
+            handles.push(Meteor.subscribe("templates", publishCurrentTemplates.server))
+            handles.push(Meteor.subscribe("functions", publishCurrentFunctions.server))
+        }
+
+        return handles
+    },
 
     /**
      * Given a layout component and content return a combined React element that is ready for
@@ -83,7 +139,8 @@ VXApp = _.extend(VXApp || {}, {
             return true
         }
         const superAdminRoutes = ["/log", "/events" ]
-        const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/"]
+        const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/",
+            "/functions", "/function/", ]
         const path = Util.routePath()
         if (Util.startsWith(superAdminRoutes, path)) {
             return Util.isUserSuperAdmin()
@@ -220,7 +277,7 @@ VXApp = _.extend(VXApp || {}, {
             if (VXApp.onAppChangeSubscriptionsReady) {
                 VXApp.onAppChangeSubscriptionsReady()
             }
-            // Initialize redux store prior to rendering to comply with React best practices:
+            VXApp.addAllFunctions()
             VXApp.doContextMakerBeforeRender()
             OLog.debug(`vxapp.js globalSubscriptions ready domain count=${Domains.find().count()}`)
             callback(error, result)
@@ -229,40 +286,6 @@ VXApp = _.extend(VXApp || {}, {
         })
 
         return
-    },
-
-    changeGlobalSubscriptions(doClient, doServer, newSubscriptionParameters) {
-
-        OLog.debug("vxapp.js changeGlobalSubscriptions *fire*")
-
-        const handles = []
-
-        const publishCurrentTenants = VXApp.makePublishingRequest("current_tenants",
-            newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
-        const publishCurrentDomains = VXApp.makePublishingRequest("current_domains",
-            newSubscriptionParameters, {}, { sort: { name: 1, dateCreated: 1 } })
-        const publishCurrentUsers = VXApp.makePublishingRequest("current_users",
-            newSubscriptionParameters, {}, { sort: { "profile.lastName": 1, "profile.firstName": 1, createdAt: 1 } })
-        const publishCurrentTemplates = VXApp.makePublishingRequest("templates",
-            newSubscriptionParameters, { dateRetired : { $exists : false } }, { sort: { "name": 1 } })
-
-        if (doClient) {
-            Store.dispatch(setPublishCurrentTenants(publishCurrentTenants.client))
-            Store.dispatch(setPublishCurrentDomains(publishCurrentDomains.client))
-            Store.dispatch(setPublishCurrentUsers(publishCurrentUsers.client))
-            Store.dispatch(setPublishCurrentTemplates(publishCurrentTemplates.client))
-        }
-
-        if (doServer) {
-            handles.push(Meteor.subscribe("config"))
-            handles.push(Meteor.subscribe("clipboard"))
-            handles.push(Meteor.subscribe("current_tenants", publishCurrentTenants.server))
-            handles.push(Meteor.subscribe("current_domains", publishCurrentDomains.server))
-            handles.push(Meteor.subscribe("current_users", publishCurrentUsers.server))
-            handles.push(Meteor.subscribe("templates", publishCurrentTemplates.server))
-        }
-
-        return handles
     },
 
     /**
@@ -477,19 +500,6 @@ VXApp = _.extend(VXApp || {}, {
                 OLog.debug("vxapp.js logout was successful")
             })
         }, 1000)
-    },
-
-    /**
-     * Clear user session settings.
-     */
-    clearSessionSettings() {
-        OLog.debug("vxapp.js clearSessionSettings")
-        Store.dispatch(setPublishAuthoringDomain(null))
-        Store.dispatch(setPublishAuthoringUser(null))
-        Store.dispatch(setPublishAuthoringTemplate(null))
-        if (VXApp.clearAppSessionSettings) {
-            VXApp.clearAppSessionSettings()
-        }
     },
 
     /**
@@ -988,6 +998,30 @@ VXApp = _.extend(VXApp || {}, {
         })
     },
 
+    findFunctionList() {
+        const publishCurrentFunctions = Store.getState().publishCurrentFunctions
+        OLog.debug(`vxapp.js findFunctionList publishCurrentFunctions=${OLog.debugString(publishCurrentFunctions)}`)
+        return Functions.find(publishCurrentFunctions.criteria, publishCurrentFunctions.options).fetch()
+    },
+
+    cloneFunction(functionId) {
+        const funktion = Functions.findOne(functionId)
+        if (!funktion) {
+            return
+        }
+        delete funktion._id
+        delete funktion.dateCreated
+        delete funktion.userCreated
+        Functions.insert(funktion, (error, functionId) => {
+            if (error) {
+                OLog.error(`vxapp.js error attempting to clone functionId=${functionId} error=${error}`)
+                UX.notifyForDatabaseError(error)
+                return
+            }
+            UX.iosMajorPush(null, null, `/function/${functionId}`, "RIGHT", "crossfade")
+        })
+    },
+
     /**
      * Perform undo on the specified collection.
      *
@@ -1366,5 +1400,186 @@ VXApp = _.extend(VXApp || {}, {
             })
         }
         return publishAdjusted
+    },
+
+    /**
+     * Return a reference to a specified instance of FunctionAceEditor.
+     *
+     * @param {string} componentId Component ID of FunctionAceEditor.
+     */
+    aceEditor(componentId) {
+        componentId = componentId || "ace-editor"
+        const functionAceEditor = UX.findComponentById(componentId)
+        if (!functionAceEditor) {
+            OLog.error(`vxapp.js aceEditor unable to find componentId=${componentId}`)
+            return
+        }
+        return functionAceEditor.reactAce.editor
+    },
+
+    /**
+     * Execute function supplied as string.
+     *
+     * @param {string} functionString Function as string.
+     * @param {object} data Data passed to function
+     * @return {?} Return value
+     */
+    eval(functionString, data) {
+        try {
+            let func = eval(`(${functionString})`)
+            return func.call(data, data)
+        }
+        catch (error) {
+            console.log("vxapp.js eval function error", functionString)
+            console.log("vxapp.js eval error", error)
+        }
+    },
+
+    /**
+     * Test a given function by executing it and display a helpful notification.
+     *
+     * @param {string} functionString Function as string.
+     */
+    async testFunction(functionString) {
+        try {
+            try {
+                const data = VXApp.functionTestDataDefault()
+                console.log("VXApp.testFunction data", data)
+                const result = await VXApp.eval(functionString, data)
+                UX.notify({ success : true, icon : "CALCULATOR", key: "common.alert_function_valid" })
+                console.log("Function test successful - return value:", result)
+            }
+            catch (error) {
+                UX.notifyForError(error)
+            }
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
+    },
+
+    /**
+     * Return a data object to be used with the Test Function button.
+     * This is application-specific data object or empty object.
+     */
+    functionTestDataDefault() {
+        if (VXApp.appFunctionTestDataDefault) {
+            return VXApp.appFunctionTestDataDefault()
+        }
+        return {}
+    },
+
+    /**
+     * Add all database functions to VXApp.
+     */
+    addAllFunctions() {
+        const functionAnchor = VXApp.functionAnchor()
+        if (!functionAnchor) {
+            return
+        }
+        const functions = VXApp.findFunctionList()
+        OLog.debug("vxapp.js addAllFunctions will add all functions to " +
+            `${functionAnchor} global object with count=${functions.length}`)
+        window[functionAnchor] = {}
+        functions.forEach(newFunction => {
+            VXApp.addFunction(newFunction, false)
+        })
+        Store.dispatch(setFunctionUpdateTimestamp(new Date().toISOString()))
+    },
+
+    /**
+     * Add a database-resident function to KeepTrack global object.
+     *
+     * @param {object} newFunction New function.
+     * @param {boolean} quiet True to add quietly.
+     */
+    addFunction(newFunction, quiet) {
+        try {
+            const functionAnchor = VXApp.functionAnchor()
+            if (!functionAnchor) {
+                return
+            }
+            if (!quiet) {
+                console.log(`vxapp.js addFunction will add ${newFunction.name} to ${functionAnchor} global object`)
+            }
+            if (!newFunction.name) {
+                console.log(`vxapp.js addFunction no name yet ignoring functionId=${newFunction._id}`)
+                return
+            }
+            if (typeof newFunction.name === "string") {
+                delete window[functionAnchor][newFunction.name]
+            }
+            if (!newFunction.value) {
+                console.log(`vxapp.js addFunction no value conditionally deleting functionId=${newFunction._id}`)
+                return
+            }
+            const func = eval(`(${newFunction.value})`)
+            if (typeof newFunction.name === "string" && typeof func === "function") {
+                window[functionAnchor][newFunction.name] = func
+            }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js addFunction unexpected error ${error}`)
+        }
+    },
+
+    /**
+     * Update a KeepTrack global object function.
+     *
+     * @param {object} newFunction New function.
+     * @param {object} oldFunction Old function.
+     */
+    changeFunction(newFunction, oldFunction) {
+        try {
+            const functionAnchor = VXApp.functionAnchor()
+            if (!functionAnchor) {
+                return
+            }
+            console.log(`vxapp.js changeFunction will change ${oldFunction.name} in ${functionAnchor} global object`)
+            if (typeof oldFunction.name === "string") {
+                delete window[functionAnchor][oldFunction.name]
+            }
+            if (newFunction.dateRetired) {
+                console.log(`vxapp.js changeFunction ${oldFunction.name} has been retired and will not be reinstated`)
+                return
+            }
+            if (!newFunction.name) {
+                console.log(`vxapp.js changeFunction no name yet ignoring functionId=${newFunction._id}`)
+                return
+            }
+            if (!newFunction.value) {
+                console.log(`vxapp.js changeFunction no value conditionally deleting functionId=${newFunction._id}`)
+                return
+            }
+            const func = eval(`(${newFunction.value})`)
+            if (typeof newFunction.name === "string" && typeof func === "function") {
+                OLog.debug(`vxapp.js changeFunction will add ${newFunction.name} to ${functionAnchor} global object`)
+                window[functionAnchor][newFunction.name] = func
+            }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js changeFunction unexpected error ${error}`)
+        }
+    },
+
+    /**
+     * Remove a Gavel global object function.
+     *
+     * @param {string} functionId Function ID.
+     */
+    removeFunction(oldFunction) {
+        try {
+            const functionAnchor = VXApp.functionAnchor()
+            if (!functionAnchor) {
+                return
+            }
+            if (typeof oldFunction.name === "string") {
+                console.log(`vxapp.js removeFunction will remove ${oldFunction.name} from ${functionAnchor} global object`)
+                delete window[functionAnchor][oldFunction.name]
+            }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js removeFunction unexpected error ${error}`)
+        }
     }
 })

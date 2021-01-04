@@ -1,10 +1,9 @@
-"use strict";
-
 import { combineReducers, createStore } from "redux"
 import { persistStore, persistReducer } from "redux-persist"
 import storage from "redux-persist/lib/storage"
 import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
 import { setCurrentLocale } from "/imports/vx/client/code/actions"
+import {setFunctionUpdateTimestamp} from "/imports/vx/client/code/actions"
 
 React = require("react")
 ReactDOM = require("react-dom")
@@ -125,4 +124,42 @@ Tracker.autorun(function() {
             }
         })
     }, 1000)
+})
+
+Tracker.autorun(function() {
+
+    const userId = Meteor.userId()
+    if (!userId) {
+        if (UXState.functionObserver) {
+            UXState.functionObserver.stop()
+            UXState.functionObserver = null
+        }
+        return
+    }
+
+    // Set up dependency on domain ID changes run tracker
+    Util.getCurrentDomainId(userId)
+
+    // Wait until we have publishing criteria in redux:
+    let publishCurrentFunctions = Util.clone(Store.getState().publishCurrentFunctions)
+    if (!publishCurrentFunctions) {
+        // This can run prior to redux initialization but it will re-run later:
+        return
+    }
+
+    publishCurrentFunctions.criteria.dateModified = { $gt: new Date() }
+
+    Meteor.subscribe("my_functions", publishCurrentFunctions)
+    UXState.functionObserver = Functions.find(publishCurrentFunctions.criteria).observe({
+        added : (newDocument) => {
+            VXApp.addFunction(newDocument)
+        },
+        changed : (newDocument, oldDocument) => {
+            VXApp.changeFunction(newDocument, oldDocument)
+            Store.dispatch(setFunctionUpdateTimestamp(new Date().toISOString()))
+        },
+        removed : (oldDocument) => {
+            VXApp.removeFunction(oldDocument)
+        }
+    })
 })

@@ -21,5 +21,8 @@ Meteor.startup(() => {
     Notifications._ensureIndex({ SMS_processed : 1 })
     Notifications._ensureIndex({ SMS_messageSid : 1 })
 
+    Templates._ensureIndex({ domain : 1})
+    Functions._ensureIndex({ domain : 1})
+
     console.log("indexes.js (vx) indexes have been ensured")
 })

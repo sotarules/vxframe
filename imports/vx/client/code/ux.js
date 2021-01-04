@@ -2283,7 +2283,7 @@ UX = {
      * @param {number} minimumDuration Minimum duration in milliseconds for loading indicator.
      */
     registerIosButtonDelegate(componentId, delegate, showLoading, minimumDuration) {
-        OLog.debug(`ux.js registerIosButtonDelegate componentId=${componentId}`)
+        //OLog.debug(`ux.js registerIosButtonDelegate componentId=${componentId}`)
         UXState[componentId] = delegate
         const iosState = Store.getState().iosState
         iosState.iosButtonState = iosState.iosButtonState || {}
@@ -2300,7 +2300,7 @@ UX = {
      * @param {string} componentId Component ID.
      */
     unregisterIosButtonDelegate(componentId) {
-        OLog.debug(`ux.js unregisterIosButtonDelegate componentId=${componentId}`)
+        //OLog.debug(`ux.js unregisterIosButtonDelegate componentId=${componentId}`)
         delete UXState[componentId]
         const iosState = Store.getState().iosState
         delete iosState.iosButtonState?.[componentId]
@@ -2311,7 +2311,7 @@ UX = {
      * Unregister all delegate functions (note plural).
      */
     unregisterIosButtonDelegates() {
-        OLog.debug("ux.js unregisterIosButtonDelegates *purging*")
+        //OLog.debug("ux.js unregisterIosButtonDelegates *purging*")
         const iosState = Store.getState().iosState
         delete iosState.iosButtonState
         Store.dispatch(setIosState(iosState))

@@ -40,6 +40,12 @@ export default class SettingsTenant extends Component {
                                         required={true}
                                         value={this.props.tenant.pocUserId}/>
                                 </div>
+                                <div className="col-sm-4">
+                                    <VXInput id="functionAnchor"
+                                        label={Util.i18n("system_settings.label_tenant_function_anchor")}
+                                        tooltip={Util.i18n("system_settings.tooltip_tenant_function_anchor")}
+                                        value={this.props.tenant.functionAnchor}/>
+                                </div>
                             </div>
                             <div className="row">
                                 <div className="col-sm-12 margin-top-20">

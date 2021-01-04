@@ -143,6 +143,10 @@ Schema.Tenants = new SimpleSchema({
         type : String,
         custom: Schema.checkUserId
     },
+    functionAnchor : {
+        type : String,
+        optional : true
+    },
     name : {
         type: String,
         optional: true
@@ -964,6 +968,86 @@ Schema.Templates = new SimpleSchema({
     }
 })
 
+Schema.Functions = new SimpleSchema({
+    dateCreated : {
+        type : Date,
+        autoValue: function() {
+            if ( this.isInsert ) {
+                return new Date()
+            }
+            else if ( this.isUpsert ) {
+                return { $setOnInsert: new Date() }
+            }
+            else if ( this.isSet ) {
+                this.unset()
+            }
+        }
+    },
+    userCreated : {
+        type : String,
+        custom: Schema.checkUserId,
+        autoValue: function() {
+            if ( this.isInsert ) {
+                return Schema.getAuditUserId(this)
+            }
+            else if ( this.isUpsert ) {
+                return { $setOnInsert: Schema.getAuditUserId(this) }
+            }
+            else if ( this.isSet ) {
+                this.unset()
+            }
+        }
+    },
+    dateModified : {
+        type : Date,
+        autoValue: function() {
+            return new Date()
+        }
+    },
+    userModified : {
+        type : String,
+        custom: Schema.checkUserId,
+        autoValue: function() {
+            return Schema.getAuditUserId(this)
+        }
+    },
+    dateRetired : {
+        type : Date,
+        optional: true
+    },
+    userRetired : {
+        type : String,
+        custom: Schema.checkUserId,
+        optional: true
+    },
+    comment : {
+        type : String,
+        optional : true
+    },
+    domain : {
+        type : String,
+        custom: Schema.checkDomainId,
+        denyUpdate: true,
+        autoValue : function() {
+            if (this.isInsert && !this.isSet) {
+                return Util.getCurrentDomainId(this.userId);
+            }
+        }
+    },
+    name : {
+        type: String,
+        optional: true
+    },
+    description : {
+        type: String,
+        optional: true
+    },
+    value : {
+        type: String,
+        optional: true
+    }
+})
+
 // Attach schemas to activate:
 Config.attachSchema(Schema.Config)
 Domains.attachSchema(Schema.Domains)
@@ -976,4 +1060,4 @@ Transactions.attachSchema(Schema.Transactions)
 History.attachSchema(Schema.History)
 Clipboard.attachSchema(Schema.Clipboard)
 Templates.attachSchema(Schema.Templates)
-
+Functions.attachSchema(Schema.Functions)

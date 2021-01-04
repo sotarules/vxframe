@@ -2,6 +2,7 @@ import {
     setPublishCurrentTenant,
     setPublishAuthoringDomain,
     setPublishAuthoringTemplate,
+    setPublishAuthoringFunction,
     setPublishAuthoringUser,
     setPublishCurrentDomain
 } from "/imports/vx/client/code/actions"
@@ -169,5 +170,31 @@ ContextMaker = {
         const criteria = { _id : UX.lastSegment() }
         OLog.debug(`contextmaker.js  template criteria=${OLog.debugString(criteria)}`)
         return Templates.findOne(criteria)
-    }
+    },
+
+    functionsBeforeRender() {
+        VXApp.selectFirstRecord("publishAuthoringFunction", setPublishAuthoringFunction, VXApp.findFunctionList)
+    },
+
+    functions() {
+        const publishAuthoringFunction = Store.getState().publishAuthoringFunction
+        if (!publishAuthoringFunction) {
+            OLog.debug("contextmaker.js functions redux variable publishAuthoringFunction is *falsy* " +
+                "unable to return function list")
+            return
+        }
+        const funktion = Functions.findOne(publishAuthoringFunction.criteria, publishAuthoringFunction.options)
+        if (!funktion) {
+            OLog.debug("contextmaker.js functions *falsy* return from Functions.findOne, subscription is not ready")
+            return
+        }
+        OLog.debug(`contextmaker.js functions publishAuthoringFunction=${OLog.debugString(publishAuthoringFunction)}`)
+        return funktion
+    },
+
+    funktion() {
+        const criteria = { _id : UX.lastSegment() }
+        OLog.debug(`contextmaker.js function criteria=${OLog.debugString(criteria)}`)
+        return Functions.findOne(criteria)
+    },
 }
