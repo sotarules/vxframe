@@ -32,19 +32,14 @@ VX.common = {
     /**
      * Validate a supplied integer.
      *
-     * @param {string} integerString Value to validate.
+     * @param {string} integer String value to validate.
      * @returns {object} Result object.
      */
     integer : (integerString) => {
-
-        let valid
-
-        valid = Util.isWholeNumber(integerString)
-
+        const valid = Util.isInteger(integerString)
         if (!valid) {
             return { success : false, icon : "TRIANGLE", key : "common.invalid_integer" }
         }
-
         return { success : true }
     },
 

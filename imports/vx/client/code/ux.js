@@ -986,11 +986,7 @@ UX = {
      * @param {object} component React.js Component.
      */
     async validateComponent(component) {
-        let value = component.getValue()
-        let type = value ? value.constructor.name : "undefined"
-        OLog.debug(`ux.js validateComponent componentId=${component.props.id} type=${type}`)
-        let result = await UX.validateInstance(component)
-        OLog.debug(`ux.js validateComponent componentId=${component.props.id} result=${OLog.debugString(result)}`)
+        const result = await UX.validateInstance(component)
         if (!result.success) {
             return
         }
@@ -1053,7 +1049,6 @@ UX = {
      * @param {object} result Result object from validation.
      */
     validateFinish(component, validateArgs, result) {
-        OLog.debug(`ux.js validateFinish id=${component.props.id} result=${OLog.debugString(result)}`)
         // If the validation rule says the data is valid, send back formatted data
         // into the component and potentially update the database:
         if (result.success) {
@@ -2174,7 +2169,7 @@ UX = {
 
     /**
      * Unmount a React modal that is contained within a specified anchor element.
-
+     *
      * @param {object} anchorSelector Anchor jQuery selector.
      */
     unmountModal(anchorSelector) {

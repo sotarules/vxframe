@@ -94,30 +94,6 @@ Serv = {
     },
 
     /**
-     * Mini scheduler makes sure functions fire by the clock.
-     *
-     * @param {string} job Job name.
-     * @param {function} fn Function to execute.
-     * @param {number} secondToFire Number 0-59 specifies which second to fire.
-     * @param {number} minutesBetweenFirings Optional number of minutes to wait until next firing (default zero).
-     */
-    sched(job, fn, secondToFire, minutesBetweenFirings) {
-        let secondsToTop = (60 - moment().seconds()) - 1
-        let msToTop = 1000 - moment().milliseconds()
-        let minutesBetweenDelay = minutesBetweenFirings ? ( ( minutesBetweenFirings - 1 ) * 60 * 1000 ) : 0
-        let fireDelay = (secondsToTop + secondToFire) * 1000 + msToTop + minutesBetweenDelay
-        if (!fn) {
-            console.log("serv.js sched job=" + job + " now=" + moment().format() + " secondsToTop=" + secondsToTop + " secondToFire=" + secondToFire +
-                " msToTop=" + msToTop + " minutesBetweenFirings=" + minutesBetweenFirings + " fireDelay=" + fireDelay + " fn=" + fn)
-        }
-        Meteor.setTimeout(() => {
-            OLog.debug("serv.js sched job=" + job + " *fire* " + moment().format("HH:mm:ss.SSSS"))
-            fn()
-            Serv.sched(job, fn, secondToFire, minutesBetweenFirings)
-        }, fireDelay)
-    },
-
-    /**
      * Allow/Deny rules support.
      */
     isAssertionTrue(assertion, operation, doc, modifier) {

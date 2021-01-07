@@ -1738,5 +1738,30 @@ Meteor.i18nMessages.codes = {
             en : "Restore snapshot",
             rx : "$Restore snapshot$"
         }
+    },
+
+    daemonJob : {
+        MAILMAN : {
+            en : "Process all notification records by sending out email and SMS messages",
+            rx : "$Process all notification records by sending out email and SMS messages$",
+            timeInterval: 10,
+            timeUnit: "SECOND",
+            execFunctionName: "Mailman.run"
+        },
+        REPORTER : {
+            en : "Send scheduled email reports",
+            rx : "$Send scheduled email reports$",
+            timeInterval: 60,
+            timeUnit: "SECOND",
+            initFunctionName : "Reporter.init",
+            execFunctionName: "Reporter.run"
+        },
+        RECORD_REMOVER : {
+            en : "Find and remove old records to conserve space and improve performance",
+            rx : "$Find and remove old records to conserve space and improve performance$",
+            timeInterval: 1,
+            timeUnit: "DAY",
+            execFunctionName: "RecordRemover.removeAllRecords"
+        }
     }
 }

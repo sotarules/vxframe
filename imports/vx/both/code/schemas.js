@@ -147,6 +147,10 @@ Schema.Tenants = new SimpleSchema({
         type : String,
         optional : true
     },
+    timezone : {
+        type : String,
+        optional : true
+    },
     name : {
         type: String,
         optional: true
@@ -1048,6 +1052,47 @@ Schema.Functions = new SimpleSchema({
     }
 })
 
+Schema.DaemonJobs = new SimpleSchema({
+    jobName : {
+        type: String
+    },
+    timeInterval : {
+        type: Number
+    },
+    timeUnit : {
+        type: String
+    },
+    timeOption : {
+        type: String,
+        optional : true
+    },
+    timezone : {
+        type: String,
+        optional : true
+    },
+    initFunctionName : {
+        type: String,
+        optional : true
+    },
+    execFunctionName : {
+        type: String,
+        optional : true
+    },
+    lastDate : {
+        type: Date,
+        optional : true,
+    },
+    nextDate : {
+        type: Date,
+        optional : true
+    },
+    running : {
+        type : Boolean,
+        optional : true
+    }
+})
+
+
 // Attach schemas to activate:
 Config.attachSchema(Schema.Config)
 Domains.attachSchema(Schema.Domains)
@@ -1061,3 +1106,6 @@ History.attachSchema(Schema.History)
 Clipboard.attachSchema(Schema.Clipboard)
 Templates.attachSchema(Schema.Templates)
 Functions.attachSchema(Schema.Functions)
+DaemonJobs.attachSchema(Schema.DaemonJobs)
+
+

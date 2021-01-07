@@ -1049,6 +1049,11 @@ Meteor.i18nMessages.system_settings = _.extend(Meteor.i18nMessages.system_settin
         rx : "$Function Anchor$"
     },
 
+    label_tenant_timezone: {
+        en : "Timezone",
+        rx : "$Timezine$"
+    },
+
     label_tenant_information : {
         en : "Tenant Information",
         rx : "$Tenant Information$"
@@ -1172,6 +1177,11 @@ Meteor.i18nMessages.system_settings = _.extend(Meteor.i18nMessages.system_settin
     tooltip_tenant_function_anchor : {
         en : "Choose the name of a JavaScript global variable to serve as an anchor for user-written functions",
         rx : "$Choose the name of a JavaScript global variable to serve as an anchor for user-written functions$"
+    },
+
+    tooltip_tenant_timezone : {
+        en : "Select a default timezone for this tenant",
+        rx : "$Select a default timezone for this tenant$"
     },
 
     tooltip_domain_mailgun_test : {

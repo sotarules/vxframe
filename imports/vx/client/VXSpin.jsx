@@ -69,13 +69,12 @@ export default class VXSpin extends Component {
             boostat: this.props.boostat,
             maxboostedstep: this.props.maxboostedstep,
         });
-        if (this.props.value) {
-            let value = Util.getWholeNumber(this.props.value)
+        if (this.props.value != null) {
+            let value = Util.getInteger(this.props.value)
             $(selector).val(value)
             this.setValue(value)
         }
         $(selector).on("change", function(event) {
-            OLog.debug("VXSpin.jsx componentDidMount on change id=" + this.props.id + " value=" + event.target.value)
             this.doStateChange(event)
         }.bind(this))
     }
@@ -130,7 +129,6 @@ export default class VXSpin extends Component {
     }
 
     handleChange(event) {
-        OLog.debug("VXSpin.jsx handleChange on change id=" + this.props.id + " value=" + event.target.value)
         event.persist()
         this.doStateChange(event)
     }

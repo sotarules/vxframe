@@ -1,4 +1,4 @@
-"use strict";
+import { get } from "lodash"
 
 Util = {
 
@@ -271,6 +271,16 @@ Util = {
             message = message.replace(regexp, value)
         })
         return message
+    },
+
+    /**
+     * Determine whether a given i18n key exists.
+     *
+     * @param {string} key Key example "common.label_client_name"
+     * @return {boolean} True if the i18n key exists.
+     */
+    i18nKeyExists(key) {
+        return !!get(Meteor.i18nMessages, key)
     },
 
     /**
@@ -1088,11 +1098,21 @@ Util = {
      * @return {boolean} True if input is a whole number.
      */
     isWholeNumber(input) {
+        return CX.REGEX_WHOLE_NUMBER.test(input)
+    },
+
+    /**
+     * Determine whether a given value is an integer.
+     *
+     * @param {string} input Input value.
+     * @return {boolean} True if input is an integer.
+     */
+    isInteger(input) {
         return CX.REGEX_INTEGER.test(input)
     },
 
     /**
-     * Given a string input, return either the while number value of that input
+     * Given a string input, return either the whole number value of that input
      * or null if the value is non-numeric or empty.
      *
      * @param {string} input Input field.
@@ -1100,6 +1120,17 @@ Util = {
      */
     getWholeNumber(input) {
         return Util.isWholeNumber(input) ? parseInt(input) : null
+    },
+
+    /**
+     * Given a string input, return either the integer number value of that input
+     * or null if the value is non-numeric or empty.
+     *
+     * @param {string} input Input field.
+     * @return {number} Number or null.
+     */
+    getInteger(input) {
+        return Util.isInteger(input) ? parseInt(input) : null
     },
 
     /**
@@ -1252,41 +1283,41 @@ Util = {
     },
 
     /**
-     * For scheduling email reports, given a reportFrequency, timeUnit, timeOption, timezone and
-     * optional lastDate, compute and return the nextDate that the report should run.
+     * For scheduling daemon jobs and reports, given a timeInterval, timeUnit, timeOption, timezone and
+     * optional lastDate, compute and return the nextDate that the process should run.
      *
-     * @param {number} Report frequency.
-     * @param {string} Time unit (see codes.timeUnit and also supports "SECOND" undocumented).
-     * @param {string} Time option (see codes.timeOptions).
-     * @param {string} Timezone in IANA format.
+     * @param {number} timeInterval Time interval.
+     * @param {string} timeUnit Time unit (see codes.timeUnit and also supports "SECOND" undocumented).
+     * @param {string} timeOption Time option (see codes.timeOptions).
+     * @param {string} Optional timezone in IANA format.
      * @param {date} Optional last date.
-     * @return {date} Next date that the report should execute.
+     * @return {date} Next date that the process should execute.
      */
-    computeNextDate(reportFrequency, timeUnit, timeOption, timezone, lastDate) {
+    computeNextDate(timeInterval, timeUnit, timeOption, timezone, lastDate) {
         lastDate = lastDate || new Date()
-        let lastMoment = moment.tz(lastDate, timezone)
-        let nextMoment = lastMoment.clone()
-        //OLog.debug("util.js computeNextDate lastMoment="+lastMoment.format()+" using "+reportFrequency+" "+timeUnit+" "+timeOption+" "+timezone)
+        const lastMoment = moment.tz(lastDate, timezone)
+        const nextMoment = lastMoment.clone()
+        //OLog.debug("util.js computeNextDate lastMoment="+lastMoment.format()+" using "+timeInterval+" "+timeUnit+" "+timeOption+" "+timezone)
         if (timeUnit === "SECOND") {
-            nextMoment.add(reportFrequency, "seconds")
+            nextMoment.add(timeInterval, "seconds")
         }
         if (timeUnit === "MINUTE") {
             nextMoment.startOf("minute")
-            nextMoment.add(reportFrequency, "minutes")
+            nextMoment.add(timeInterval, "minutes")
             if (timeOption === "BOTTOM") {
                 nextMoment.add(30, "seconds")
             }
         }
         if (timeUnit === "HOUR") {
             nextMoment.startOf("hour")
-            nextMoment.add(reportFrequency, "hours")
+            nextMoment.add(timeInterval, "hours")
             if (timeOption === "BOTTOM") {
                 nextMoment.add(30, "minutes")
             }
         }
         if (timeUnit === "DAY") {
             nextMoment.startOf("day")
-            nextMoment.add(reportFrequency, "days")
+            nextMoment.add(timeInterval, "days")
             if (timeOption === "SIXAM") nextMoment.add(6, "hours")
             if (timeOption === "NOON") nextMoment.add(12, "hours")
             if (timeOption === "SIXPM") nextMoment.add(18, "hours")
@@ -1294,7 +1325,7 @@ Util = {
         }
         if (timeUnit === "WEEK") {
             nextMoment.startOf("day")
-            nextMoment.add(reportFrequency, "weeks")
+            nextMoment.add(timeInterval, "weeks")
             if (timeOption === "SUNDAY") nextMoment.day(0)
             if (timeOption === "MONDAY") nextMoment.day(1)
             if (timeOption === "TUESDAY") nextMoment.day(2)
@@ -1305,7 +1336,7 @@ Util = {
         }
         if (timeUnit === "MONTH") {
             nextMoment.startOf("month")
-            nextMoment.add(reportFrequency, "months")
+            nextMoment.add(timeInterval, "months")
             if (timeOption === "FIRSTDAY") nextMoment.startOf("month").startOf("day")
             if (timeOption === "LASTDAY") nextMoment.endOf("month").startOf("day")
             if (timeOption === "FIRSTMONDAY") {
@@ -2437,5 +2468,20 @@ Util = {
     indexOf(array, name, value) {
         const ids = _.pluck(array, name)
         return ids.indexOf(value)
+    },
+
+    /**
+     * Return the difference between SetA and SetB
+     *
+     * @param {Set} setA Set A.
+     * @param {Set} setB Set B.
+     * @return {Set} Difference.
+     */
+    difference(setA, setB) {
+        let _difference = new Set(setA)
+        for (let elem of setB) {
+            _difference.delete(elem)
+        }
+        return _difference
     }
 }

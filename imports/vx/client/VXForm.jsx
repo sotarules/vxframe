@@ -127,13 +127,11 @@ export default class VXForm extends Component {
     }
 
     addError(component) {
-        OLog.debug("VXForm.jsx addError id=" + component.props.id + " localizedMessage=" + component.state.localizedMessage)
         this.state.errors.add(component)
         this.setState( { errors : this.state.errors } )
     }
 
     deleteError(component) {
-        OLog.debug("VXForm.jsx deleteError id=" + component.props.id)
         this.state.errors.delete(component)
         this.setState( { errors : this.state.errors } )
     }
