@@ -38,7 +38,6 @@ Reporter = {
      * Find all users that have one or more reports that need to be generated.
      */
     findUsersWithScheduledReports() {
-        OLog.debug("reporter.js findUsersWithScheduledReports *init*")
         Meteor.users.find( { "profile.reportPreferences.nextDate" : { $lte: new Date() } } ).forEach(user => {
             Reporter.createScheduledReports(user)
         })

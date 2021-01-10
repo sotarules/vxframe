@@ -1239,8 +1239,9 @@ Util = {
             return false
         }
         // Some special notifications have no event type, in such case there can be no EMAIL or SMS.
+        // But PNOTIFY is unconditional.
         if (!notification.eventType) {
-            return false
+            return mode === "PNOTIFY"
         }
         return Util.isNotificationEnabled(user, notification.eventType, mode)
     },

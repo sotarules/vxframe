@@ -3,6 +3,21 @@
 VX.common = {
 
     /**
+     * Validate a name.
+     *
+     * @param {string} name Value to validate.
+     * @returns {object} Result object.
+     */
+    name : (name) => {
+
+        if (!CX.REGEX_NAME.test(name)) {
+            return { success : false, icon : "TRIANGLE", key : "common.invalid_name" }
+        }
+
+        return { success : true }
+    },
+
+    /**
      * Validate a supplied date.
      *
      * @param {string} dateString Value to validate.
@@ -352,6 +367,25 @@ VX.common = {
     url : (url) => {
         if (url && !CX.REGEX_URL.test(url)) {
             return { success : false, icon : "TRIANGLE", key : "common.invalid_url" }
+        }
+
+        return { success : true }
+    },
+
+    /**
+     * Check for valid command (RETIRE).
+     *
+     * @param {string} command Command to test.
+     * @return {object} Result object.
+     */
+    command : (command) => {
+
+        if (!command) {
+            return { success : true }
+        }
+
+        if (command !== "RETIRE") {
+            return { success : false, icon : "TRIANGLE", key :  "common.invalid_command" }
         }
 
         return { success : true }

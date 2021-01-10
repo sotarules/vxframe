@@ -1,4 +1,4 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
@@ -7,6 +7,7 @@ import RightHeader from "/imports/vx/client/RightHeader"
 import VXForm from "/imports/vx/client/VXForm"
 import VXInput from "/imports/vx/client/VXInput"
 import VXTextArea from "/imports/vx/client/VXTextArea"
+import UploadButton from "/imports/vx/client/UploadButton"
 
 export default class TemplateEditRight extends Component {
 
@@ -16,10 +17,7 @@ export default class TemplateEditRight extends Component {
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray"]),
         decorationTooltip : PropTypes.string,
-        isShowButton : PropTypes.bool,
-        buttonId : PropTypes.string,
-        buttonText : PropTypes.string,
-        buttonClassName : PropTypes.string
+        uploadInProgress : PropTypes.bool
     }
 
     static defaultProps = {
@@ -119,6 +117,15 @@ export default class TemplateEditRight extends Component {
     handleDoneEditing() {
         OLog.debug("TemplateEditRight.jsx handleDoneEditing")
         UX.iosPopAndGo("crossfade")
+    }
+
+    rightButton() {
+        return (
+            <UploadButton id="client-view-upload-button"
+                uploadType="CLIENT"
+                currentUpload={this.currentUpload}
+                isUploadInProgress={this.props.uploadInProgress}/>
+        )
     }
 
     handleClickSendTestEmail(callback) {

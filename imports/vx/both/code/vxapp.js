@@ -605,6 +605,310 @@ VXApp = _.extend(VXApp || {}, {
             return
         }
         return functionAnchor
+    },
+
+    /**
+     * Test the upload status against a particular value or set of values.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {?} status Status to use for testing or (string or array).
+     * @param {string} domainId Optional domain ID.
+     * @return {boolean} True if upload status matches the specified value(s).
+     */
+    isUploadStatus(uploadType, status, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return false
+        }
+        if (_.isArray(status)) {
+            return _.contains(status, uploadStats.status)
+        }
+        if (_.isString(status)) {
+            return uploadStats.status === status
+        }
+        return false
+    },
+
+    /**
+     * Determine whether upload is progress.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {boolean} True if upload is in progress.
+     */
+    isUploadInProgress(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return false;
+        }
+        return _.contains( [ "ACTIVE", "TRANSMITTING", "WAITING", "INSERTING" ], uploadStats.status)
+    },
+
+    /**
+     * Determine whether upload is inserting.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {boolean} True if upload is inserting.
+     */
+    isUploadInserting : function(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return false
+        }
+        return _.contains( [ "INSERTING" ], uploadStats.status);
+    },
+
+    /**
+     * Determine whether upload stats exist (i.e., have not been cleared)
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {boolean} True if upload stats exist.
+     */
+    isUploadStats(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return false;
+        }
+        return uploadStats.status !== "CLEARED"
+    },
+
+    /**
+     * Determine whether upload has ended.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {boolean} True if upload has ended.
+     */
+    isUploadEnded(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return false
+        }
+        return _.contains( ["COMPLETED", "COMPLETED_WITH_ERRORS", "STOPPED", "FAILED", "CLEARED"], uploadStats.status)
+    },
+
+    /**
+     * Determine whether any upload errors exist.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {boolean} True if any messages exist.
+     */
+    isUploadErrors(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return false
+        }
+        if (uploadStats.status === "CLEARED") {
+            return false
+        }
+        if (!uploadStats.messages) {
+            return false
+        }
+        return uploadStats.messages.length > 0
+    },
+
+    /**
+     * Set upload status.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} status Upload status to set.
+     * @param {string} domainId Optional Domain ID.
+     */
+    setUploadStatus(uploadType, status, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return
+        }
+        const modifier = {}
+        modifier.$set = {}
+        modifier.$set.status = status
+        UploadStats.update(uploadStats._id, modifier)
+    },
+
+    /**
+     * Get upload status.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {object} Upload stats object.
+     */
+    getUploadStatus(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return
+        }
+        return uploadStats.status
+    },
+
+    /**
+     * Get progress bar class.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {string} Progress bar class.
+     */
+    progressBarClass(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return
+        }
+        switch (uploadStats.status) {
+        case "TRANSMITTING" :
+            return "progress-bar-success"
+        case "WAITING" :
+            return "progress-bar-success progress-bar-striped"
+        case "STOPPED" :
+            return "progress-bar-danger"
+        case "FAILED" :
+            return "progress-bar-danger"
+        case "COMPLETED_WITH_ERRORS" :
+            return "progress-bar-warning"
+        }
+        // Otherwise brand primary:
+        return "progress-bar-info"
+    },
+
+    /**
+     * Get progress bar active indicator.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {string} Progress bar active indicator.
+     */
+    progressBarActive(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return
+        }
+        return uploadStats.status === "WAITING" ? "active" : ""
+    },
+
+    /**
+     * Return text to be displayed on progress bar.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {string} Progress bar active indicator.
+     */
+    uploadProgress(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId);
+        if (!uploadStats) {
+            return;
+        }
+        const percentComplete = VXApp.computeUploadCompletionPercentage(uploadType, domainId)
+        switch (uploadStats.status) {
+        case "TRANSMITTING" : {
+            return Util.i18n("common.label_upload_status_sending", { percentComplete: percentComplete })
+        }
+        case "WAITING" : {
+            return Util.i18n("common.label_upload_status_waiting")
+        }
+        case "INSERTING" : {
+            return Util.i18n("common.label_upload_status_inserting", { percentComplete: percentComplete })
+        }
+        case "COMPLETED" : {
+            return Util.i18n("common.label_upload_status_completed", { percentComplete: percentComplete })
+        }
+        case "COMPLETED_WITH_ERRORS" : {
+            return Util.i18n("common.label_upload_status_completed_with_errors", { percentComplete: percentComplete })
+        }
+        case "STOPPED" : {
+            return Util.i18n("common.label_upload_status_stopped")
+        }
+        case "FAILED" : {
+            return Util.i18n("common.label_upload_status_failed")
+        }
+        }
+    },
+
+    /**
+     * Return percent complete as an integer number.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {number} Percent complete.
+     */
+    percentComplete(uploadType, domainId) {
+        return VXApp.computeUploadCompletionPercentage(uploadType, domainId)
+    },
+
+    /**
+     * Compute the upload completion percentage.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {number} Completion percentage.
+     */
+    computeUploadCompletionPercentage(uploadType, domainId) {
+        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
+        if (!uploadStats) {
+            return;
+        }
+        // For these cases, return 100% so we have a full bar (looks nice):
+        if (_.contains( ["WAITING", "STOPPED", "FAILED" ], uploadStats.status)) {
+            return 100;
+        }
+        if (uploadStats.processed > 0 && uploadStats.total > 0) {
+            return Math.floor(uploadStats.processed * 100 / uploadStats.total)
+        }
+        return 0
+    },
+
+    /**
+     * Find Upload Stats object.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {string} domainId Optional Domain ID.
+     * @return {object} Upload Stats object or null.
+     */
+    findUploadStats(uploadType, domainId) {
+        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        if (!domainId) {
+            OLog.error(`vxapp.js findUploadStats unable to infer domainId from userId=${Meteor.userId()}`)
+            return;
+        }
+        return UploadStats.findOne( { domain : domainId, uploadType : uploadType } )
+    },
+
+    /**
+     * Generalized validation for import, conditionally adds a message
+     * to the supplied messages array in place.
+     *
+     * @param {string} value Value to test.
+     * @param {function} fn Validation function.
+     * @param {number} index Index of row containing value.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     */
+    validate(value, fn, index, messages, fieldIdKey, fieldIdVariables) {
+        const result = fn(value)
+        if (result.success) {
+            return true
+        }
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        return false
+    },
+
+    /**
+     * Generalized validation for import, conditionally mutates the array of messages to add a message.
+     *
+     * @param {object} result Result returned from validation function.
+     * @param {number} index Index of row containing value.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     */
+    validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables) {
+        const message = {}
+        message.index = index
+        message.fieldIdKey = fieldIdKey
+        message.fieldIdVariables = fieldIdVariables
+        message.result = result
+        messages.push(message)
     }
 })
 

@@ -17,9 +17,11 @@ import {
     setPublishCurrentUsers,
     setPublishCurrentTemplates,
     setPublishCurrentFunctions,
+    setPublishCurrentUploadStats,
     setPublishingModeClient,
     setPublishingModeServer,
-    setSubscriptionParameters
+    setSubscriptionParameters,
+    setListImportLastPercent
 } from "/imports/vx/client/code/actions"
 
 VXApp = _.extend(VXApp || {}, {
@@ -55,6 +57,8 @@ VXApp = _.extend(VXApp || {}, {
             newSubscriptionParameters, { dateRetired : { $exists : false } }, { sort: { "name": 1 } })
         const publishCurrentFunctions = VXApp.makePublishingRequest("functions",
             newSubscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
+        const publishCurrentUploadStats = VXApp.makePublishingRequest("uploadstats",
+            newSubscriptionParameters, { }, { })
 
         if (doClient) {
             Store.dispatch(setPublishCurrentTenants(publishCurrentTenants.client))
@@ -62,6 +66,7 @@ VXApp = _.extend(VXApp || {}, {
             Store.dispatch(setPublishCurrentUsers(publishCurrentUsers.client))
             Store.dispatch(setPublishCurrentTemplates(publishCurrentTemplates.client))
             Store.dispatch(setPublishCurrentFunctions(publishCurrentFunctions.client))
+            Store.dispatch(setPublishCurrentUploadStats(publishCurrentUploadStats.client))
         }
 
         if (doServer) {
@@ -72,6 +77,7 @@ VXApp = _.extend(VXApp || {}, {
             handles.push(Meteor.subscribe("current_users", publishCurrentUsers.server))
             handles.push(Meteor.subscribe("templates", publishCurrentTemplates.server))
             handles.push(Meteor.subscribe("functions", publishCurrentFunctions.server))
+            handles.push(Meteor.subscribe("uploadstats", publishCurrentUploadStats.server))
         }
 
         return handles
@@ -1581,5 +1587,206 @@ VXApp = _.extend(VXApp || {}, {
         catch (error) {
             OLog.error(`vxapp.js removeFunction unexpected error ${error}`)
         }
+    },
+
+    /**
+     * Client-side support for uploading a file.
+     *
+     * @param {string} uploadType Upload type.
+     * @param {object} currentUpload Current upload reactive variable.
+     * @param {object} file HTML file instance.
+     * @param {object} uploadParameters Optional upload parameters object.
+     */
+    uploadFile(uploadType, currentUpload, file, uploadParameters) {
+        try {
+            OLog.debug("vxapp.js uploadFile *fire*")
+            if (!file) {
+                OLog.error("vxapp.js uploadFile *error* no file input was supplied")
+                return
+            }
+            Meteor.call("initUploadStats", uploadType, file.name, file.size, (error, result) => {
+                if (!result.success) {
+                    UX.createAlertForResult(result)
+                    VXApp.setUploadStatus(uploadType, "CLEARED")
+                    return
+                }
+                Meteor.call("createImportEvent", "LIST_IMPORT_START", uploadType, (error, result) => {
+                    if (!result.success) {
+                        UX.createAlertForResult(result)
+                        VXApp.setUploadStatus(uploadType, "CLEARED")
+                        return
+                    }
+                    VXApp.uploadTransmit(uploadType, currentUpload, uploadParameters, file)
+                })
+            })
+        }
+        catch (error) {
+            OLog.error(`vxapp.js uploadFile unexpected error=${error}`)
+            UX.createAlertForResult({ success: false, icon: "BUG", key: "common.alert_unexpected_error",
+                variables: { error: error.toString() } })
+            VXApp.setUploadStatus(uploadType, "CLEARED")
+        }
+    },
+
+    /**
+     * Upload file: transmit data.
+     *
+     * @param {string} type Upload type.
+     * @param {object} currentUpload Current upload reactive variable.
+     * @param {object} uploadParameters Optional upload parameters object.
+     * @param {object} file HTML file instance.
+     */
+    uploadTransmit(uploadType, currentUpload, uploadParameters, file) {
+        try {
+            // This is rocket science - see below
+            let trackerComputation
+            const uploadStats = VXApp.findUploadStats(uploadType)
+            if (!uploadStats) {
+                OLog.error(`vxapp.js uploadTransmit uploadType=${uploadType} unable to find Upload Stats`)
+                VXApp.setUploadStatus(uploadType, "FAILED")
+                return
+            }
+            // We upload only one file, in case multiple files were selected:
+            const upload = Uploads.insert({ file : file, transport: "ddp", streams: "dynamic", chunkSize: "dynamic" }, false)
+            upload.on("start", function() {
+                Store.dispatch(setListImportLastPercent(0))
+                currentUpload.set(this)
+            })
+            upload.on("end", function(error, fileObject) {
+                if (trackerComputation) {
+                    OLog.debug(`vxapp.js uploadTransmit uploadType=${uploadType} stopping computation`)
+                    trackerComputation.stop()
+                }
+                if (error) {
+                    OLog.error(`vxapp.js uploadTransmit domainId=${uploadStats.domain} ` +
+                        `uploadType=${uploadStats.uploadType} error=${error}`)
+                    UX.createAlertForResult({ success: false, icon: "UPLOAD", key: "common.alert_upload_error",
+                        variables: { errorMessage: error.toString() } })
+                    currentUpload.set(false)
+                    VXApp.setUploadStatus(uploadType, "FAILED")
+                    return
+                }
+                if (VXApp.isUploadStatus(uploadType, "STOPPED")) {
+                    OLog.debug(`vxapp.js uploadTransmit domainId=${uploadStats.domain} ` +
+                        `uploadType=${uploadStats.uploadType} *end* processing aborted because transmission has been stopped`)
+                    return
+                }
+                OLog.debug(`vxapp.js uploadTransmit domainId=${uploadStats.domain} ` +
+                    `uploadType=${uploadStats.uploadType} uploadParameters=${OLog.debugString(uploadParameters)} ` +
+                    `path=${fileObject.path} successfully uploaded totalSize=${fileObject.size}`)
+                const modifier = {}
+                modifier.$set = {}
+                modifier.$set.filePath = fileObject.path
+                modifier.$set.status = "WAITING"
+                modifier.$set.uploadParameters = uploadParameters
+                UploadStats.update(uploadStats._id, modifier)
+            })
+            upload.start()
+            // Don't use FileUpload percentage directly, instead mirror progress directly into UploadStats record.
+            // When UploadStats is the central authority, all browser clients see the upload progress bar, and all
+            // authorized users have the option to stop the upload. Conversely, FileUpload is local to this client.
+            Tracker.autorun(function(computation) {
+                // This is rocket science, but we're anchoring trackerComputation in a closure.
+                // When the upload finishes, we'll stop this autorun.
+                trackerComputation = computation
+                const fileUpload = currentUpload.get()
+                if (!fileUpload) {
+                    OLog.error("vxapp.js uploadTransmit autorun FileUpload is not present")
+                    return
+                }
+                const oldPercent = Store.getState().listImportLastPercent || 0
+                const newPercent = fileUpload.progress ? fileUpload.progress.get() : 0
+                if (newPercent > oldPercent) {
+                    OLog.debug(`vxapp.js uploadTransmit oldPercent=${oldPercent} newPercent=${newPercent}`)
+                    Store.dispatch(setListImportLastPercent(newPercent))
+                    if (VXApp.isUploadStatus(uploadType, "TRANSMITTING")) {
+                        UploadStats.update(uploadStats._id, { $set: { processed: newPercent } })
+                    }
+                }
+            })
+        }
+        catch (error) {
+            OLog.error(`vxapp.js uploadTransmit unexpected error=${error}`)
+            UX.createAlertForResult({ success: false, icon: "BUG", key: "common.alert_unexpected_error",
+                variables: { error: error.toString() } })
+            VXApp.setUploadStatus(uploadType, "FAILED")
+        }
+    },
+
+    /**
+     * Upload file: stop import.
+     *
+     * @param {string} type Upload type.
+     * @param {object} currentUpload Current upload reactive variable.
+     * @param {function) callback Callback function.
+     */
+    uploadStop(uploadType, currentUpload, callback) {
+        try {
+            const uploadStats = VXApp.findUploadStats(uploadType)
+            if (!uploadStats) {
+                callback()
+                return
+            }
+            const fileUpload = currentUpload.get()
+            Meteor.setTimeout(function() {
+                // If status is TRANSMITTING we must call abort on the fileUpload object to stop the
+                // file transfer:
+                if (uploadStats.status === "TRANSMITTING") {
+                    if (fileUpload) {
+                        fileUpload.abort()
+                    }
+                    Meteor.call("createImportEvent", "LIST_IMPORT_STOP", uploadType, (error, result) => {
+                        if (!result.success) {
+                            UX.createAlertForResult(result)
+                        }
+                        VXApp.setUploadStatus(uploadType, "STOPPED")
+                        callback()
+                        return
+                    })
+                    return
+                }
+                // Otherwise (e.g., status is INSERTING) we have to formally request that the process be stopped:
+                Meteor.call("uploadRequestStop", uploadType, (error, result) => {
+                    if (!result.success) {
+                        UX.createAlertForResult(result)
+                    }
+                    callback()
+                    return
+                })
+
+            }, 1000)
+        }
+        catch (error) {
+            OLog.error(`vxapp.js uploadStop unexpected error=${error}`)
+            UX.createAlertForResult({ success : false, icon : "BUG", key : "common.alert_unexpected_error",
+                variables : { error: error.toString() } })
+            callback()
+            return
+        }
+    },
+
+    /**
+     * Client support for getting upload errors localized as string.
+     *
+     * @param {string} uploadType Upload type.
+     * @return {string} Upload errors list (localized).
+     */
+    uploadErrors(uploadType) {
+        const uploadStats = VXApp.findUploadStats(uploadType)
+        if (!(uploadStats && uploadStats.messages && uploadStats.messages.length > 0)) {
+            return
+        }
+        uploadStats.messages.sort(function(messageA, messageB) {
+            if (messageA.index > messageB.index) return +1
+            if (messageA.index < messageB.index) return -1
+            return 0
+        })
+        const messagesLocalized = _.map(uploadStats.messages, message => {
+            return Util.i18n("common.message_import_validation", {
+                fieldIdentifier: Util.i18n(message.fieldIdKey, message.fieldIdVariables),
+                text: Util.i18n(message.result.key, message.result.variables)
+            })
+        })
+        return messagesLocalized.join("<br>")
     }
 })

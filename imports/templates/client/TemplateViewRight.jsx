@@ -7,6 +7,9 @@ import VXForm from "/imports/vx/client/VXForm"
 import VXFieldBox from "/imports/vx/client/VXFieldBox"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
 import RetireModal from "/imports/vx/client/RetireModal"
+import UploadButton from "/imports/vx/client/UploadButton"
+import UploadProgressBarContainer from "/imports/vx/client/UploadProgressBarContainer"
+import UploadErrorPanelContainer from "/imports/vx/client/UploadErrorPanelContainer"
 import { setPublishAuthoringTemplate } from "/imports/vx/client/code/actions"
 
 export default class TemplateViewRight extends Component {
@@ -17,6 +20,7 @@ export default class TemplateViewRight extends Component {
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray"]),
         decorationTooltip : PropTypes.string,
+        isUploadInProgress : PropTypes.bool
     }
 
     static defaultProps = {
@@ -26,6 +30,7 @@ export default class TemplateViewRight extends Component {
     constructor(props) {
         super(props)
         this.locked = false
+        this.currentUpload = new ReactiveVar(false)
     }
 
     shouldComponentUpdate() {
@@ -66,15 +71,16 @@ export default class TemplateViewRight extends Component {
                             decorationIconClassName={this.props.decorationIconClassName}
                             decorationColor={this.props.decorationColor}
                             decorationTooltip={this.props.decorationTooltip}
-                            isShowButton={true}
-                            buttonId="button-send-test-email"
-                            buttonText={Util.i18n("common.button_send_test_email")}
-                            buttonClassName="btn btn-primary btn-custom pull-right"
-                            onClickButton={this.handleClickSendTestEmail.bind(this)}/>
+                            customComponentRight={this.rightButton()}/>
+
                         <RightBody className="right-body-no-margin-top">
                             <VXForm id="template-view-right-form"
                                 ref={(form) => { this.form = form }}
                                 className="right-panel-form flexi-grow">
+                                <UploadProgressBarContainer uploadType="TEMPLATE"/>
+                                {!this.props.isUploadInProgress &&
+                                    <UploadErrorPanelContainer uploadType="TEMPLATE"/>
+                                }
                                 <div className="flexi-fixed">
                                     <VXFieldBox label={Util.i18n("common.label_subject")}
                                         value={this.props.template.subject}/>
@@ -96,10 +102,20 @@ export default class TemplateViewRight extends Component {
         )
     }
 
+    rightButton() {
+        return (
+            <UploadButton id="client-view-upload-button"
+                uploadType="TEMPLATE"
+                currentUpload={this.currentUpload}
+                isUploadInProgress={this.props.uploadInProgress}/>
+        )
+    }
+
     handleEdit(callback) {
         OLog.debug("TemplateViewRight.jsx handleEdit")
         callback()
-        UX.iosMajorPush(null, null, "/template/" + this.props.template._id, "RIGHT", "crossfade")
+        UX.iosMajorPush(null, null, "/template/" + this.props.template._id,
+            "RIGHT", "crossfade")
     }
 
     handleClone(callback) {
@@ -117,12 +133,5 @@ export default class TemplateViewRight extends Component {
             _id={this.props.template._id}
             retireMethod="retireTemplate"
             publishSetAction={setPublishAuthoringTemplate}/>)
-    }
-
-    handleClickSendTestEmail(callback) {
-        Meteor.call("sendTestEmail", this.props.template._id, (error, result) => {
-            callback()
-            UX.notify(result, error)
-        })
     }
 }

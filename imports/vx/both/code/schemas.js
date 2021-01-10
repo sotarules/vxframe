@@ -449,6 +449,11 @@ Schema.Notifications = new SimpleSchema({
         allowedValues : Util.getCodes("eventType"),
         optional : true
     },
+    senderId: {
+        type : String,
+        custom: Schema.checkUserId,
+        optional : true
+    },
     recipientId: {
         type : String,
         custom: Schema.checkUserId
@@ -943,7 +948,6 @@ Schema.Templates = new SimpleSchema({
     domain : {
         type : String,
         custom: Schema.checkDomainId,
-        denyUpdate: true,
         autoValue : function() {
             if (this.isInsert && !this.isSet) {
                 return Util.getCurrentDomainId(this.userId);
@@ -1092,6 +1096,70 @@ Schema.DaemonJobs = new SimpleSchema({
     }
 })
 
+Schema.UploadStats = new SimpleSchema({
+    date : {
+        type : Date,
+        autoValue: function() {
+            return new Date();
+        }
+    },
+    domain : {
+        type : String,
+        custom: Schema.checkDomainId,
+        autoValue : function() {
+            if (this.isInsert && !this.isSet) {
+                return Util.getCurrentDomainId(this.userId);
+            }
+        }
+    },
+    uploadType : {
+        type : String,
+        allowedValues : Util.getCodes("uploadType")
+    },
+    uploadParameters : {
+        type : Object,
+        blackbox : true,
+        optional : true
+    },
+    status : {
+        type : String,
+        allowedValues : Util.getCodes("uploadStatus")
+    },
+    userId : {
+        type : String,
+        optional : true
+    },
+    originalFileName : {
+        type : String,
+        optional : true
+    },
+    totalSize : {
+        type : Number,
+        optional : true
+    },
+    filePath : {
+        type : String,
+        optional : true
+    },
+    processed : {
+        type : Number,
+        optional : true
+    },
+    total : {
+        type : Number,
+        optional: true
+    },
+    stop : {
+        type: Boolean,
+        optional: true
+    },
+    messages : {
+        type : [Object],
+        blackbox : true,
+        optional : true
+    }
+})
+
 
 // Attach schemas to activate:
 Config.attachSchema(Schema.Config)
@@ -1107,5 +1175,4 @@ Clipboard.attachSchema(Schema.Clipboard)
 Templates.attachSchema(Schema.Templates)
 Functions.attachSchema(Schema.Functions)
 DaemonJobs.attachSchema(Schema.DaemonJobs)
-
-
+UploadStats.attachSchema(Schema.UploadStats)

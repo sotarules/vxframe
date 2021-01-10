@@ -126,6 +126,22 @@ Meteor.methods({
         return VXApp.createEvent(eventType, null, eventData, variables)
     },
 
+    initUploadStats(uploadType, originalFileName, totalSize) {
+        return RecordImporter.initUploadStats(uploadType, originalFileName, totalSize)
+    },
+
+    createImportEvent(eventType, uploadType) {
+        return RecordImporter.createImportEvent(eventType, uploadType)
+    },
+
+    setUploadStatus(uploadType, status) {
+        return VXApp.setUploadStatus(uploadType, status)
+    },
+
+    uploadRequestStop(uploadType) {
+        return RecordImporter.uploadRequestStop(uploadType)
+    },
+
     performanceSetCapture(capture) {
         return Performance.setCapture(capture)
     },

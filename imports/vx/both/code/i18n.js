@@ -112,6 +112,11 @@ Meteor.i18nMessages.common = {
         rx : "$Language is not valid.$"
     },
 
+    invalid_name : {
+        en : "Name is not valid.",
+        rx : "$Name is not valid.$"
+    },
+
     invalid_firstName : {
         en : "First name is not valid.",
         rx : "$First name is not valid.$"
@@ -200,6 +205,11 @@ Meteor.i18nMessages.common = {
     invalid_url: {
         en : "URL is not valid.",
         rx : "$URL is not valid.$"
+    },
+
+    invalid_command : {
+        en : "Invalid command (currently the only supported command is RETIRE)",
+        rx : "$Invalid command (currently the only supported command is RETIRE)$"
     },
 
     option_none : {
@@ -540,6 +550,106 @@ Meteor.i18nMessages.common = {
     alert_user_logged_out: {
         en : "{{userName}} has logged out",
         rx : "${{userName}} has logged out$"
+    },
+
+    alert_upload_success : {
+        en : "CSV file has been uploaded successfully.",
+        rx : "$CSV file has been uploaded successfully.$"
+    },
+
+    alert_upload_stopped : {
+        en : "CSV file import process has been stopped.",
+        rx : "$CSV file import process has been stopped.$"
+    },
+
+    alert_upload_stop_request_success : {
+        en : "CSV file import process stop request received, upload will stop shortly.",
+        rx : "$CSV file import process stop request received, upload will stop shortly.$"
+    },
+
+    alert_csv_unexpected_error : {
+        en : "CSV file import unexpected error in stream callback: {{error}}",
+        rx : "$CSV file import unexpected error in stream callback: {{error}}$"
+    },
+
+    alert_upload_error : {
+        en : "Unable to upload CSV file - {{errorMessage}}",
+        rx : "$Unable to upload CSV file - {{errorMessage}}$"
+    },
+
+    alert_upload_errors_detected : {
+        en : "CSV file has been uploaded with errors detected (see messages).",
+        rx : "$CSV file has been uploaded with errors detected (see messages)$"
+    },
+
+    alert_list_import_start : {
+        en : "{{fullName}} has started import of {{originalFileName}} into {{uploadType}}",
+        rx : "${{fullName}} has started import of {{originalFileName}} into {{uploadType}}$"
+    },
+
+    alert_list_import_finish : {
+        en : "Import of {{originalFileName}} into {{uploadType}} has completed",
+        rx : "$Import of {{originalFileName}} into {{uploadType}} has completed"
+    },
+
+    alert_list_import_stop : {
+        en : "{{fullName}} has stopped import of {{originalFileName}} into {{uploadType}}",
+        rx : "${{fullName}} has stopped import of {{originalFileName}} into {{uploadType}}$"
+    },
+
+    alert_list_import_fail : {
+        en : "Import of {{originalFileName}} into {{uploadType}} was not successful",
+        rx : "$Import of {{originalFileName}} into {{uploadType}} was not successful$"
+    },
+
+    alert_list_import_reset : {
+        en : "The system has stopped the in-progress importation of {{originalFileName}} into {{uploadType}}",
+        rx : "$The system has stopped the in-progress importation of {{originalFileName}} into {{uploadType}}$"
+    },
+
+    label_upload_status_sending : {
+        en : "Sending {{percentComplete}}%",
+        rx : "$Sending ${{percentComplete}}%$"
+    },
+
+    label_upload_status_waiting : {
+        en : "Send *completed* waiting for import daemon",
+        rx : "$Send *completed* Waiting for import daemon$"
+    },
+
+    label_upload_status_inserting : {
+        en : "Inserting {{percentComplete}}%",
+        rx : "$Inserting ${{percentComplete}}%$"
+    },
+
+    label_upload_status_completed : {
+        en : "Completed {{percentComplete}}%",
+        rx : "$Completed ${{percentComplete}}%$"
+    },
+
+    label_upload_status_completed_with_errors : {
+        en : "Completed {{percentComplete}}% With Errors",
+        rx : "$Completed ${{percentComplete}}% With Errors$"
+    },
+
+    label_upload_status_failed : {
+        en : "Import Failed",
+        rx : "$Import Failed$"
+    },
+
+    label_upload_status_stopped : {
+        en : "Import Stopped",
+        rx : "$Import Stopped$"
+    },
+
+    field_id_path_specification : {
+        en : "Row {{rowIndex}} {{path}}",
+        rx : "$Row {{rowIndex}} {{path}}$"
+    },
+
+    message_import_validation : {
+        en : "{{fieldIdentifier}} - {{text}}",
+        rx : "${{fieldIdentifier}} - {{text}}$"
     },
 
     message_loading : {

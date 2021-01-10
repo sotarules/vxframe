@@ -1664,7 +1664,57 @@ Meteor.i18nMessages.codes = {
                 scope : "ALL"
             },
             notificationDefaults : [ "PNOTIFY" ]
-        }
+        },
+        LIST_IMPORT_START : {
+            en : "When list CSV import process is started",
+            rx : "$When list CSV import process is started$",
+            notification : {
+                type : "INFO",
+                icon : "UPLOAD",
+                key : "common.alert_list_import_start"
+            },
+            notificationDefaults : [ "PNOTIFY" ]
+        },
+        LIST_IMPORT_FINISH : {
+            en : "When list CSV import process is finished",
+            rx : "$When list CSV import process is finished$",
+            notification : {
+                type : "INFO",
+                icon : "UPLOAD",
+                key : "common.alert_list_import_finish"
+            },
+            notificationDefaults : [ "PNOTIFY" ]
+        },
+        LIST_IMPORT_STOP : {
+            en : "When list CSV import process is stopped by the user",
+            rx : "$When list CSV import process is stopped by the user$",
+            notification : {
+                type : "INFO",
+                icon : "UPLOAD",
+                key : "common.alert_list_import_stop"
+            },
+            notificationDefaults : [ "PNOTIFY" ]
+        },
+        LIST_IMPORT_FAIL : {
+            en : "When list CSV import process fails due to error",
+            rx : "$When list CSV import process fails due to error$",
+            notification : {
+                type : "ERROR",
+                icon : "UPLOAD",
+                key : "common.alert_list_import_fail"
+            },
+            notificationDefaults : [ "PNOTIFY" ]
+        },
+        LIST_IMPORT_RESET : {
+            en : "When the import daemon stops CSV import after a system restart",
+            rx : "$When the import daemon stops CSV import after a system restart$",
+            notification : {
+                type : "ERROR",
+                icon : "UPLOAD",
+                key : "common.alert_list_import_reset"
+            },
+            notificationDefaults : [ "PNOTIFY" ]
+        },
     },
 
     subsystemName : {
@@ -1762,6 +1812,63 @@ Meteor.i18nMessages.codes = {
             timeInterval: 1,
             timeUnit: "DAY",
             execFunctionName: "RecordRemover.removeAllRecords"
+        },
+        RECORD_IMPORTER: {
+            en : "Import records from CSV files into the system",
+            rx : "$Import records from CSV files into the system$",
+            timeInterval: 2,
+            timeUnit: "SECOND",
+            execFunctionName: "RecordImporter.findImportRequests"
+        }
+    },
+
+    uploadType : {
+        TEMPLATE: {
+            en : "Email Templates",
+            rx : "$Email Templates$",
+            prepareFunctionName: "RecordImporter.prepareGeneric",
+            insertMode : "UPSERT",
+            collection : "templates",
+            keypath : "name"
+        },
+    },
+
+    uploadStatus : {
+        TRANSMITTING : {
+            en : "Transmitting",
+            rx : "$Transmitting$"
+        },
+        WAITING : {
+            en : "Waiting for Daemon",
+            rx : "$Waiting for Daemon$"
+        },
+        ACTIVE : {
+            en : "Active",
+            rx : "$Active$"
+        },
+        INSERTING : {
+            en : "Inserting records into database",
+            rx : "$Inserting records into database$"
+        },
+        COMPLETED : {
+            en : "Completed",
+            rx : "$Completed$"
+        },
+        COMPLETED_WITH_ERRORS : {
+            en : "Completed With Errors",
+            rx : "$Completed With Errors$"
+        },
+        STOPPED : {
+            en : "Stopped",
+            rx : "$Stopped$"
+        },
+        FAILED : {
+            en : "Failed due to error",
+            rx : "$Failed due to error$"
+        },
+        CLEARED : {
+            en : "Cleared",
+            rx : "$Cleared$"
         }
     }
 }

@@ -13,3 +13,6 @@ Notifications = new Meteor.Collection("notifications")
 Templates = new Meteor.Collection("templates")
 Functions = new Meteor.Collection("functions")
 DaemonJobs = new Meteor.Collection("daemonjobs")
+
+Uploads = new FilesCollection( { collectionName: "Uploads", storagePath : "/imports" } )
+UploadStats = new Meteor.Collection("uploadstats")

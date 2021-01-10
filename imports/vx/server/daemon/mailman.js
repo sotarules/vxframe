@@ -12,7 +12,7 @@ Mailman = {
         mailRequest.criteria = { EMAIL_processed : { $exists : false } }
         mailRequest.options = { sort : { date : 1 } }
         Notifications.find(mailRequest.criteria, mailRequest.options).forEach(notification => {
-            let desired = Util.isNotificationDesired(notification, "EMAIL")
+            const desired = Util.isNotificationDesired(notification, "EMAIL")
             //OLog.debug(`mailman.js EMAIL for ${Util.fetchFullName(notification.recipientId)} desired=${desired}`)
             if (desired) {
                 Mailman.sendEmail(notification)
@@ -25,8 +25,7 @@ Mailman = {
         mailRequest.criteria = { SMS_processed : { $exists : false } }
         mailRequest.options = { sort : { date : 1 } }
         Notifications.find(mailRequest.criteria, mailRequest.options).forEach(notification => {
-            let desired = Util.isNotificationDesired(notification, "SMS")
-            OLog.debug(`mailman.js SMS for ${Util.fetchFullName(notification.recipientId)} desired=${desired}`)
+            const desired = Util.isNotificationDesired(notification, "SMS")
             if (desired) {
                 Mailman.sendSms(notification)
             }

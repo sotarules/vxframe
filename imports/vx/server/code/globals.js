@@ -1,5 +1,6 @@
 this.Daemon = {}
 this.RecordRemover = {}
+this.RecordImporter = {}
 this.Mailman = {}
 this.Reporter = {}
 this.PkgCloud = {}

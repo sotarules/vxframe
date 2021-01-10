@@ -1481,8 +1481,9 @@ VXApp = _.extend(VXApp || {}, {
                 OLog.debug(`vxapp.js deployFunction no value supplied implicitly deleting functionId=${functionId}`)
                 return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
             }
-            const adjustedFunction =
+            let adjustedFunction =
                 VXApp.replaceFunctionAnchorReferences(newFunction.value, functionAnchor, fullyQualifiedFunctionAnchor)
+            adjustedFunction = VXApp.augmentFunctionWithName(adjustedFunction, newFunction.name)
             const func = eval(`(${adjustedFunction})`)
             if (typeof newFunction.name === "string" && typeof func === "function") {
                 FunctionAnchors[qualifiedFunctionAnchor][newFunction.name] = func
@@ -1498,7 +1499,7 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Given a domain ID return the tenant function anchor property.
+     * Replace unqualified references to the function anchor with fully-qualified names.
      *
      * @param {string} value Raw function text from function collection.
      * @param {string} functionAnchor Function anchor from tenant.
@@ -1508,6 +1509,26 @@ VXApp = _.extend(VXApp || {}, {
     replaceFunctionAnchorReferences(value, functionAnchor, fullyQualifiedFunctionAnchor) {
         const regExp = new RegExp(functionAnchor, "g")
         return value.replace(regExp, fullyQualifiedFunctionAnchor)
+    },
+
+    /**
+     * Augment VXApp calls with the name of the function for diagnostic support.
+     *
+     * @param {string} value Raw function text from function collection.
+     * @param {string} functionName Function name.
+     * @return {string} Function text with all makeTask calls augmented.
+     */
+    augmentFunctionWithName(value, functionName) {
+        const replacement = `, "${functionName}"`
+        let indexVXApp = value.indexOf("VXApp")
+        while (indexVXApp >= 0) {
+            const indexStartParen = value.indexOf("(", indexVXApp)
+            const indexEndParen = value.indexOf(")", indexStartParen)
+            value = `${value.substring(0, indexEndParen)}${replacement}` +
+                `${value.substr(indexEndParen)}`
+            indexVXApp = value.indexOf("VXApp", indexEndParen + replacement.length)
+        }
+        return value
     },
 
     /**

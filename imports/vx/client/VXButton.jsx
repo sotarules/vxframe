@@ -49,7 +49,9 @@ const OMITTED_PROPS = [
     "iconStacked",
     "tooltip",
     "minimumDuration",
-    "defeat"
+    "defeat",
+    "fileInput",
+    "onChangeFile"
 ]
 
 export default class VXButton extends Component {
@@ -62,6 +64,8 @@ export default class VXButton extends Component {
         iconClass: PropTypes.string,
         iconStacked: PropTypes.bool,
         minimumDuration: PropTypes.number,
+        fileInput : PropTypes.bool,
+        onChangeFile : PropTypes.func,
         // Ladda props
         // eslint-disable-next-line react/no-unused-prop-types
         "data-color": PropTypes.string,
@@ -84,6 +88,7 @@ export default class VXButton extends Component {
 
     constructor(props) {
         super(props)
+        this.block = false
         this.state = { loading : false }
     }
 
@@ -147,6 +152,13 @@ export default class VXButton extends Component {
                         {UX.parseHtml(this.props.children)}
                     </span>
                 )}
+                {this.props.fileInput &&
+                    <input id={`${this.props.id}-hidden-file-input`}
+                        type="file"
+                        value=""
+                        style={{ visibility: "hidden" }}
+                        onChange={this.handleChangeFile.bind(this)}/>
+                }
             </button>
         )
     }
@@ -164,16 +176,41 @@ export default class VXButton extends Component {
     }
 
     handleClick(event) {
+        if (this.block) {
+            return
+        }
+        const minimumDuration = this.props.defeat ? 0 : this.props.minimumDuration
+        // The code pertains only when the button is a file input button. This is a long story
+        // and you can use Google to find out more. We have to use a hidden <input> element
+        // for security reasons.
+        if (this.props.fileInput) {
+            this.block = true
+            this.start()
+            $(`#${this.props.id}-hidden-file-input`).click()
+            Meteor.setTimeout(() => {
+                this.block = false
+                this.stop()
+            }, minimumDuration)
+            return
+        }
+        // The following is code pertaining to a normal button without any file input:
         if (!this.props.onClick) {
             return
         }
         event.persist()
         this.start()
-        let minimumDuration = this.props.defeat ? 0 : this.props.minimumDuration
         Meteor.setTimeout(() => {
-            this.props.onClick(() => {
-                this.stop()
-            }, event, this)
+            if (this.props.onClick) {
+                this.props.onClick(() => {
+                    this.stop()
+                }, event, this)
+            }
         }, minimumDuration)
+    }
+
+    handleChangeFile(event) {
+        if (this.props.onChangeFile) {
+            this.props.onChangeFile(event)
+        }
     }
 }

@@ -23,6 +23,7 @@ import publishCurrentTenants from "./publishCurrentTenants"
 import publishCurrentUsers from "./publishCurrentUsers"
 import publishCurrentEvents from "./publishCurrentEvents"
 import publishCurrentLog from "./publishCurrentLog"
+import publishCurrentUploadStats from "./publishCurrentUploadStats"
 import searchPhrase from "./searchPhrase"
 import selectedEventType from "./selectedEventType"
 import selectedEventRows from "./selectedEventRows"
@@ -36,6 +37,7 @@ import loading from "./loading"
 import routePath from "./routePath"
 import exemptRoute from "./exemptRoute"
 import authorizedRoute from "./authorizedRoute"
+import listImportLastPercent from "./listImportLastPercent"
 
 export default {
     functionUpdateTimestamp,
@@ -63,6 +65,7 @@ export default {
     publishCurrentUsers,
     publishCurrentEvents,
     publishCurrentLog,
+    publishCurrentUploadStats,
     searchPhrase,
     selectedEventType,
     selectedEventRows,
@@ -75,5 +78,6 @@ export default {
     loading,
     routePath,
     exemptRoute,
-    authorizedRoute
+    authorizedRoute,
+    listImportLastPercent
 }

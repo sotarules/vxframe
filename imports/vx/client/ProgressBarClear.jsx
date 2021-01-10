@@ -1,5 +1,5 @@
-import { Component } from "react";
-import PropTypes from "prop-types";
+import { Component } from "react"
+import PropTypes from "prop-types"
 
 export default class ProgressBarClear extends Component {
 
@@ -8,11 +8,10 @@ export default class ProgressBarClear extends Component {
     }
 
     render() {
-
         return (
             <div className="progress-clear" onClick={this.props.onClick}>
                 <span className="fa fa-times"></span>
             </div>
-        );
+        )
     }
 }

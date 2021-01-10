@@ -26,7 +26,8 @@ export default class RightHeader extends Component {
         buttonId : PropTypes.string,
         buttonText : PropTypes.string,
         buttonClassName : PropTypes.string,
-        onClickButton : PropTypes.func
+        onClickButton : PropTypes.func,
+        customComponentRight: PropTypes.element
     }
 
     render() {
@@ -78,7 +79,7 @@ export default class RightHeader extends Component {
                                         </td>
                                     }
                                     {this.props.iconUrlRight &&
-                                        <td className="top-left">
+                                        <td className="top-right">
                                             <div className="decoration-container">
                                                 <img className={this.roundedRightClassName()}
                                                     src={this.props.iconUrlRight}/>
@@ -91,6 +92,7 @@ export default class RightHeader extends Component {
                                             </div>
                                         </td>
                                     }
+                                    {this.props.customComponentRight}
                                 </tr>
                             </tbody>
                         </table>

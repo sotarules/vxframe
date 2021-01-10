@@ -68,7 +68,6 @@ Meteor.startup(() => {
             console.log(`startup.js (vx) deamon shall not be initialized because enableDaemon=${enableDaemon}`)
             return
         }
-
         Daemon.initDaemonJobs()
         const daemonSleepInterval = Util.getConfigValue("daemonSleepInterval") || 10000
         console.log(`startup.js (vx) Daemon daemonSleepInterval=${daemonSleepInterval}`)

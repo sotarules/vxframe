@@ -76,6 +76,7 @@ import "/imports/vx/server/reporter/user_list"
 
 import "/imports/vx/server/daemon/mailman"
 import "/imports/vx/server/daemon/recordremover"
+import "/imports/vx/server/daemon/recordimporter"
 import "/imports/vx/server/daemon/daemon"
 //import "/imports/app/server/daemon/daemon"
 

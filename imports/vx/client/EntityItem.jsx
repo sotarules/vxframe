@@ -16,11 +16,13 @@ export default class EntityItem extends Component {
         messageClassName : PropTypes.string,
         iconUrl : PropTypes.string.isRequired,
         rounded : PropTypes.bool,
+        iconTooltip : PropTypes.string,
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltip : PropTypes.string,
         iconUrlRight : PropTypes.string,
         roundedRight : PropTypes.bool,
+        iconTooltipRight : PropTypes.string,
         decorationIconClassNameRight : PropTypes.string,
         decorationColorRight : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltipRight : PropTypes.string,
@@ -46,7 +48,8 @@ export default class EntityItem extends Component {
                                 <td className="entity-left entity-handle">
                                     <div className="decoration-container">
                                         <img className={this.roundedClassName()}
-                                            src={this.props.iconUrl}/>
+                                            src={this.props.iconUrl}
+                                            title={this.props.iconTooltip}/>
                                         {this.props.decorationIconClassName &&
                                             <Decoration iconClassName={this.decorationIconClassName()}
                                                 color={this.props.decorationColor}
@@ -79,7 +82,8 @@ export default class EntityItem extends Component {
                                     <td className="entity-right entity-handle">
                                         <div className="decoration-container">
                                             <img className={this.roundedRightClassName()}
-                                                src={this.props.iconUrlRight}/>
+                                                src={this.props.iconUrlRight}
+                                                title={this.props.iconTooltipRight}/>
                                             {this.props.decorationIconClassNameRight &&
                                                 <Decoration iconClassName={this.decorationIconClassNameRight()}
                                                     color={this.props.decorationColorRight}

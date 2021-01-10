@@ -1,7 +1,7 @@
 {
   "name": "VXFrame",
-  "version": "1.2.1",
-  "buildDate": "2021-01-06T15:21:00-08:00",
+  "version": "1.2.2",
+  "buildDate": "2021-01-10T12:02:00-08:00",
   "description": "VXFrame",
   "author": "SOTA",
   "license": "MIT",
@@ -9,6 +9,7 @@
   "dependencies": {
     "@babel/runtime": "^7.11.2",
     "ace-builds": "^1.4.12",
+    "async": "^3.2.0",
     "aws-sdk": "^2.764.0",
     "bcrypt": "^5.0.0",
     "core-js": "^3.6.5",
@@ -30,6 +31,7 @@
     "react-redux": "^7.2.1",
     "react-router-dom": "^5.2.0",
     "react-transition-group": "^4.4.1",
+    "readable-stream": "^3.6.0",
     "redux": "^4.0.5",
     "redux-actions": "^2.6.5",
     "redux-persist": "^6.0.0",

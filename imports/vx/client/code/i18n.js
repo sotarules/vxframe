@@ -155,6 +155,16 @@
         rx : "$Send Test<br>Email$"
     },
 
+    button_import_csv : {
+        en : "Import<br>CSV",
+        rx : "$Import<br>CSV$"
+    },
+
+    button_stop_import : {
+        en : "Stop<br>Import",
+        rx : "$Stop<br>Import$"
+    },
+
     label_logo_title : {
         en: "{{system_name}}",
         rx: "${{system_name}}$"

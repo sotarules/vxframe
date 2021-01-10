@@ -30,6 +30,7 @@ ddp-server@2.3.2
 deps@1.0.12
 diff-sequence@1.1.1
 dsyko:holder@2.3.2
+dsyko:meteor-node-csv@0.3.7
 dynamic-import@0.5.4
 ecmascript@0.14.4
 ecmascript-runtime@0.7.0
@@ -64,6 +65,7 @@ meteor@1.9.3
 meteor-base@1.4.0
 meteorhacks:picker@1.0.3
 meteorhacks:ssr@2.2.0
+mikowals:batch-insert@1.2.0
 minifier-js@2.6.0
 minimongo@1.6.1
 mizzao:timesync@0.5.1
@@ -85,6 +87,8 @@ npm-bcrypt@0.9.3
 npm-mongo@3.8.1
 observe-sequence@1.0.16
 ordered-dict@1.1.0
+ostrio:cookies@2.6.1
+ostrio:files@1.14.3
 pcel:loading@1.0.3
 promise@0.11.2
 raix:eventemitter@0.1.3

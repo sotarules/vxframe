@@ -48,3 +48,6 @@ email@~2.0.0!
 matb33:collection-hooks
 dburles:mongo-collection-instances
 lookback:emails
+dsyko:meteor-node-csv
+mikowals:batch-insert
+ostrio:files

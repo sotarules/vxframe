@@ -1,8 +1,3 @@
-/*
- * Publishing criteria using variable criteria.
- */
-"use strict"
-
 Meteor.publish("config", function() {
     if (!this.userId) {
         return []
@@ -40,7 +35,7 @@ Meteor.publish("events", function(request) {
         return []
     }
     VXApp.adjustPublishingRequest(request, this.userId)
-    let cursor = Events.find(request.criteria, request.options)
+    const cursor = Events.find(request.criteria, request.options)
     OLog.debug(`publications.js events request=${OLog.debugString(request)}`, this.userId)
     return cursor
 })
@@ -99,7 +94,7 @@ Meteor.publish("functions", function(request) {
         return
     }
     VXApp.adjustPublishingRequest(request, this.userId)
-    let cursor = Functions.find(request.criteria, request.options)
+    const cursor = Functions.find(request.criteria, request.options)
     OLog.debug(`publications.js functions count=${cursor.count()} publish=${OLog.debugString(request)}`, this.userId)
     return cursor
 })
@@ -112,3 +107,14 @@ Meteor.publish("my_functions", function(request) {
     OLog.debug(`publications.js my_functions count=${cursor.count()} publish=${OLog.debugString(request)}`, this.userId)
     return cursor
 })
+
+Meteor.publish("uploadstats", function(request) {
+    if (!request || !this.userId) {
+        return;
+    }
+    VXApp.adjustPublishingRequest(request, this.userId);
+    const cursor = UploadStats.find(request.criteria, request.options);
+    OLog.debug(`publications.js uploadstats count=${cursor.count()} publish=${OLog.debugString(request)}`, this.userId)
+    return cursor
+})
+
