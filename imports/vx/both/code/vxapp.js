@@ -1,5 +1,7 @@
 "use strict"
 
+import {get} from "lodash"
+
 VXApp = _.extend(VXApp || {}, {
 
     /**
@@ -874,6 +876,103 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
+     * Validate all of the paths in the header row to ensure that the are properly represented in the
+     * import schema.
+     *
+     * @param {object} importSchema Import schema.
+     * @param {array} headerArray Array of columns of first row.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     */
+    validatePaths(importSchema, headerArray, messages, fieldIdKey) {
+        let valid = true
+        headerArray.forEach((path) => {
+            if (path === "command") {
+                return
+            }
+            const importSchemaPath = RecordImporter.importSchemaPath(path)
+            const definition = get(importSchema, importSchemaPath)
+            if (!(definition && VXApp.isDefinition(definition))) {
+                valid = false
+                const message = {}
+                message.index = 0
+                message.fieldIdKey = fieldIdKey
+                message.fieldIdVariables = { path: path }
+                message.result = { success : false, icon : "TRIANGLE", key : "common.invalid_header_path" }
+                messages.push(message)
+            }
+        })
+        return valid
+    },
+
+    /**
+     * Determine whether the given object is truly a definition, specifically that it has
+     * a bindingType, a tell-tale sign that this is a definition and not a higher-level node.
+     *
+     * @param {object} object Object to be tested.
+     * @return {boolean } True if the object is a leaf object.
+     */
+    isDefinition(object) {
+        return Object.keys(object).includes("bindingType")
+    },
+
+    /**
+     * Return the index of the command column.
+     *
+     * @param {array} headerArray Array of columns of first row.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     */
+    validateCommandColumn(headerArray, messages, fieldIdKey) {
+        const commandColumnIndex = headerArray.indexOf("command")
+        if (commandColumnIndex < 0) {
+            const message = {}
+            message.index = 0
+            message.fieldIdKey = fieldIdKey
+            message.fieldIdVariables = { path: "error" }
+            message.result = { success : false, icon : "TRIANGLE", key : "common.invalid_header_path" }
+            messages.push(message)
+        }
+        return commandColumnIndex
+    },
+
+
+    /**
+     * For definitions that have the lookup attribute, lookup and return the effective value
+     * from another record. In such instances, the spreadsheet cell contains a key used to
+     * refer another collection. This is akin to a foreign-key lookup.
+     *
+     * @param {string} value Value (key) from spreadsheet cell.
+     * @param {object} definition Import schema definition.
+     * @param {number} index Index of row containing value.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     * @return {?} Value looked up from another record.
+     */
+    lookupValue(uploadStats, value, definition, index, messages, fieldIdKey,
+        fieldIdVariables) {
+        const coll = Util.getCollection(definition.collection)
+        const partialValueRegex = new RegExp(value, "i")
+        const selector = {}
+        if (definition.collection === "users") {
+            selector["profile.domains.domainId"] = uploadStats.domain
+        }
+        else {
+            selector.domain = uploadStats.domain
+            selector.dateRetired = { $exists: false }
+        }
+        selector[definition.keyPropertyName] = partialValueRegex
+        const record = coll.findOne(selector)
+        if (record) {
+            return record[definition.returnProperty]
+        }
+        const result = { success : false, icon : "TRIANGLE", key : "common.invalid_key" }
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        return false
+    },
+
+    /**
      * Generalized validation for import, conditionally adds a message
      * to the supplied messages array in place.
      *
@@ -884,11 +983,63 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} fieldIdKey i18n bundle key of field-identifier message.
      * @param {object} fieldIdVariables Variables to insert into field-identifier message.
      */
-    validate(value, fn, index, messages, fieldIdKey, fieldIdVariables) {
+    validateRule(value, fn, index, messages, fieldIdKey, fieldIdVariables) {
         const result = fn(value)
         if (result.success) {
             return true
         }
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        return false
+    },
+
+    /**
+     * Validation that a given value is one of an allowable list of codes.
+     *
+     * @param {string} value Value to test.
+     * @param {array} Array of allowable codes.
+     * @param {number} index Index of row containing value.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     */
+    validateCodeValue(value, array, index, messages, fieldIdKey, fieldIdVariables) {
+        if (array.includes(value)) {
+            return true
+        }
+        const result = { success : false, icon : "TRIANGLE", key : "common.invalid_code_value" }
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        return false
+    },
+
+    /**
+     * Validate the row command.
+     *
+     * @param {string} value Value to test.
+     * @param {number} index Index of row containing command.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     */
+    validateCommand(command, index, messages, fieldIdKey, fieldIdVariables) {
+        if (["create", "update", "retire"].includes(command)) {
+            return true
+        }
+        const result = { success : false, icon : "TRIANGLE", key : "common.invalid_command" }
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        return false
+    },
+
+    /**
+     * Add a validation message indicating that the record specified by the keyPath was not found
+     * in an update operation.
+     *
+     * @param {number} index Index of row containing command.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     */
+    validateRecordNotFound(index, messages, fieldIdKey, fieldIdVariables) {
+        const result = { success : false, icon : "TRIANGLE", key : "common.invalid_key" }
         VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
         return false
     },

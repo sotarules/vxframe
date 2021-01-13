@@ -7,5 +7,6 @@ this.OLog = {}
 this.Performance = {}
 this.VXApp = {}
 this.EmailTemplates = {}
+this.ImportSchemas = {}
 
 Meteor.i18nMessages = {}

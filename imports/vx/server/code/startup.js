@@ -69,7 +69,7 @@ Meteor.startup(() => {
             return
         }
         Daemon.initDaemonJobs()
-        const daemonSleepInterval = Util.getConfigValue("daemonSleepInterval") || 10000
+        const daemonSleepInterval = Util.getConfigValue("daemonSleepInterval") || 1000
         console.log(`startup.js (vx) Daemon daemonSleepInterval=${daemonSleepInterval}`)
         Daemon.run()
         Meteor.setInterval(() => {

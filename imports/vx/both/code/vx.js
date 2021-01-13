@@ -239,6 +239,8 @@ VX.common = {
      */
     phone : (phone, country) => {
 
+        country = country || "US"
+
         if (!phone) {
             return { success : true }
         }
@@ -369,6 +371,19 @@ VX.common = {
             return { success : false, icon : "TRIANGLE", key : "common.invalid_url" }
         }
 
+        return { success : true }
+    },
+
+    /**
+     * Check for valid boolean.
+     *
+     * @param {string} boolean Boolean to test
+     * @return {object} Result object.
+     */
+    boolean : (boolean) => {
+        if (!(boolean && (boolean.toLowerCase() === "true" || boolean.toLowerCase() === "false"))) {
+            return { success : false, icon : "TRIANGLE", key : "common.invalid_boolean" }
+        }
         return { success : true }
     },
 

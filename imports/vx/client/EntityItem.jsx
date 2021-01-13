@@ -138,7 +138,6 @@ export default class EntityItem extends Component {
     }
 
     handleFocus(event) {
-        OLog.debug("EntityItem.jsx handleFocus *focus*")
         this.props.onSelect(event, this)
     }
 

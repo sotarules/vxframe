@@ -68,6 +68,9 @@ import "/imports/vx/server/service/service"
 import "/imports/vx/server/publications/publications"
 //import "/imports/app/server/publications/publications"
 
+import "/imports/vx/both/code/importschemas"
+//import "/imports/app/both/code/importschemas"
+
 import "/imports/vx/server/reporter/i18n"
 //import "/imports/app/server/reporter/i18n"
 

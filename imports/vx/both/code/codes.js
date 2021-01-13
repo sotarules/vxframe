@@ -1816,7 +1816,7 @@ Meteor.i18nMessages.codes = {
         RECORD_IMPORTER: {
             en : "Import records from CSV files into the system",
             rx : "$Import records from CSV files into the system$",
-            timeInterval: 2,
+            timeInterval: 1,
             timeUnit: "SECOND",
             execFunctionName: "RecordImporter.findImportRequests"
         }
@@ -1827,6 +1827,7 @@ Meteor.i18nMessages.codes = {
             en : "Email Templates",
             rx : "$Email Templates$",
             prepareFunctionName: "RecordImporter.prepareGeneric",
+            validateHeaders : true,
             insertMode : "UPSERT",
             collection : "templates",
             keypath : "name"

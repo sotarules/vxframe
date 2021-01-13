@@ -121,8 +121,8 @@ export default class TemplateEditRight extends Component {
 
     rightButton() {
         return (
-            <UploadButton id="client-view-upload-button"
-                uploadType="CLIENT"
+            <UploadButton id="template-edit-upload-button"
+                uploadType="TEMPLATE"
                 currentUpload={this.currentUpload}
                 isUploadInProgress={this.props.uploadInProgress}/>
         )

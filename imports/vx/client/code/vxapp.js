@@ -1181,7 +1181,6 @@ VXApp = _.extend(VXApp || {}, {
         }
     },
 
-
     /**
      * Simple update handler to use when overriding default behavior at component level.
      * You can upate any collection and field by supplying the parameters below.

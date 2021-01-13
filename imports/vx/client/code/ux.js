@@ -1191,18 +1191,7 @@ UX = {
      * @return {?} Parsed value or null if input is nullish.
      */
     parsedValue(component, value) {
-        if (Util.isNullish(value)) {
-            return null;
-        }
-        switch (component.props.bindingType) {
-        case "Integer" :
-            return parseInt(value)
-        case "Float" :
-            return parseFloat(value)
-        case "Money" :
-            return Util.scaleMoney(parseFloat(value))
-        }
-        return value;
+        return Util.parsedValue(component.props.bindingType, value)
     },
 
     /**

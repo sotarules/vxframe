@@ -72,7 +72,6 @@ export default class TemplateViewRight extends Component {
                             decorationColor={this.props.decorationColor}
                             decorationTooltip={this.props.decorationTooltip}
                             customComponentRight={this.rightButton()}/>
-
                         <RightBody className="right-body-no-margin-top">
                             <VXForm id="template-view-right-form"
                                 ref={(form) => { this.form = form }}

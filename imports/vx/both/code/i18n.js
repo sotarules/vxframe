@@ -203,13 +203,38 @@ Meteor.i18nMessages.common = {
     },
 
     invalid_url: {
-        en : "URL is not valid.",
-        rx : "$URL is not valid.$"
+        en : "URL is not valid",
+        rx : "$URL is not valid$"
+    },
+
+    invalid_boolean: {
+        en : "Boolean indicator must be true or false (case insensitive)",
+        rx : "$Boolean indicator must be true or false (case insensitive)$"
+    },
+
+    invalid_key : {
+        en: "No record could be found matching the specified key",
+        fx: "$No record could be found matching the specified key$"
+    },
+
+    invalid_code_value : {
+        en: "Invalid code value",
+        fx: "$Invalid code value$"
     },
 
     invalid_command : {
-        en : "Invalid command (currently the only supported command is RETIRE)",
-        rx : "$Invalid command (currently the only supported command is RETIRE)$"
+        en: "Invalid command - must be create, update or retire",
+        fx: "$Invalid command - must be create, update or retire$"
+    },
+
+    invalid_header_path: {
+        en: "Invalid schema path in header row",
+        fx: "$Invalid schema path in header row$"
+    },
+
+    invalid_command_column: {
+        en: "No command column was found (at least one column header must be \"command\")",
+        fx: "$No command column was found (at least one column header must be \"command\")$"
     },
 
     option_none : {
@@ -640,6 +665,11 @@ Meteor.i18nMessages.common = {
     label_upload_status_stopped : {
         en : "Import Stopped",
         rx : "$Import Stopped$"
+    },
+
+    header_path_specification : {
+        en : "{{path}}",
+        rx : "${{path}}$"
     },
 
     field_id_path_specification : {

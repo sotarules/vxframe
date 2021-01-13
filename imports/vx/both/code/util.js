@@ -2484,5 +2484,40 @@ Util = {
             _difference.delete(elem)
         }
         return _difference
+    },
+
+    /**
+     * Get parsed value given a binding type.
+     *
+     * @param {string} bindingType Binding type.
+     * @param {string} value Raw value string.
+     * @param {string} dateFormat Optional date format for Date type.
+     * @param {string} timezine Optional timezone for Date type.
+     * @return {?} Parsed value or null if input is nullish.
+     */
+    parsedValue(bindingType, value, dateFormat, timezone) {
+        if (Util.isNullish(value)) {
+            return null
+        }
+        try {
+            switch (bindingType) {
+            case "String" :
+                return value
+            case "Integer" :
+                return parseInt(value)
+            case "Float" :
+                return parseFloat(value)
+            case "Money" :
+                return Util.scaleMoney(parseFloat(value))
+            case "Boolean" :
+                return value.toLowerCase() === "true"
+            case "Date" :
+                return moment.tz(value, dateFormat, timezone).toDate()
+            }
+        }
+        catch (error) {
+            // Bury error return original value
+        }
+        return value
     }
 }

@@ -20,13 +20,13 @@ FX.phoneUS = {
 
     strip : function(phone, country) {
 
-        var stripped
+        country = country || "US"
 
         if (!phone) {
             return null
         }
 
-        stripped = phone.trim().replace(CX.REGEX_NUMERIC_STRIP1, CX.REGEX_NUMERIC_STRIP2)
+        let stripped = phone.trim().replace(CX.REGEX_NUMERIC_STRIP1, CX.REGEX_NUMERIC_STRIP2)
 
         if (country !== "US") {
             return stripped
