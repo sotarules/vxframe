@@ -126,7 +126,21 @@ RecordImporter = {
     },
 
     /**
-     * Upload a list of recipients: parse CSV into large result object.
+     * Upload a list of recipients: parse CSV into large result object. This is a complicated asynchronous
+     * process that involves a stream and a queue. Unfortunately there is no way to make this simpler because
+     * of the CSV package API, that is very stream-oriented.
+     *
+     * uploadWaitInterval   delay interval to avoid overwhelming MongoDB
+     * uploadChunkSize      Maximum number of rows to process in a single Insert task
+     *
+     * totalSize            total size of the input file in bytes
+     * chunkRead            number of bytes read in the current chunk
+     * read Total           number of bytes read from the file absolute
+     * processed            bytes processed in file
+     *
+     * streamRead           total number of records read thus far
+     * streadProcessed      total number of records process (essentially count written to database)
+     * streamTotal          total number of records retreived from CSV file
      *
      * @param {object} uploadStats Upload stats object.
      * @param {array} messages Array of messages mutated in place.
@@ -243,7 +257,7 @@ RecordImporter = {
                     }
                     streamRead++
                     rowArray.push({ index: (rowIndex - 1) + indexStart, rowIndex: rowIndex, row: row })
-                    readPercentNew = Math.floor(read * 100 / total);
+                    readPercentNew = Math.floor(read * 100 / total)
                     // Control break:
                     if (rowArray.length >= uploadChunkSize || readPercentNew !== readPercentOld || streamRead === streamTotal) {
                         readPercentOld = readPercentNew
@@ -382,7 +396,6 @@ RecordImporter = {
                 `uploadType=${uploadStats.uploadType} userId=${uploadStats.userId} *prepare* ${taskName} ` +
                 `records=${rowArray.length}`)
             const insertArray = []
-            let commandColumnIndex = -1
             const uploadTypeObject = Util.getCodeObject("uploadType", uploadStats.uploadType)
             if (uploadTypeObject.validateHeaders && headerArray.length === 0) {
                 Array.prototype.push.apply(headerArray, rowArray[0].row)
@@ -392,12 +405,12 @@ RecordImporter = {
                     OLog.debug("recordimporter.js prepareGeneric *abort* header has invalid path one or more invalid paths")
                     return { success: true }
                 }
-                commandColumnIndex = VXApp.validateCommandColumn(headerArray, messages,
-                    "common.header_path_specification")
+                const commandColumnIndex = VXApp.validateCommandColumn(headerArray, messages, "common.header_path_specification")
                 if (commandColumnIndex < 0) {
                     return { success: true }
                 }
             }
+            const commandColumnIndex = VXApp.validateCommandColumn(headerArray, messages, "common.header_path_specification")
             _.each(rowArray, rowObject => {
                 if (rowObject.index === 0) {
                     OLog.debug(`recordimporter.js importFileChunk domainId=${uploadStats.domain} ` +
@@ -465,7 +478,8 @@ RecordImporter = {
      * @param {array} insertArray Array to be inserted.
      */
     performBatchInsert(coll, uploadStats, taskName, insertArray) {
-        coll.batchInsert(insertArray, error => {
+        const records = _.pluck(insertArray, "record")
+        coll.batchInsert(records, error => {
             OLog.debug(`recordimporter.js performBatchInsert domainId=${uploadStats.domain} ` +
                 `uploadType=${uploadStats.uploadType} userId=${uploadStats.userId} taskName=${taskName} ` +
                 `*inserted* records=${insertArray.length}`)
