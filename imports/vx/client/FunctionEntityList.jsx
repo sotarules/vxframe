@@ -40,6 +40,7 @@ export default class FunctionEntityList extends Component {
                 iconUrl={CX.CLOUDFILES_PREFIX + "/img/system/function.png"}
                 name={funktion.name}
                 description={funktion.description}
+                message={Util.getCodeLocalized("functionType", funktion.functionType)}
                 onSelect={this.handleSelect.bind(this)}/>
         ))
     }

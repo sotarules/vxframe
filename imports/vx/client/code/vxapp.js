@@ -1,4 +1,4 @@
-import {get, set} from "lodash"
+import {get, set, cloneDeep} from "lodash"
 import {
     setFunctionUpdateTimestamp,
     setCurrentDomainId,
@@ -1092,11 +1092,10 @@ VXApp = _.extend(VXApp || {}, {
     /**
      * Make an array of domains for a drop-down list.
      *
-     * @param {boolean} includeBlank True to include blank row at beginning.
      * @param {string} excludeDomainId Domain ID to be excluded (if any).
      * @return {array} Array of domains (code and localized).
      */
-    makeDomainArray(includeBlank, excludeDomainId) {
+    makeDomainArray(excludeDomainId) {
         const domains = VXApp.findDomainList()
         const codeArray = _.reject(domains, domain => domain._id === excludeDomainId).map(domain => {
             return { code: domain._id, localized: domain.name }
@@ -1104,9 +1103,24 @@ VXApp = _.extend(VXApp || {}, {
         codeArray.sort((recordA, recordB) => {
             return recordA.localized.localeCompare(recordB.localized)
         })
-        if (includeBlank) {
-            codeArray.unshift( { code: "", localized: "" } )
-        }
+        return codeArray
+    },
+
+    /**
+     * Make an array of functions for a drop-down list.  The code is the actual
+     * function name and the description is the localization.
+     *
+     * @param {string} functionType True to limit the list to a particular function type.
+     * @return {array} Array of functions (code and localized).
+     */
+    makeFunctionArray(functionType) {
+        const functions = VXApp.findFunctionList()
+        const codeArray = _.filter(functions, funktion => funktion.functionType === functionType).map(funktion => {
+            return { code: funktion.name, localized: funktion.description }
+        })
+        codeArray.sort((recordA, recordB) => {
+            return recordA.localized.localeCompare(recordB.localized)
+        })
         return codeArray
     },
 
@@ -1211,16 +1225,18 @@ VXApp = _.extend(VXApp || {}, {
      *
      * @param {object} collection MongoDB collection to update.
      * @param {object} record Record to be updated.
-     * @param {string} rowsPath JSON path to array of rows to be updated.     *
+     * @param {string} rowsPath JSON path to array of rows to be updated.
      * @param {string} rowId Name of a property that uniquely identifies row.
+     * @param {object} row Optional pre-populated row.
      */
-    addRow(collection, record,  rowsPath, rowId) {
+    addRow(collection, record,  rowsPath, rowId, row) {
         const mongoPath = Util.toMongoPath(rowsPath)
-        const row = {}
-        row[rowId] = Util.getGuid()
+        let newRow = { }
+        newRow[rowId] = Util.getGuid()
+        newRow = { ...newRow, ...row }
         const modifier = {}
         modifier.$push = {}
-        modifier.$push[mongoPath] = row
+        modifier.$push[mongoPath] = newRow
         OLog.debug(`vxapp.js addRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
             `modifier=${OLog.debugString(modifier)}`)
         collection.update(record._id, modifier, error => {
@@ -1270,10 +1286,11 @@ VXApp = _.extend(VXApp || {}, {
      * @param {object} collection MongoDB collection to update.
      * @param {object} record Record to be updated.
      * @param {string} rowsPath JSON path to array of rows to be updated.
+     * @param {string} rowId Name of a property that uniquely identifies row.
      * @param {object} component Component whose state was changed resulting in this update.
      * @param {?} value New value.
      */
-    updateRow(collection, record, rowsPath, component, value) {
+    updateRow(collection, record, rowsPath, rowId, component, value) {
         // The IDs of all components must start with the row ID
         const componentRowId = component.props.id.split("-")[0]
         if (!componentRowId) {
@@ -1281,7 +1298,7 @@ VXApp = _.extend(VXApp || {}, {
         }
         const rows = get(record, rowsPath)
         const mongoPath = Util.toMongoPath(rowsPath)
-        const index = Util.indexOf(rows, "id", componentRowId)
+        const index = Util.indexOf(rows, rowId, componentRowId)
         if (index < 0) {
             return
         }
@@ -1296,6 +1313,48 @@ VXApp = _.extend(VXApp || {}, {
                 return
             }
             OLog.debug(`vxapp.js updateRow recordId=${record._id} *success*`)
+        })
+    },
+
+    /**
+     * Replace any number of properties in a specified row.
+     *
+     * @param {object} collection MongoDB collection to update.
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath JSON path to array of rows to be updated.
+     * @param {string} rowId Name of a property that uniquely identifies row.
+     * @param {string} id Unique ID of this row (typically GUID).
+     * @param {object} row Row with new data (will be merged with existing data).
+     */
+    replaceRow(collection, record, rowsPath, rowId, id, row) {
+        const rows = get(record, rowsPath)
+        const selector = {}
+        selector[rowId] = id
+        const existingRow = _.findWhere(rows, selector)
+        if (!existingRow) {
+            OLog.error(`vxapp.js replaceRow replacement recordId=${record._id} rowsPath=${rowsPath} ` +
+            `rowId=${rowId} id=${id} row could not be found no update will occur`)
+            return
+        }
+        const replacementRow = { ...existingRow, ...row }
+        const mongoPath = Util.toMongoPath(rowsPath)
+        const index = Util.indexOf(rows, rowId, id)
+        if (index < 0) {
+            OLog.error(`vxapp.js replaceRow replacement recordId=${record._id} rowsPath=${rowsPath} ` +
+            `rowId=${rowId} id=${id} unable to derive index of row no update will occur`)
+            return
+        }
+        const modifier = {}
+        modifier.$set = {}
+        modifier.$set[`${mongoPath}.${index}`] = replacementRow
+        OLog.debug(`vxapp.js replaceRow recordId=${record._id} rowsPath=${rowsPath} ` +
+            `rowId=${rowId} id=${id} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
+        collection.update(record._id, modifier, error => {
+            if (error) {
+                UX.notifyForError(error)
+                return
+            }
+            OLog.debug(`vxapp.js replaceRow recordId=${record._id} *success*`)
         })
     },
 
@@ -1389,18 +1448,18 @@ VXApp = _.extend(VXApp || {}, {
      *
      * @param {object} publish Standard publishing object.
      * @param {object} criteria Standard criteria filter is an object merged with publishing criteria.
-     * @param {object} text String used to form
+     * @param {object} regexFilter Object representing regex filtering criteria { searchPhrase, propertyNames }.
      * @return {object} Standard publishing object adjusted with filters.
      */
-    applyFilters(publish, criteria, text) {
-        const publishAdjusted = { ...publish }
+    applyFilters(publish, criteria, regexFilter) {
+        const publishAdjusted = cloneDeep(publish)
         if (criteria) {
             publishAdjusted.criteria = { ...publish.criteria, ...criteria }
         }
-        if (text) {
-            const searchRegex = new RegExp(text.searchPhrase, "i")
+        if (regexFilter) {
+            const searchRegex = new RegExp(regexFilter.searchPhrase, "i")
             publishAdjusted.criteria.$or = []
-            text.propertyNames.forEach(propertyName => {
+            regexFilter.propertyNames.forEach(propertyName => {
                 publishAdjusted.criteria.$or.push({ [propertyName]: searchRegex })
             })
         }

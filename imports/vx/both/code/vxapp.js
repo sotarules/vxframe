@@ -960,8 +960,8 @@ VXApp = _.extend(VXApp || {}, {
         }
         else {
             selector.domain = uploadStats.domain
-            selector.dateRetired = { $exists: false }
         }
+        selector[definition.retiredDatePath] = { $exists: false }
         selector[definition.keyPropertyName] = partialValueRegex
         const record = coll.findOne(selector)
         if (record) {

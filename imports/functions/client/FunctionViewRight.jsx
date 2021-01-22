@@ -58,7 +58,8 @@ export default class FunctionViewRight extends Component {
                     <RightPanel>
                         <RightHeader iconUrl={CX.CLOUDFILES_PREFIX + "/img/system/function.png"}
                             name={this.props.funktion.name}
-                            description={this.props.funktion.description}/>
+                            description={this.props.funktion.description}
+                            message={Util.getCodeLocalized("functionType", this.props.funktion.functionType)}/>
                         <EntityListHeader label={Util.i18n("common.label_function_header")}/>
                         <RightBody className="right-body-no-margin">
                             <FunctionAceEditor

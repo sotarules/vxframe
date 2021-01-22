@@ -1,12 +1,12 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 
-export default class RadioButtonGroup extends Component {
+export default class VXRadioButtonGroup extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
+        name : PropTypes.string,
         value : PropTypes.string,
-        className : PropTypes.string,
         dbName : PropTypes.string,
         onChange : PropTypes.func,
         updateHandler : PropTypes.func,
@@ -37,7 +37,7 @@ export default class RadioButtonGroup extends Component {
 
     UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            OLog.debug(`RadioButtonGroup.jsx UNSAFE_componentWillReceiveProps componentId=${this.props.id} `  +
+            OLog.debug(`VXRadioButtonGroup.jsx UNSAFE_componentWillReceiveProps componentId=${this.props.id} `  +
                 `value=${newProps.value} *update*`)
             this.setState( { value : newProps.value })
         }
@@ -54,11 +54,10 @@ export default class RadioButtonGroup extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className={"btn-group btn-group-justified btn-group-list-header flex-section-fixed " +
-                    `${this.props.className || ""}`}
-                data-toggle="buttons">
+                className={this.props.className}>
                 {UX.augmentChildren(this.props.children,
-                    (child) => child.type.displayName === "RadioButton", {
+                    (child) => child.type.displayName === "VXRadioButton", {
+                        name : this.props.name,
                         getActiveValue : () => {
                             return this.getValue()
                         },

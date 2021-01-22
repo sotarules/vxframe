@@ -310,11 +310,24 @@
     margin-left: 10px;
 }
 
+.panel-heading:hover .row-panel-header-control {
+    visibility: visible;
+}
+
+.row-panel-header-control {
+    margin-left: 5px;
+    visibility: hidden;
+    color: #C0C0C0;
+}
+
+.row-panel-header-control:hover {
+    text-decoration: none;
+}
+
 a[href^="tel:"]:before {
   content: "\260e";
   margin-right: 0.5em;
 }
-
 
 a[href^="mailto:"]:before {
   content: "\2709";
@@ -324,6 +337,28 @@ a[href^="mailto:"]:before {
 a[href^="http"]:before {
   content: "\27A4";
   margin-right: 0.5em;
+}
+
+input[type="radio"] {
+    margin-right: 7px;
+}
+
+.radio-button-group {
+}
+
+.radio-button {
+}
+
+.radio-button-label {
+    font-weight: normal;
+}
+
+.radio-button-input {
+}
+
+.simple-row {
+    display: inline-block;
+    height: 27px;
 }
 
 .fill {
@@ -502,19 +537,23 @@ fieldset[disabled] .form-control {
 }
 
 .input-xs {
-    height: 20px;
+    height: 24px;
     padding: 1px 1px;
-    font-size: 12px;
-    line-height: 12px;
+    font-size: 14px;
+    line-height: 20px;
     border-radius: 3px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .select-xs {
     height: 24px;
     padding: 1px 1px;
-    font-size: 12px;
-    line-height: 12px;
+    font-size: 14px;
+    line-height: 20px;
     border-radius: 3px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 .input-width-xs {
@@ -525,8 +564,16 @@ fieldset[disabled] .form-control {
     width: 80px;
 }
 
+.input-width-md {
+    width: 120px;
+}
+
 .input-inline {
     display: inline-block;
+}
+
+.input-center {
+    text-align: center;
 }
 
 .btn-toolbar {
@@ -716,7 +763,7 @@ body {
 
 .entity-control {
     right: 4px;
-    top: 2px;
+    top: 3px;
     z-index: 9;
     visibility: hidden;
     position: absolute;
@@ -1132,7 +1179,6 @@ legend.group-legend {
     vertical-align: top;
     padding-right: 2px;
     padding-left: 2px;
-    width: 100%;
 }
 
 .span-editable-text {
@@ -2180,6 +2226,21 @@ legend.group-legend {
 
 .top-search-input {
     height: 32px;
+}
+
+.top-image-with-text {
+    .flexi-fixed;
+    .flex-direction-row;
+    .flex-align-center;
+}
+
+.top-image-with-text-left {
+    width: 70px;
+    .flexi-fixed;
+}
+
+.top-image-with-text-right {
+    .flexi-fixed;
 }
 
 .modal-container {

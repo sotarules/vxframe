@@ -1,13 +1,13 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
-import RightHeaderBasic from "/imports/vx/client/RightHeaderBasic"
 import EntityListHeader from "/imports/vx/client/EntityListHeader"
+import RightHeader from "/imports/vx/client/RightHeader"
 import RightBody from "/imports/vx/client/RightBody"
-import VXButton from "/imports/vx/client/VXButton"
 import VXForm from "/imports/vx/client/VXForm"
 import VXInput from "/imports/vx/client/VXInput"
+import VXSelect from "/imports/vx/client/VXSelect"
 import FunctionAceEditor from "/imports/functions/client/FunctionAceEditor"
 
 export default class FunctionEditRight extends Component {
@@ -62,7 +62,15 @@ export default class FunctionEditRight extends Component {
                 className="flexi-grow lock-exiting-component">
                 {this.props.funktion ? (
                     <RightPanel>
-                        <RightHeaderBasic>
+                        <RightHeader iconUrl={CX.CLOUDFILES_PREFIX + "/img/system/function.png"}
+                            name={this.props.funktion.name}
+                            description={this.props.funktion.description}
+                            message={Util.getCodeLocalized("functionType", this.props.funktion.functionType)}
+                            isShowButton={true}
+                            buttonId="test-function"
+                            buttonText={Util.i18n("common.button_test_function")}
+                            buttonClassName="btn btn-primary btn-custom pull-right"
+                            onClickButton={this.handleClickTest.bind(this)}>
                             <VXForm id="function-edit-right-form"
                                 ref={(form) => { this.form = form }}
                                 className="right-panel-form flexi-fixed"
@@ -70,38 +78,28 @@ export default class FunctionEditRight extends Component {
                                 collection={Functions}
                                 _id={this.props.funktion._id}>
                                 <div className="row">
+                                    <div className="col-sm-6">
+                                        <VXInput id="name"
+                                            label={Util.i18n("common.label_function_name")}
+                                            required={true}
+                                            value={this.props.funktion.name}/>
+                                    </div>
+                                    <div className="col-sm-6">
+                                        <VXSelect id="functionType"
+                                            codeArray={UX.addBlankSelection(UX.makeCodeArray("functionType"))}
+                                            label={Util.i18n("common.label_function_type")}
+                                            value={this.props.funktion.functionType}/>
+                                    </div>
+                                </div>
+                                <div className="row">
                                     <div className="col-sm-12">
-                                        <table className="top-table">
-                                            <tbody>
-                                                <tr>
-                                                    <td className="top-left">
-                                                        <img className="top-image"
-                                                            src={CX.CLOUDFILES_PREFIX + "/img/system/function.png"}/>
-                                                    </td>
-                                                    <td className="top-center">
-                                                        <div className="top-input">
-                                                            <VXInput id="name"
-                                                                required={true}
-                                                                value={this.props.funktion.name}/>
-                                                            <VXInput id="description"
-                                                                value={this.props.funktion.description}/>
-                                                        </div>
-                                                    </td>
-                                                    <td className="top-right-button">
-                                                        <VXButton id="button-test"
-                                                            className={`btn ${this.buttonClass(this.canTest())} btn-custom pull-right`}
-                                                            disabled={!this.canTest()}
-                                                            onClick={this.handleClickTest.bind(this)}>
-                                                            {Util.i18n("common.button_test_function")}
-                                                        </VXButton>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                        <VXInput id="description"
+                                            label={Util.i18n("common.label_function_description")}
+                                            value={this.props.funktion.description}/>
                                     </div>
                                 </div>
                             </VXForm>
-                        </RightHeaderBasic>
+                        </RightHeader>
                         <EntityListHeader label={Util.i18n("common.label_function_header")}/>
                         <RightBody className="right-body-no-margin">
                             <FunctionAceEditor

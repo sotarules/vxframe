@@ -18,6 +18,7 @@ export default class VXRowList extends Component {
         control : PropTypes.bool,
         controlClassName : PropTypes.string,
         controlTooltip : PropTypes.string,
+        rowFilter : PropTypes.func,
         onClickControl : PropTypes.func,
         onSelectRow : PropTypes.func,
         onUpdateRow : PropTypes.func,
@@ -56,18 +57,22 @@ export default class VXRowList extends Component {
         }
     }
 
+    // The empty <div> down below is there on purpose, it overcomes a bug in
+    // jQuery sortable where the placeholder opens in the wrong position
     render() {
+        const filteredRows = this.filteredRows()
         return (
             <div id={`${this.props.id}`}
                 className="row-list flexi-grow">
-                {this.props.rows?.length > 0 ? (
+                {filteredRows.length > 0 ? (
                     <VXForm id={`${this.props.id}-form`}
                         ref={form => {this.form = form}}
                         formElement="ul"
                         className={this.listClassName()}
                         dynamic={true}
                         updateHandler={this.handleUpdate.bind(this)}>
-                        {this.renderRows()}
+                        {this.renderRows(filteredRows)}
+                        <div></div>
                     </VXForm>
                 ) : (
                     <EmptyEntityList id={`${this.props.id}-form`}
@@ -80,8 +85,15 @@ export default class VXRowList extends Component {
         )
     }
 
-    renderRows() {
-        return this.props.rows.map(row => {
+    filteredRows() {
+        if (this.props.rowFilter) {
+            return _.filter(this.props.rows, this.props.rowFilter)
+        }
+        return this.props.rows || []
+    }
+
+    renderRows(filteredRows) {
+        return filteredRows.map(row => {
             const Component = this.props.component
             const id = get(row, this.props.rowId)
             return (

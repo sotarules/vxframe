@@ -388,16 +388,16 @@ UX = {
      * @param {boolean} blur True to blur.
      */
     stopEditing(blur) {
-        let $activeElement = $(document.activeElement)
+        const $activeElement = $(document.activeElement)
         if (blur) {
             $activeElement.blur()
         }
-        let contenteditable = $activeElement.attr("contenteditable")
+        const contenteditable = $activeElement.attr("contenteditable")
         if (contenteditable) {
             $activeElement.attr("contenteditable", false)
         }
-
-        let selectable = $activeElement.hasClass("selectable")
+        window.getSelection().removeAllRanges()
+        const selectable = $activeElement.hasClass("selectable")
         if (selectable) {
             $activeElement.removeClass("selectable")
         }
@@ -487,12 +487,11 @@ UX = {
     makeDraggable(id, dragClassName, dropClassName, placeholderClassName) {
         const $entitySource = $(`#${id}`)
         if ($entitySource.exists()) {
-            OLog.debug(`ux.js makeDraggable configuring drag source id=${id} ` +
-                `dragClassName=${dragClassName} dropClassName=${dropClassName}`)
             $entitySource.sortable({
                 helper : "clone",
                 cursor : "move",
                 handle : ".entity-handle",
+                appendTo : document.body,
                 placeholder : placeholderClassName,
                 change : (event, ui) => {
                     UX.initPlaceholder(ui, dropClassName)
@@ -500,15 +499,10 @@ UX = {
                 opacity : ".7",
                 start : (event, ui) => {
                     $(ui.item).show()
-                    // If we don't defeat momentum scrolling, the skill helper will
-                    // not be visible outside the bounds of the source list:
-                    $(`.${dragClassName}`).removeClass("scroll-momentum")
                 },
                 stop : () => {
+                    OLog.warn("ux.js makeDraggable *stop*")
                     $entitySource.sortable("cancel")
-                    // If we don't defeat momentum scrolling, the skill helper will
-                    // not be visible outside the bounds of the source list:
-                    $(`.${dragClassName}`).addClass("scroll-momentum")
                 },
                 connectWith : `.${dropClassName}`,
                 scroll : false
@@ -528,7 +522,6 @@ UX = {
     makeDroppable(id, component) {
         const $entityTarget = $(`#${id}`)
         if ($entityTarget.exists()) {
-            OLog.debug(`ux.js makeDroppable configuring drop target id=${id}`)
             $entityTarget.sortable({
                 handle : ".entity-handle",
                 start : (event, ui) => {
@@ -537,11 +530,27 @@ UX = {
                 stop : (event, ui) => {
                     $(ui.item).removeAttr("data-previndex")
                     $(ui.item).removeAttr("style")
+                    const droppedId = $(ui.item).attr("id")
+                    const originalDisplay = $(`#${droppedId}`).css("display")
+                    $(`#${droppedId}`).css("display", "none")
+                    $entityTarget.sortable("cancel")
+                    Meteor.setTimeout(() => {
+                        $(`#${droppedId}`).css("display", originalDisplay)
+                    })
                 },
-                update : (event, ui) => {
-                    OLog.debug(`ux.js makeDroppable onDrop *fire* id=${component.props.id}`)
-                    if (component.props.onDrop) {
-                        component.props.onDrop(event, $entityTarget, ui, component)
+                update : function(event, ui) {
+                    const parentId = ui.item.parent()[0].id
+                    const thisId = this.id
+                    OLog.debug(`ux.js makeDroppable update parentId=${parentId} thisId=${thisId} ` +
+                        `componentId=${component.props.id}`)
+                    if (this === ui.item.parent()[0]) {
+                        OLog.debug(`ux.js makeDroppable onDrop *fire* id=${component.props.id}`)
+                        if (component.props.onDrop) {
+                            component.props.onDrop(event, $entityTarget, ui, component)
+                        }
+                    }
+                    else {
+                        OLog.debug(`ux.js makeDroppable update *ignored* for id=${ui.item.parent()[0].id}`)
                     }
                 }
             })
@@ -2010,7 +2019,7 @@ UX = {
     invokeFormFunction(name, component) {
         let form = UX.findForm(component.props.id)
         if (!form) {
-            OLog.error("ux.js invokeFormFunction unable to find form of component id=" + component.props.id)
+            //OLog.error("ux.js invokeFormFunction unable to find form of component id=" + component.props.id)
             return
         }
         form[name](component)
@@ -2025,7 +2034,7 @@ UX = {
     getFormProps(component) {
         let form = UX.findForm(component.props.id)
         if (!form) {
-            OLog.error("ux.js getFormProps unable to find form of component id=" + component.props.id)
+            //OLog.error("ux.js getFormProps unable to find form of component id=" + component.props.id)
             return
         }
         return form.props
@@ -2056,7 +2065,7 @@ UX = {
     isFormReceiveProps(component) {
         let formProps = UX.getFormProps(component)
         if (!formProps) {
-            OLog.error("ux.js isFormReceiveProps unable to find form of component id=" + component.props.id)
+            //OLog.error("ux.js isFormReceiveProps unable to find form of component id=" + component.props.id)
             return false
         }
         return formProps.receiveProps
@@ -2085,9 +2094,7 @@ UX = {
      * @return {array} New array with blank value added to beginning
      */
     addBlankSelection(codeArray) {
-        let newArray = codeArray ? codeArray.slice() : []
-        newArray.unshift( { code: "", localized: "" } )
-        return newArray
+        return UX.addSelection(codeArray, "", "")
     },
 
     /**
@@ -2097,8 +2104,20 @@ UX = {
      * @return {array} New array with "All" value added to beginning
      */
     addAllSelection(codeArray) {
-        let newArray = codeArray ? codeArray.slice() : []
-        newArray.unshift( { code: "ALL", localized: "All" } )
+        return UX.addSelection(codeArray, "ALL", Util.i18n("common.label_all"))
+    },
+
+    /**
+     * Add a specified selection to the top of a code array.
+     *
+     * @param {array} codeArray Traditional code array.
+     * @param {string} code Code to add.
+     * @param {string} localized Localization to add.
+     * @return {array} New array with special selection added to top.
+     */
+    addSelection(codeArray, code, localized) {
+        const newArray = codeArray ? codeArray.slice() : []
+        newArray.unshift( { code, localized } )
         return newArray
     },
 
@@ -2215,7 +2234,7 @@ UX = {
      */
     augmentChildren(children, predicate, properties) {
         let newChildren = React.Children.map(children, child => {
-            if (!React.isValidElement(child)) {
+            if (UX.isDOMTypeElement(child)) {
                 return child
             }
             if (predicate(child)) {
@@ -2598,5 +2617,74 @@ UX = {
     openWebPage(url, event) {
         event.preventDefault()
         window.open(url, "_blank");
+    },
+
+    /**
+     * Determine if a supplied parameter is a Class component.
+     *
+     * @param {?} component Parameter to test.
+     * @return {boolean} True if the parameter is a Class component.
+     */
+    isClassComponent(component) {
+        return (
+            typeof component === "function" &&
+            !!component.prototype.isReactComponent
+        )
+    },
+
+    /**
+     * Determine if a supplied parameter is a Function component.
+     *
+     * @param {?} component Parameter to test.
+     * @return {boolean} True if the parameter is a Function component.
+     */
+    isFunctionComponent(component) {
+        return (
+            typeof component === "function" &&
+            String(component).includes("return React.createElement")
+        )
+    },
+
+    /**
+     * Determine if a supplied parameter is a React component.
+     *
+     * @param {?} component Parameter to test.
+     * @return {boolean} True if the parameter is a React component.
+     */
+    isReactComponent(component) {
+        return (
+            UX.isClassComponent(component) ||
+            UX.isFunctionComponent(component)
+        )
+    },
+
+    /**
+     * Determine if a supplied parameter is a React element.
+     *
+     * @param {?} component Parameter to test.
+     * @return {boolean} True if the parameter is a React element.
+     */
+    isElement(element) {
+        return React.isValidElement(element)
+    },
+
+    /**
+     * Determine if a supplied parameter is a DOM element.
+     *
+     * @param {?} component Parameter to test.
+     * @return {boolean} True if the parameter is a DOM element.
+     */
+    isDOMTypeElement(element) {
+        return UX.isElement(element) && typeof element.type === "string"
+    },
+
+    /**
+     * Determine if a supplied parameter is a composite element.
+     *
+     * @param {?} component Parameter to test.
+     * @return {boolean} True if the parameter is a composite element.
+     */
+    isCompositeTypeElement(element) {
+        return UX.isElement(element) && typeof element.type === "function"
     }
 }

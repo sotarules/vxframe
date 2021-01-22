@@ -69,7 +69,7 @@ export default class DeploymentModal extends Component {
                     <div className="row">
                         <div className="col-xs-12">
                             <VXSelect id="sourceDomain"
-                                codeArray={VXApp.makeDomainArray(true)}
+                                codeArray={UX.addBlankSelection(VXApp.makeDomainArray(true))}
                                 label={Util.i18n("common.label_source_domain")}
                                 tooltip={Util.i18n("common.tooltip_source_domain")}
                                 required={true}
@@ -81,7 +81,7 @@ export default class DeploymentModal extends Component {
                 <div className="row">
                     <div className="col-xs-12">
                         <VXSelect id="targetDomain"
-                            codeArray={VXApp.makeDomainArray(true)}
+                            codeArray={UX.addBlankSelection(VXApp.makeDomainArray(true))}
                             label={Util.i18n("common.label_target_domain")}
                             tooltip={Util.i18n("common.tooltip_target_domain")}
                             required={true}

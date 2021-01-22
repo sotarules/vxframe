@@ -35,9 +35,10 @@ export default class TenantViewLeft extends Component {
             <div id={this.props.id}
                 className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-tenants"
-                    activeButtonId="button-tenants">
+                    value="TENANTS">
                     <RadioButton id="button-tenants"
-                        text={Util.i18n("common.label_my_tenants")}/>
+                        text={Util.i18n("common.label_my_tenants")}
+                        value="TENANTS"/>
                 </RadioButtonGroup>
                 <TenantEntityList id="tenant-view-left-list"
                     tenants={this.props.tenants}

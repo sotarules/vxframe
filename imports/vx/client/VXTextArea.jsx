@@ -120,7 +120,7 @@ export default class TextArea extends Component {
         event.persist()
         this.setState({value: event.target.value, modified : true }, () => {
             if (this.props.onChange) {
-                this.props.onChange(event)
+                this.props.onChange(event, this.getValue(), this)
             }
         })
     }

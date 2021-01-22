@@ -35,9 +35,10 @@ export default class DomainViewLeft extends Component {
             <div id={this.props.id}
                 className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-my-domains"
-                    activeButtonId="button-my-domains">
+                    value="DOMAINS">
                     <RadioButton id="button-my-domains"
-                        text={Util.i18n("common.label_my_domains")}/>
+                        text={Util.i18n("common.label_my_domains")}
+                        value="DOMAINS"/>
                 </RadioButtonGroup>
                 <DomainEntityList id="domain-view-left-list"
                     domains={this.props.domains}

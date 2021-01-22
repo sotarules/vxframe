@@ -14,9 +14,10 @@ export default class TenantEditLeft extends Component {
         return (
             <div className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-tenants"
-                    activeButtonId="button-tenants">
+                    value="TENANTS">
                     <RadioButton id="button-tenants"
-                        text={Util.i18n("common.label_my_tenants")}/>
+                        text={Util.i18n("common.label_my_tenants")}
+                        value="TENANTS"/>
                 </RadioButtonGroup>
                 <TenantEntityList id="tenant-edit-left-list"
                     tenants={this.props.tenants}

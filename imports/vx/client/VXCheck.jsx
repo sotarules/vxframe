@@ -65,7 +65,7 @@ export default class VXCheck extends Component {
     }
 
     handleChange(event) {
-        OLog.debug("VXCheck.jsx handleChange id=" + this.props.id + " checked=" + event.target.checked)
+        //OLog.debug(`VXCheck.jsx handleChange id=${this.props.id} checked=${event.target.checked}`)
         event.persist()
         this.setState({ checked : event.target.checked }, () => {
             UX.validateComponent(this)

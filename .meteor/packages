@@ -12,7 +12,7 @@ jquery@1.11.10                  # Helpful client-side library
 tracker@1.2.0                 # Meteor's client-side reactive programming library
 
 es5-shim@4.8.0                # ECMAScript 5 compatibility for older browsers.
-ecmascript@0.14.4              # Enable ECMAScript2015+ syntax in app code
+ecmascript@0.15.0              # Enable ECMAScript2015+ syntax in app code
 
 aldeed:collection2@2.10.0
 http@1.4.2
@@ -20,8 +20,8 @@ less@2.8.0
 kidovate:pnotify
 mrt:moment-timezone
 pcel:loading
-accounts-base@1.7.1
-accounts-password@1.6.3
+accounts-base@1.8.0
+accounts-password@1.7.0
 tsega:bootstrap3-datetimepicker
 ejson@1.1.1
 
@@ -35,7 +35,7 @@ dsyko:holder
 momentjs:moment@2.15.1
 meteorhacks:picker
 joshowens:timezone-picker
-dynamic-import@0.5.4
+dynamic-import@0.6.0
 mrt:jquery-ui-sortable
 static-html
 
@@ -47,7 +47,7 @@ email@~2.0.0!
 
 matb33:collection-hooks
 dburles:mongo-collection-instances
-lookback:emails
 dsyko:meteor-node-csv
 mikowals:batch-insert
 ostrio:files
+lookback:emails

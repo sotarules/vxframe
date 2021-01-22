@@ -14,9 +14,10 @@ export default class UserEditLeft extends Component {
         return (
             <div className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-domains"
-                    activeButtonId="button-domains">
+                    value="DOMAINS">
                     <RadioButton id="button-domains"
-                        text={Util.i18n("common.label_domains")}/>
+                        text={Util.i18n("common.label_domains")}
+                        value="DOMAINS"/>
                 </RadioButtonGroup>
                 <DomainEntityList id="user-edit-left-list"
                     domains={this.props.domains}

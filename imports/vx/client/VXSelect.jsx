@@ -9,7 +9,8 @@ export default class VXSelect extends Component {
         codeArray : PropTypes.array.isRequired,
         name : PropTypes.string,
         label : PropTypes.string,
-        selectClass : PropTypes.string,
+        groupClass : PropTypes.string,
+        className : PropTypes.string,
         star : PropTypes.bool,
         tooltip : PropTypes.string,
         required : PropTypes.bool,
@@ -24,6 +25,7 @@ export default class VXSelect extends Component {
         extra : PropTypes.array,
         supplement : PropTypes.func,
         siblings : PropTypes.array,
+        inline : PropTypes.bool,
         onChange : PropTypes.func,
         tandem : PropTypes.func,
         dbName : PropTypes.string,
@@ -94,8 +96,12 @@ export default class VXSelect extends Component {
     }
 
     render() {
+        return !this.props.inline ? this.renderStandard() : this.renderInline()
+    }
+
+    renderStandard() {
         return (
-            <div className={`form-group ${this.state.error ? " " + CX.CLASS_HAS_ERROR : ""} ${this.props.className || ""}`}>
+            <div className={`form-group ${this.state.error ? " " + CX.CLASS_HAS_ERROR : ""} ${this.props.groupClass || ""}`}>
                 {this.props.label &&
                     <label htmlFor={this.props.id}
                         className="control-label"
@@ -110,7 +116,7 @@ export default class VXSelect extends Component {
                 {!this.state.loading ? (
                     <select id={this.props.id}
                         name={this.props.id}
-                        className={`form-control ${this.props.selectClass || ""}`}
+                        className={`form-control ${this.props.className || ""}`}
                         value={this.state.value}
                         disabled={this.props.disabled}
                         onChange={this.handleChange.bind(this)}
@@ -127,6 +133,21 @@ export default class VXSelect extends Component {
         )
     }
 
+    renderInline() {
+        return (
+            <select id={this.props.id}
+                name={this.props.id}
+                className={`form-control form-no-label select-xs input-inline ${this.props.className || ""}`}
+                value={this.state.value}
+                disabled={this.props.disabled}
+                onChange={this.handleChange.bind(this)}
+                style={this.props.style}
+                ref={inputElement => { this.inputElement = inputElement } }>
+                {this.renderOptions()}
+            </select>
+        )
+    }
+
     renderOptions() {
         return this.state.codeArray.map(codeObject => (
             <option key={codeObject.code} value={codeObject.code}>{codeObject.localized}</option>
@@ -134,7 +155,7 @@ export default class VXSelect extends Component {
     }
 
     handleChange(event) {
-        OLog.debug("VXSelect.jsx handleChange id=" + this.props.id + " value=" + event.target.value)
+        OLog.debug(`VXSelect.jsx handleChange id=${this.props.id} value=${event.target.value}`)
         event.persist()
         this.setState({value: event.target.value}, () => {
             UX.validateComponent(this)

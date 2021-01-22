@@ -2519,5 +2519,38 @@ Util = {
             // Bury error return original value
         }
         return value
+    },
+
+    /**
+     * Move an object in an array using a relative offset. Negative offset means move the object
+     * towards lower indices and postive values move towards higher indices.
+     *
+     * @param {array} array Array of objects to mutate.
+     * @param {string} id Identity field in object to be moved.
+     * @param {number} offset Offset either negative or positive.
+     */
+    move(array, id, offset) {
+        const index = Util.indexOf(array, "id", id)
+        const newIndex = index + offset
+        if (newIndex > -1 && newIndex < array.length) {
+            const removedElement = array.splice(index, 1)[0]
+            array.splice(newIndex, 0, removedElement)
+        }
+    },
+
+    /**
+     * Given an input string an split character, return the last token
+     * from the string.
+     *
+     * @param {string} input Input string.
+     * @param {string} splitCharacter Character to use to split.
+     * @return {string} Last token of the string.
+     */
+    lastToken(input, splitCharacter) {
+        if (!input) {
+            return input
+        }
+        const array = input.split(splitCharacter)
+        return array[array.length - 1]
     }
 }

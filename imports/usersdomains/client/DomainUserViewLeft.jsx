@@ -20,7 +20,7 @@ export default class DomainUserViewLeft extends Component {
     constructor(props) {
         super(props)
         this.locked = false
-        this.state = { usersDomainsButton : "button-domains" }
+        this.state = { usersDomainsButton : "DOMAINS" }
     }
 
     shouldComponentUpdate() {
@@ -36,12 +36,14 @@ export default class DomainUserViewLeft extends Component {
             <div id={this.props.id}
                 className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-users-domains"
-                    activeButtonId={this.state.usersDomainsButton}>
+                    value={this.state.usersDomainsButton}>
                     <RadioButton id="button-users"
                         text={Util.i18n("user_domain.label_users")}
+                        value="USERS"
                         onClick={this.handleClickUsers.bind(this)}/>
                     <RadioButton id="button-domains"
-                        text={Util.i18n("user_domain.label_domains")}/>
+                        text={Util.i18n("user_domain.label_domains")}
+                        value="DOMAINS"/>
                 </RadioButtonGroup>
                 <DomainEntityList id="domain-user-view-left"
                     domains={this.props.domains}

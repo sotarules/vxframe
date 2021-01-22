@@ -35,9 +35,10 @@ export default class FunctionViewLeft extends Component {
             <div id={this.props.id}
                 className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-functions"
-                    activeButtonId="button-functions">
+                    value="FUNCTIONS">
                     <RadioButton id="button-functions"
-                        text={Util.i18n("common.label_functions")}/>
+                        text={Util.i18n("common.label_functions")}
+                        value="FUNCTIONS"/>
                 </RadioButtonGroup>
                 <FunctionEntityList id="function-view-left-list"
                     functions={this.props.functions}

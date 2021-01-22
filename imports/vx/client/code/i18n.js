@@ -355,6 +355,21 @@
         rx : "$Issues Detected$"
     },
 
+    label_function_name : {
+        en : "Function Name",
+        rx : "$Function Name$"
+    },
+
+    label_function_description : {
+        en : "Function Description",
+        rx : "$Function Description"
+    },
+
+    label_function_type : {
+        en : "Function Type",
+        rx : "$Function Type$"
+    },
+
     empty_tenants : {
         en : "There are no tenants to display",
         rx : "$There are no tenants to display$"

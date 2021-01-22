@@ -14,9 +14,10 @@ export default class TemplateEditLeft extends Component {
         return (
             <div className="left-list-container flexi-grow">
                 <RadioButtonGroup id="button-group-templates"
-                    activeButtonId="button-templates">
+                    value="TEMPLATES">
                     <RadioButton id="button-templates"
-                        text={Util.i18n("common.label_templates")}/>
+                        text={Util.i18n("common.label_templates")}
+                        value="TEMPLATES"/>
                 </RadioButtonGroup>
                 <TemplateEntityList id="template-edit-left-list"
                     templates={this.props.templates}

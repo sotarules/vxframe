@@ -7,6 +7,7 @@ export default class VXInput extends Component {
         id : PropTypes.string.isRequired,
         name : PropTypes.string,
         autoComplete : PropTypes.string,
+        groupClass : PropTypes.string,
         className : PropTypes.string,
         type : PropTypes.string,
         placeholder : PropTypes.string,
@@ -26,6 +27,7 @@ export default class VXInput extends Component {
         extra : PropTypes.array,
         supplement : PropTypes.array,
         siblings : PropTypes.array,
+        inline : PropTypes.bool,
         onChange : PropTypes.func,
         onUpdate : PropTypes.func,
         onEnter : PropTypes.func,
@@ -72,8 +74,12 @@ export default class VXInput extends Component {
     }
 
     render() {
+        return !this.props.inline ? this.renderStandard() : this.renderInline()
+    }
+
+    renderStandard() {
         return (
-            <div className={"form-group" + (this.state.error ? " " + CX.CLASS_HAS_ERROR : "")}>
+            <div className={`form-group ${this.state.error ? " " + CX.CLASS_HAS_ERROR : ""} ${this.props.groupClass || ""}`}>
                 {this.props.label &&
                     <label htmlFor={this.props.id}
                         className="control-label"
@@ -105,6 +111,27 @@ export default class VXInput extends Component {
         )
     }
 
+    renderInline() {
+        return (
+            <input
+                id={this.props.id}
+                name={this.props.name}
+                autoComplete={this.props.autoComplete}
+                type={this.props.type || "text"}
+                className={`form-control form-no-label input-xs input-inline ${this.props.className || ""}`}
+                placeholder={this.props.placeholder}
+                disabled={this.props.disabled}
+                value={this.state.value}
+                style={this.props.style}
+                onChange={this.handleChange.bind(this)}
+                onMouseDown={this.handleMouseDown.bind(this)}
+                onBlur={this.handleBlur.bind(this)}
+                onKeyPress={this.handleKeyPress.bind(this)}
+                ref={inputElement => { this.inputElement = inputElement } }
+            />
+        )
+    }
+
     getValue() {
         return UX.parsedValue(this, UX.strip(this, this.state.value))
     }
@@ -117,7 +144,7 @@ export default class VXInput extends Component {
         event.persist()
         this.setState({value: event.target.value, modified : true }, () => {
             if (this.props.onChange) {
-                this.props.onChange(event)
+                this.props.onChange(event, this.getValue(), this)
             }
         })
     }

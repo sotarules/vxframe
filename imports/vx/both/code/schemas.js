@@ -1050,6 +1050,10 @@ Schema.Functions = new SimpleSchema({
         type: String,
         optional: true
     },
+    functionType : {
+        type: String,
+        optional: true
+    },
     value : {
         type: String,
         optional: true

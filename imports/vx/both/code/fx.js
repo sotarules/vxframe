@@ -16,6 +16,22 @@ FX.trim = {
     }
 }
 
+FX.integer = {
+
+    strip : function(external) {
+
+        if (Util.isInteger(external)) {
+            return external.trim()
+        }
+
+        return external.trim().replace(CX.REGEX_NUMERIC_STRIP1, CX.REGEX_NUMERIC_STRIP2)
+    },
+
+    render : function(internal) {
+        return internal
+    }
+}
+
 FX.phoneUS = {
 
     strip : function(phone, country) {
