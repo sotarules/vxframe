@@ -584,7 +584,7 @@ VXApp = _.extend(VXApp || {}, {
             const fieldList = {}
             fieldList.fields = {}
             fieldList.fields[fieldName] = 1
-            funktion = Carriers.findOne(functionOrId, fieldList)
+            funktion = Functions.findOne(functionOrId, fieldList)
             if (!funktion) {
                 OLog.error(`vxapp.js fetchFunctionField unable to find functionOrId=${functionOrId}`)
                 return

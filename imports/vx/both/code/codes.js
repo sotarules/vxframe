@@ -1224,62 +1224,112 @@ Meteor.i18nMessages.codes = {
         JAN: {
             en : "January",
             rx : "$January$",
-            number: 1
+            number: 1,
+            dayMax: 31
         },
         FEB: {
             en : "February",
             rx : "$February$",
-            number: 2
+            number: 2,
+            dayMax: 29
         },
         MAR: {
             en : "March",
             rx : "$March$",
-            number: 3
+            number: 3,
+            dayMax: 31
         },
         APR: {
             en : "April",
             rx : "$April$",
-            number: 4
+            number: 4,
+            dayMax: 30
         },
         MAY: {
             en : "May",
             rx : "$May$",
-            number: 5
+            number: 5,
+            dayMax: 31
         },
         JUN: {
             en : "June",
             rx : "$June$",
-            number: 6
+            number: 6,
+            dayMax: 30
         },
         JUL: {
             en : "July",
             rx : "$July$",
-            number: 7
+            number: 7,
+            dayMax: 31
         },
         AUG: {
             en : "August",
             rx : "$August$",
-            number: 8
+            number: 8,
+            dayMax: 31
         },
         SEP: {
             en : "September",
             rx : "$September$",
-            number: 9
+            number: 9,
+            dayMax: 30
         },
         OCT: {
             en : "October",
             rx : "$October$",
-            number: 10
+            number: 10,
+            dayMax: 31
         },
         NOV: {
             en : "November",
             rx : "$November$",
-            number: 11
+            number: 11,
+            dayMax: 30
         },
         DEC: {
             en : "December",
             rx : "$December$",
-            number: 12
+            number: 12,
+            dayMax: 31
+        }
+    },
+
+    dayName : {
+        SUNDAY : {
+            en : "Sunday",
+            rx : "$Sunday$",
+            index : 0
+        },
+        MONDAY : {
+            en : "Monday",
+            rx : "$Monday$",
+            index : 1
+        },
+        TUESDAY : {
+            en : "Tuesday",
+            rx : "$Tuesday$",
+            index : 2
+        },
+        WEDNESDAY : {
+            en : "Wednesday",
+            rx : "$Wednesday$",
+            index : 3
+        },
+        THURSDAY : {
+            en : "Thursday",
+            rx : "$Thursday$",
+            index : 4
+        },
+        FRIDAY : {
+            en : "Friday",
+            rx : "$Friday$",
+            index : 5
+        },
+        SATURDAY : {
+            en : "Saturday",
+            rx : "$Saturday$",
+            index : 6
         }
     },
 
@@ -1870,6 +1920,13 @@ Meteor.i18nMessages.codes = {
         CLEARED : {
             en : "Cleared",
             rx : "$Cleared$"
+        }
+    },
+
+    functionType : {
+        GENERAL : {
+            en : "General Function",
+            rx : "$General Function$"
         }
     }
 }

@@ -41,7 +41,7 @@ Mailman = {
      *
      * @param {object} Notification to send.
      */
-    sendEmail(notification) {
+    async sendEmail(notification) {
         const from = Util.i18n("common.label_mail_from")
         const to = Util.getUserEmail(notification.recipientId)
         const subject = notification.subjectKey ?
@@ -53,15 +53,14 @@ Mailman = {
             VXApp.updateNotification(notification._id, "EMAIL", [ "processed" ])
             return
         }
-        Service.sendEmail(notification.domain, from, to, subject, null, text, (error, result) => {
-            if (!result.success) {
-                OLog.error(`mailman.js sendEmail *error* notificationId=${notification._id} from=${from} to=${to} ` +
-                    `subject=[${subject}] error=${error}`)
-                VXApp.updateNotification(notification._id, "EMAIL", [ "processed" ])
-                return
-            }
-            VXApp.updateNotification(notification._id, "EMAIL", [ "processed", "sent" ])
-        })
+        const result = await Service.sendEmail(notification.domain, from, to, subject, null, text);
+        if (!result.success) {
+            OLog.error(`mailman.js sendEmail *error* notificationId=${notification._id} from=${from} to=${to} ` +
+                `subject=[${subject}] error=${result.error}`)
+            VXApp.updateNotification(notification._id, "EMAIL", [ "processed" ])
+            return
+        }
+        VXApp.updateNotification(notification._id, "EMAIL", [ "processed", "sent" ])
     },
 
     /**
@@ -69,7 +68,7 @@ Mailman = {
      *
      * @param {object} Notification to send.
      */
-    sendSms(notification) {
+    async sendSms(notification) {
         const mobile = Util.getProfileValue("mobile", notification.recipientId)
         const message = Util.i18n(notification.key, notification.variables)
         const body = Util.i18n("common.template_subject", { message : message })
@@ -80,37 +79,12 @@ Mailman = {
             VXApp.updateNotification(notification._id, "SMS", [ "processed" ])
             return
         }
-        Service.sendSms(notification.domain, mobile, body, (error, result) => {
-            let parsedContent;
-            if (!result.success) {
-                VXApp.updateNotification(notification._id, "SMS", [ "processed" ])
-                if (!result.error.response) {
-                    OLog.error(`mailman.js sendSms notificationId=${notification._id} no response error=${result.error}`)
-                    return
-                }
-                parsedContent = Util.getParsedContent(result.error.response)
-                if (!parsedContent) {
-                    return;
-                }
-                if (parsedContent.code === 21605) {
-                    OLog.error(`mailman.js sendSms notificationId=${notification._id} message length exceeded`)
-                    return
-                }
-                OLog.error(`mailman.js sendSms notificationId=${notification._id} send error=${error}`)
-                return
-            }
-            parsedContent = Util.getParsedContent(result.result)
-            if (!parsedContent) {
-                return
-            }
-            // If the phone number is invalid, simply record as processed only:
-            if (parsedContent.code === 21211) {
-                VXApp.updateNotification(notification._id, "SMS", [ "processed" ])
-                return
-            }
-            // Otherwise, record the notification as both processed and sent:
-            VXApp.updateNotification(notification._id, "SMS", [ "processed" ], { SMS_messageSid : parsedContent.sid })
-        })
+        const result = Service.sendSms(notification.domain, mobile, body)
+        if (!result.success) {
+            VXApp.updateNotification(notification._id, "SMS", [ "processed" ])
+            return
+        }
+        VXApp.updateNotification(notification._id, "SMS", [ "processed" ])
     }
 }
 

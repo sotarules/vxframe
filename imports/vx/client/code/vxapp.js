@@ -1107,8 +1107,8 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Make an array of functions for a drop-down list.  The code is the actual
-     * function name and the description is the localization.
+     * Make an array of functions for a drop-down list.  The code is the function ID
+     * and the localization is the "friendly" function description.
      *
      * @param {string} functionType True to limit the list to a particular function type.
      * @return {array} Array of functions (code and localized).
@@ -1116,7 +1116,7 @@ VXApp = _.extend(VXApp || {}, {
     makeFunctionArray(functionType) {
         const functions = VXApp.findFunctionList()
         const codeArray = _.filter(functions, funktion => funktion.functionType === functionType).map(funktion => {
-            return { code: funktion.name, localized: funktion.description }
+            return { code: funktion._id, localized: funktion.description }
         })
         codeArray.sort((recordA, recordB) => {
             return recordA.localized.localeCompare(recordB.localized)

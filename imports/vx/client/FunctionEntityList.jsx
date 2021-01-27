@@ -1,4 +1,4 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import EmptyEntityList from "/imports/vx/client/EmptyEntityList"
 import EntityList from "/imports/vx/client/EntityList"

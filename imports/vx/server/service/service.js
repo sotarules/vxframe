@@ -1,5 +1,3 @@
-"use strict"
-
 Service = {
 
     /**
@@ -11,72 +9,46 @@ Service = {
      * @param {string} subject Subject.
      * @param {string} html HTML message.
      * @param {string} text Text message.
-     * @param {function} callback Mandatory callback.
      */
-    sendEmail : (domainId, from, to, subject, html, text, callback) => {
-
+    async sendEmail(domainId, from, to, subject, html, text) {
+        const domain = Domains.findOne(domainId)
+        if (!domain) {
+            OLog.error(`service.js sendEmail unable to find domainId=${domainId}`)
+            return { success : false }
+        }
         try {
-
-            let domain = Domains.findOne(domainId)
-
-            if (!domain) {
-                OLog.error("service.js sendEmail unable to find domainId=" + domainId)
-                callback(null, { success : false, error : new Error("Unable to find domainId=" + domainId) } )
-                return
-            }
-
-            let testmode = domain.mailgunTest ? "yes" : "no"
+            const testmode = domain.mailgunTest ? "yes" : "no"
             to = domain.mailgunDestinationOverride ? domain.mailgunDestinationOverride : to
-
-            let params = {}
+            const params = {}
             params.from = from
             params.to = to
             params.subject = subject
             params["o:testmode"] = testmode
-
             if (html) {
                 params.html = html
             }
-
             if (text) {
                 params.text = text
             }
+            const mailgunPrivateApiKey = domain.mailgunPrivateApiKey || CX.MAILGUN_PRIVATE_API_KEY
+            const mailgunDomain = domain.mailgunDomain || CX.MAILGUN_DOMAIN
 
-            let mailgunPrivateApiKey = domain.mailgunPrivateApiKey || CX.MAILGUN_PRIVATE_API_KEY
-            let mailgunDomain = domain.mailgunDomain || CX.MAILGUN_DOMAIN
+            const url = `${CX.MAILGUN_API}/${mailgunDomain}/messages`
+            const request = {}
+            request.auth = `api:${mailgunPrivateApiKey}`
+            request.params = params
 
-            let sendRequest = { auth : "api:" + mailgunPrivateApiKey, params : params }
+            OLog.debug(`service.js sendEmail domainId=${domainId} url=${url} request=${OLog.debugString(request)}`)
+            const result = await VXApp.http("POST", url, request)
+            OLog.debug(`service.js sendEmail domainId=${domainId} url=${url} result=${OLog.debugString(result)}`)
 
-            OLog.debug("service.js sendEmail domainId=" + domainId + " from=" + from + " to=" + to + " subject=[" + subject + "]" +
-             " mailgunPrivateApiKey=" + mailgunPrivateApiKey + " mailgunDomain=" + mailgunDomain + " sendRequest=" + OLog.debugString(sendRequest))
-
-            HTTP.post(CX.MAILGUN_API + "/" + mailgunDomain + "/messages", sendRequest, (error, result) => {
-
-                // Read back domain so that we have it fresh for setSubsystemStatus:
-                domain = Domains.findOne(domainId)
-                if (!domain) {
-                    OLog.error("service.js sendEmail unable to find domainId=" + domainId)
-                    callback(null, { success : false, error : new Error("Unable to find domainId=" + domainId) } )
-                    return
-                }
-
-                if (error) {
-                    OLog.error("service.js sendEmail *error* domainId=" + domainId + " from=" + from + " to=" + to + " subject=[" + subject + "] html=[" + html + "] error=" + error)
-                    VXApp.setSubsystemStatus("MAILGUN", domain, "RED", "common.status_mailgun_error", { errorString: error.toString() } )
-                    callback(null, { success: false, error : error } )
-                    return
-                }
-
-                VXApp.setSubsystemStatus("MAILGUN", domain, "GREEN", "common.status_mailgun_green")
-
-                callback(null, { success : true, result : result } )
-                return
-            })
+            VXApp.setSubsystemStatus("MAILGUN", domain, "GREEN", "common.status_mailgun_green")
+            return { success : true, result : result }
         }
         catch (error) {
-            OLog.error("service.js sendEmail unexpected error=" + error)
-            callback(null, { success: false, error: error } )
-            return
+            OLog.error(`service.js sendEmail *error* domainId=${domainId} error=${error}`)
+            VXApp.setSubsystemStatus("MAILGUN", domain, "RED", "common.status_mailgun_error", { errorString: error.toString() } )
+            return { success: false, error: error }
         }
     },
 
@@ -85,73 +57,51 @@ Service = {
      *
      * @param {string} domainId Domain ID (to retrieve credentials).
      * @param {string} mobile Mobile phone number.
-     * @param {string} body Message body.
+     * @param {string} messageBody Message body.
      * @param {function} callback Mandatory callback.
      */
-    sendSms : (domainId, mobile, body, callback) => {
-
+    async sendSms(domainId, mobile, messageBody) {
+        const domain = Domains.findOne(domainId)
+        if (!domain) {
+            OLog.error(`service.js sendSms unable to find domainId=${domainId}`)
+            return { success : false }
+        }
         try {
-
-            let domain = Domains.findOne(domainId)
-            if (!domain) {
-                OLog.error("service.js sendSms unable to find domainId=" + domainId)
-                callback(null, { success : false, error : new Error("Unable to find domainId=" + domainId) } )
-                return
-            }
-
+            const request = {}
+            let twilioUser
             mobile = domain.twilioDestinationOverride ? domain.twilioDestinationOverride : mobile
-
-            let apiUrl, sendRequest
-
             if (!domain.twilioTest) {
-                let twilioUser = domain.twilioUser || CX.TWILIO_ACCOUNT_SID
-                let twilioAuthToken = domain.twilioAuthToken || CX.TWILIO_AUTH_TOKEN
-                let twilioFromPhone = domain.twilioFromPhone || CX.TWILIO_FROM_PHONE
-                apiUrl = CX.TWILIO_API_URL_PREFIX + "/" + twilioUser + "/" + CX.TWILIO_API_URL_SUFFIX
-                sendRequest = { auth : twilioUser + ":" + twilioAuthToken,
-                    params : {
-                        "To" : Service.preparePhone(mobile),
-                        "From" : encodeURI(twilioFromPhone),
-                        "Body" : body
-                    }
+                twilioUser = domain.twilioUser || CX.TWILIO_ACCOUNT_SID
+                request.auth = `${twilioUser}:${domain.twilioAuthToken || CX.TWILIO_AUTH_TOKEN}`
+                request.params = {
+                    "To" : Service.preparePhone(mobile),
+                    "From" :domain.twilioFromPhone || CX.TWILIO_FROM_PHONE,
+                    "Body" : messageBody
                 }
             }
             else {
-                let twilioUser = CX.TWILIO_ACCOUNT_SID_TEST
-                let twilioAuthToken = CX.TWILIO_AUTH_TOKEN_TEST
-                let twilioFromPhone = CX.TWILIO_FROM_PHONE_TEST
-                apiUrl = CX.TWILIO_API_URL_PREFIX + "/" + twilioUser + "/" + CX.TWILIO_API_URL_SUFFIX
-                sendRequest = {
-                    auth : twilioUser + ":" + twilioAuthToken,
-                    params : {
-                        "To" : encodeURI(twilioFromPhone),
-                        "From" : encodeURI(twilioFromPhone),
-                        "Body" : body
-                    }
+                twilioUser = CX.TWILIO_ACCOUNT_SID_TEST
+                request.auth = `${twilioUser}:${CX.TWILIO_AUTH_TOKEN_TEST}`
+                request.params = {
+                    "To" : CX.TWILIO_FROM_PHONE_TEST,
+                    "From" : CX.TWILIO_FROM_PHONE_TEST,
+                    "Body" : messageBody
                 }
             }
 
-            OLog.debug("service.js sendSms domainId=" + domainId + " mobile=" + mobile + " body=[" + body + "] sendRequest=" + OLog.debugString(sendRequest))
+            const url = `${CX.TWILIO_API_URL_PREFIX}/${twilioUser}/${CX.TWILIO_API_URL_SUFFIX}`
 
-            HTTP.post(apiUrl, sendRequest, (error, result) => {
+            OLog.debug(`service.js sendSms domainId=${domainId} url=${url} request=${OLog.debugString(request)}`)
+            const result = await VXApp.http("POST", url, request)
+            OLog.debug(`service.js sendSms domainId=${domainId} url=${url} response=${OLog.debugString(result)}`)
 
-                if (error) {
-                    OLog.error("service.js sendSms *error* domainId=" + domainId + " mobile=" + mobile + " body=" + body + " error=" + error)
-                    VXApp.setSubsystemStatus("TWILIO", domain, "RED", "common.status_twilio_error", { errorString: error.toString() } )
-                    callback(null, { success: false, error : error } )
-                    return
-                }
-
-                VXApp.setSubsystemStatus("TWILIO", domain, "GREEN", "common.status_twilio_green")
-
-                callback(null, { success : true, result : result } )
-                return
-            })
+            VXApp.setSubsystemStatus("TWILIO", domain, "GREEN", "common.status_twilio_green")
+            return { success : true, result : result }
         }
         catch (error) {
-            OLog.error("service.js sendSms unexpected error=" + error)
-            callback(null, { success: false, error: error } )
-            return
+            OLog.error(`service.js sendSms *error* domainId=${domainId} error=${error}`)
+            VXApp.setSubsystemStatus("TWILIO", domain, "RED", "common.status_twilio_error", { errorString: error.toString() } )
+            return { success: false, error: error }
         }
     },
 
@@ -162,16 +112,11 @@ Service = {
      * @param {string} Phone number.
      * @return {string} Stripped number.
      */
-    preparePhone : (phone) => {
-
-        var stripped
-
-        stripped = phone.trim().replace(/[^0-9]/g, "")
-
+    preparePhone(phone) {
+        let stripped = phone.trim().replace(/[^0-9]/g, "")
         if (stripped.indexOf("1") === 0) {
             stripped = stripped.substring(1)
         }
-
         return stripped
     }
 }

@@ -1,0 +1,12 @@
+{
+  "extends": "lookback/meteor",
+
+  "globals": {
+    "Mailer": true,
+    "juice": false,
+    "FlowRouter": false,
+    "Router": false,
+    "SSR": false,
+    "Picker": false
+  }
+}

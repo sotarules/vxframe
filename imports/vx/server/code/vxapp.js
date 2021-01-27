@@ -1,5 +1,3 @@
-"use strict"
-
 VXApp = _.extend(VXApp || {}, {
 
     /**
@@ -752,36 +750,34 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} templateId Template ID.
      * @return {object} Result object.
      */
-    sendTestEmail(templateId) {
+    async sendTestEmail(templateId) {
         try {
             if (!_.isString(templateId)) {
-                OLog.error("vxapp.js sendTestEmail parameter check failed templateId=" + templateId)
+                OLog.error(`vxapp.js sendTestEmail parameter check failed templateId=${templateId}`)
                 return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
             }
             if (!Meteor.userId()) {
                 OLog.error("vxapp.js sendTestEmail security check failed user is not logged in")
                 return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
             }
-            let template = Templates.findOne(templateId)
+            const template = Templates.findOne(templateId)
             if (!template) {
-                OLog.error("vxapp.js sendTestEmail unable to find templateId=" + templateId)
-                return { success: false, icon: "BUG", key: "common.alert_transaction_fail_template_not_found", variables: { templateId: templateId } }
+                OLog.error(`vxapp.js sendTestEmail unable to find templateId=${templateId}`)
+                return { success: false, icon: "BUG", key: "common.alert_transaction_fail_template_not_found",
+                    variables: { templateId: templateId } }
             }
-            let user = Util.fetchUserLimited(Meteor.userId())
+            const user = Util.fetchUserLimited(Meteor.userId())
             user.profile.email = Util.getUserEmail(Meteor.userId())
-            let from = Util.i18n("common.label_mail_from")
-            let to = Util.getUserEmail(Meteor.userId())
-            let subject = Util.resolveVariables(template.subject, user.profile)
-            let html = Util.resolveVariables(template.html, user.profile)
-            OLog.debug("vxapp.js sendTestEmail from=" + from + " to=" + to + " subject=" + subject + " html=" + html)
-            let fut = new Future()
-            Service.sendEmail(template.domain, from, to, subject, html, null, function(error, response) {
-                fut.return({ error: error, response: response })
-            })
-            let result = fut.wait()
-            if (!result.response.success) {
+            const from = Util.i18n("common.label_mail_from")
+            const to = Util.getUserEmail(Meteor.userId())
+            const subject = Util.resolveVariables(template.subject, user.profile)
+            const  html = Util.resolveVariables(template.html, user.profile)
+            OLog.debug(`vxapp.js sendTestEmail from=${from} to=${to} subject=${subject} html=${html}`)
+            const result = await Service.sendEmail(template.domain, from, to, subject, html, null)
+            if (!result.success) {
                 VXApp.setSubsystemStatus("TEMPLATE", template, "RED", "common.status_template_test_fail")
-                return { success: false, icon: "TRIANGLE", key: "common.alert_send_test_email_fail", variables: { error: result.response.error.toString() } }
+                return { success: false, icon: "TRIANGLE", key: "common.alert_send_test_email_fail",
+                    variables: { error: result.error.toString() } }
             }
             OLog.debug("vxapp.js sendTestEmail *success*")
             VXApp.setSubsystemStatus("TEMPLATE", template, "GREEN", "common.status_template_test_success")
@@ -789,7 +785,8 @@ VXApp = _.extend(VXApp || {}, {
         }
         catch (error) {
             OLog.error("vxapp.js sendTestEmail unexpected error=" + error)
-            return { success: false, icon: "TRIANGLE", key: "common.alert_send_test_email_fail", variables: { error: error.toString() } }
+            return { success: false, icon: "TRIANGLE", key: "common.alert_send_test_email_fail",
+                variables: { error: error.toString() } }
         }
     },
 
@@ -797,35 +794,31 @@ VXApp = _.extend(VXApp || {}, {
      * Invoke server-side HTTP request.
 
      * @param {string} method Method (e.g., GET or POST).
-     * @param {string} url URL to retrieve.
-     * @param {object} options Optional options.
-     * @return {object} Promise representing HTTP request.
+     * @param {string} url URL.
+     * @param {object} body Request body.
+     * @return {object} Standard result object with response
      */
-    http(method, url, options) {
-        const fut = new Future()
-        HTTP.call(method, url, options, (error, response) => {
-            fut.return({ error: error, response: response })
+
+    /**
+     * Invoke HTTP as a promise.
+     *
+     * @param {string} method Method name.
+     * @param {string} url URL.
+     * @return {object} request Request (auth, params and so on).
+     */
+    async http(method, url, request) {
+        return new Promise((resolve, reject) => {
+            OLog.debug(`vxapp.js http ${method} ${url} *executor*`)
+            HTTP.call(method, url, request, (error, result) => {
+                if (error) {
+                    OLog.error(`vxapp.js http ${method} ${url} *reject* error=${error}`)
+                    reject(error)
+                    return
+                }
+                OLog.debug(`vxapp.js http ${method} ${url} *resolve* result=${OLog.debugString(result)}`)
+                resolve(result)
+            })
         })
-        let result = fut.wait()
-        if (result.error) {
-            const errorString = VXApp.httpTruncate(result.error)
-            OLog.error(`vxapp.js http method=${method} url=${url} error=${errorString}`)
-            return { success: false, icon: "TRIANGLE", key: "common.alert_http_unexpected_error", variables: { error: errorString }, error : result.error }
-        }
-        if (!result.response) {
-            OLog.error(`vxapp.js http method=${method} url=${url} API error no response object`)
-            return { success: false, icon: "TRIANGLE", key: "common.alert_http_no_response_object" }
-        }
-        if (result.response.statusCode !== 200) {
-            OLog.error(`vxapp.js http method=${method} url=${url} unexpected HTTP status (not 200) statusCode=${result.response.statusCode}`)
-            return { success: false, icon: "TRIANGLE", key: "common.alert_http_unexpected_http_status_code", variables : { statusCode : result.response.statusCode } }
-        }
-        if (!result.response.content) {
-            OLog.error(`vxapp.js http method=${method} url=${url} API error no response content object`);
-            return { success: false, icon: "TRIANGLE", key: "common.alert_http_no_content", variables: { result: VXApp.httpTruncate(JSON.stringify(result.response)) } };
-        }
-        OLog.debug(`vxapp.js http method ${method} url=${url} *success* response=${OLog.debugString(result.response)}`)
-        return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", response: result.response }
     },
 
     /**
@@ -862,6 +855,10 @@ VXApp = _.extend(VXApp || {}, {
      * @param {object} fieldNames Field names that were updated.
      */
     handleUpdate(collection, userId, doc, fieldNames) {
+        // No userId is supplied when Domains is updated by the system, no undo/redo is necessary.
+        if (!userId) {
+            return
+        }
         try {
             let transactions = VXApp.findTransactions(collection, userId, doc)
             if (!transactions) {

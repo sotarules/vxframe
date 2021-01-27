@@ -921,14 +921,14 @@ Util = {
     getParsedContent(result) {
         let parsedContent
         if (!result.content) {
-            OLog.error("util.js getParsedContent result has no content, error=" + OLog.errorString(result))
+            OLog.error(`util.js getParsedContent result has no content, error=${OLog.errorString(result)}`)
             return
         }
         try {
             parsedContent = JSON.parse(result.content)
         }
         catch (e) {
-            OLog.error("util.js getParsedContent  result cannot parse JSON=" + result.content)
+            OLog.error(`util.js getParsedContent result cannot parse JSON=${result.content}`)
             return
         }
         return parsedContent
@@ -1109,6 +1109,16 @@ Util = {
      */
     isInteger(input) {
         return CX.REGEX_INTEGER.test(input)
+    },
+
+    /**
+     * Determine whether a given value is positive integer.
+     *
+     * @param {string} input Input value.
+     * @return {boolean} True if input is a positive integer.
+     */
+    isPositive(input) {
+        return CX.REGEX_POSITIVE.test(input)
     },
 
     /**
@@ -2378,7 +2388,7 @@ Util = {
      * @return {string} String or null.
      */
     toString(value) {
-        if (!value) {
+        if (Util.isNullish(value)) {
             return value
         }
         return value.toString()

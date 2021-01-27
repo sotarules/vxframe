@@ -97,6 +97,11 @@ Meteor.i18nMessages.common = {
         rx : "$Invalid number$"
     },
 
+    invalid_positive : {
+        en : "Invalid number (must be greater than zero)",
+        rx : "$Invalid number (must be greater than zero)$"
+    },
+
     invalid_float : {
         en : "Invalid decimal number",
         rx : "$Invalid decimal number$"
@@ -210,6 +215,11 @@ Meteor.i18nMessages.common = {
     invalid_boolean: {
         en : "Boolean indicator must be true or false (case insensitive)",
         rx : "$Boolean indicator must be true or false (case insensitive)$"
+    },
+
+    invalid_calendar_day: {
+        en : "Invalid calendar day",
+        rx : "$Invalid calendar day$"
     },
 
     invalid_key : {

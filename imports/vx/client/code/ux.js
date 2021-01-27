@@ -1019,8 +1019,8 @@ UX = {
      * @return {object} Result object.
      */
     async validateInstance(component) {
-        let form = UX.findForm(component.props.id)
-        let validateArgs = UX.prepareValidateArgs(component)
+        const form = UX.findForm(component.props.id)
+        const validateArgs = UX.prepareValidateArgs(component)
         let result = { success: true }
         if (!form) {
             return result
@@ -1036,9 +1036,9 @@ UX = {
         else if (!Util.isNullish(validateArgs[0])) {
             if (component.props.rule) {
                 if (_.isString(component.props.rule)) {
-                    OLog.debug("ux.js validateInstance invoking server-side rule " + component.props.rule)
+                    OLog.debug(`ux.js validateInstance invoking server-side rule ${component.props.rule}`)
                     result = await UX.call("validateServerSide", component.props.rule, validateArgs)
-                    OLog.debug("ux.js validateInstance server-side result=" + OLog.debugString(result))
+                    OLog.debug(`ux.js validateInstance server-side result=${OLog.debugString(result)}`)
                 }
                 else {
                     result = component.props.rule.apply(component, validateArgs)
@@ -1130,7 +1130,8 @@ UX = {
             _.each(component.props.supplement, (supplementId) => {
                 let supplementComponent = UX.findComponentById(supplementId)
                 if (!supplementComponent) {
-                    OLog.error("ux.js getSupplementalValues for componentId=" + component.props.id + " unable to find supplementId=" + supplementId)
+                    OLog.error(`ux.js getSupplementalValues for componentId=${component.props.id} ` +
+                        `unable to find supplementId=${supplementId}`)
                     return
                 }
                 let value = supplementComponent.getValue()
@@ -1263,6 +1264,20 @@ UX = {
                 })
             })
         }
+    },
+
+    /**
+     * Clear any errors from the form.
+     *
+     * @param {object} form Form to clear.
+     */
+    clearAllErrors(form) {
+        for (let component of form.components) {
+            if (component.state.error) {
+                UX.deleteErrorFromComponent(component)
+            }
+        }
+        return true
     },
 
     /**
@@ -2019,7 +2034,7 @@ UX = {
     invokeFormFunction(name, component) {
         let form = UX.findForm(component.props.id)
         if (!form) {
-            //OLog.error("ux.js invokeFormFunction unable to find form of component id=" + component.props.id)
+            //OLog.error(`ux.js invokeFormFunction unable to find form of component id=${component.props.id}`)
             return
         }
         form[name](component)
@@ -2049,7 +2064,7 @@ UX = {
     isFormDynamic(component) {
         let formProps = UX.getFormProps(component)
         if (!formProps) {
-            OLog.error("ux.js isFormDynamic unable to find form of component id=" + component.props.id)
+            //OLog.error("ux.js isFormDynamic unable to find form of component id=" + component.props.id)
             return false
         }
         return formProps.dynamic

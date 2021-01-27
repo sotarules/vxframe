@@ -14,7 +14,8 @@ export default class VXRadioButton extends Component {
         inputClassName : PropTypes.string,
         disabled : PropTypes.bool,
         tooltip : PropTypes.string,
-        onClick : PropTypes.func
+        onClick : PropTypes.func,
+        onChange : PropTypes.func
     }
 
     render() {
@@ -42,7 +43,7 @@ export default class VXRadioButton extends Component {
         event.persist()
         this.props.setActiveValue(this.props.value)
         if (this.props.onChange) {
-            this.props.onChange(event, this)
+            this.props.onChange(event, this.props.value, this)
         }
     }
 
