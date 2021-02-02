@@ -117,9 +117,10 @@ export default class DomainEditRight extends Component {
                             roleCheckboxesDisabled={false}
                             userRolesChecked={this.props.userRolesChecked}
                             roleCheckboxUpdateHandler={this.handleUpdateRoleCheckbox.bind(this)}
-                            control={true}
-                            controlClassName="fa-times"
-                            onClickControl={this.handleClickControl.bind(this)}
+                            controls={[{
+                                className: "fa-times",
+                                onClick: this.handleClickDelete.bind(this)
+                            }]}
                             onDrop={this.handleDropUser.bind(this)}/>
                     </RightPanel>
                 ) : (
@@ -135,18 +136,17 @@ export default class DomainEditRight extends Component {
     }
 
     handleUpdateRoleCheckbox(component, value, userRole, userId) {
-        OLog.debug("DomainEditRight.jsx handleUpdateRoleCheckbox componentId=" +
-            component.props.id + " userRole=" + userRole + " value=" + value + " userId=" + userId + " domainId=" + this.props.domain._id)
+        OLog.debug(`DomainEditRight.jsx handleUpdateRoleCheckbox componentId=${component.props.id} userRole=${userRole} value=${value} userId=${userId} domainId=${this.props.domain._id}`)
         VXApp.updateTenantOrDomainRole(userId, this.props.domain._id, userRole, false, value)
     }
 
     handleDropUser(event, entityTarget, ui, component) {
-        OLog.debug("DomainEditRight.jsx handleDropUser componentId=" + component.props.id)
+        OLog.debug(`DomainEditRight.jsx handleDropUser componentId=${component.props.id}`)
         VXApp.updateDomainUser(entityTarget, ui)
     }
 
-    handleClickControl(event, component) {
-        OLog.debug("DomainEditRight.jsx handleClickControl delete domainId=" + this.props.domain._id + " userId=" + component.props._id)
+    handleClickDelete(event, component) {
+        OLog.debug(`DomainEditRight.jsx handleClickDelete delete domainId=${this.props.domain._id} userId=${component.props._id}`)
         VXApp.deleteUserDomain(component.props._id, this.props.domain._id)
     }
 }

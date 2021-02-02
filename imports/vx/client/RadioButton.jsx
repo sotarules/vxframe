@@ -44,6 +44,7 @@ export default class RadioButton extends Component {
 
     active() {
         const activeValue = this.props.getActiveValue()
-        return activeValue === this.props.value ? "active" : ""
+        const active = activeValue === this.props.value ? "active" : ""
+        return active
     }
 }

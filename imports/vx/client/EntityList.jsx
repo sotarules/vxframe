@@ -8,10 +8,7 @@ export default class EntityList extends Component {
         className : PropTypes.string,
         selectable : PropTypes.bool,
         chevrons : PropTypes.bool,
-        control : PropTypes.bool,
-        controlClassName : PropTypes.string,
-        controlTooltip : PropTypes.string,
-        onClickControl : PropTypes.func,
+        controls : PropTypes.array,
         rightPanel : PropTypes.bool,
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
@@ -44,10 +41,7 @@ export default class EntityList extends Component {
                     {
                         chevrons : this.props.chevrons,
                         selectable : this.props.selectable,
-                        control : this.props.control,
-                        controlClassName : this.props.controlClassName,
-                        controlTooltip : this.props.controlTooltip,
-                        onClickControl : this.props.onClickControl
+                        controls : this.props.controls
                     }
                 )}
             </ul>

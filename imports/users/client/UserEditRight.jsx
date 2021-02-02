@@ -129,9 +129,10 @@ export default class UserEditRight extends Component {
                             roleCheckboxesDisabled={false}
                             domainRolesChecked={this.props.domainRolesChecked}
                             roleCheckboxUpdateHandler={this.handleUpdateRoleCheckbox.bind(this)}
-                            control={true}
-                            controlClassName="fa-times"
-                            onClickControl={this.handleClickControl.bind(this)}
+                            controls={[{
+                                className: "fa-times",
+                                onClick: this.handleClickDelete.bind(this)
+                            }]}
                             onDrop={this.handleDropDomain.bind(this)}/>
                     </RightPanel>
                 ) : (
@@ -173,7 +174,7 @@ export default class UserEditRight extends Component {
     }
 
     handleDropDomain(event, entityTarget, ui, component) {
-        OLog.debug("UserEditRight.jsx handleDropDomain componentId=" + component.props.id)
+        OLog.debug(`UserEditRight.jsx handleDropDomain componentId=${component.props.id}`)
         VXApp.updateUserDomain(entityTarget, ui)
     }
 
@@ -182,7 +183,7 @@ export default class UserEditRight extends Component {
         modifier.$set = {}
         modifier.$set.username = strippedValue
         modifier.$set.emails = [ {  address: strippedValue,  verified: true }]
-        OLog.debug("UserEditRight.jsx updateEmail strippedValue=" + strippedValue  + " modifier=" + OLog.debugString(modifier))
+        OLog.debug(`UserEditRight.jsx updateEmail strippedValue=${strippedValue} modifier=${OLog.debugString(modifier)}`)
         Meteor.users.update(this.props.user._id, modifier, (error) => {
             if (error) {
                 OLog.error("UserEditRight.jsx updateEmail error returned from dynamic field update=" + error)
@@ -194,13 +195,12 @@ export default class UserEditRight extends Component {
     }
 
     handleUpdateRoleCheckbox(component, value, userRole, domainId) {
-        OLog.debug("UserEditRight.jsx handleUpdateRoleCheckbox componentId=" +
-            component.props.id + " userRole=" + userRole + " value=" + value + " domainId=" + domainId + " userId=" + this.props.user._id)
+        OLog.debug(`UserEditRight.jsx handleUpdateRoleCheckbox componentId=${component.props.id} userRole=${userRole} value=${value} domainId=${domainId} userId=${this.props.user._id}`)
         VXApp.updateTenantOrDomainRole(this.props.user._id, domainId, userRole, false, value)
     }
 
-    handleClickControl(event, component) {
-        OLog.debug("UserEditRight.jsx handleClickControl delete userId=" + this.props.user._id + " domainId=" + component.props._id)
+    handleClickDelete(event, component) {
+        OLog.debug(`UserEditRight.jsx handleClickDelete delete userId=${this.props.user._id} domainId=${component.props._id}`)
         VXApp.deleteUserDomain(this.props.user._id, component.props._id)
     }
 }

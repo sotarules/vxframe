@@ -11,10 +11,7 @@ export default class UserEntityList extends Component {
         users : PropTypes.array.isRequired,
         selectable : PropTypes.bool,
         chevrons : PropTypes.bool,
-        control : PropTypes.bool,
-        controlClassName : PropTypes.string,
-        controlTooltip : PropTypes.string,
-        onClickControl : PropTypes.func,
+        controls : PropTypes.array,
         rightPanel : PropTypes.bool,
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
@@ -32,10 +29,7 @@ export default class UserEntityList extends Component {
                 selectable={this.props.selectable}
                 chevrons={this.props.chevrons}
                 rightPanel={this.props.rightPanel}
-                control={this.props.control}
-                controlClassName={this.props.controlClassName}
-                controlTooltip={this.props.controlTooltip}
-                onClickControl={this.props.onClickControl}
+                controls={this.props.controls}
                 draggable={this.props.draggable}
                 droppable={this.props.droppable}
                 dragClassName="user-drag-list"
@@ -48,7 +42,8 @@ export default class UserEntityList extends Component {
 
     renderUserItems() {
         return this.props.users.map(user => (
-            <EntityItem key={user._id}
+            <EntityItem id={`user-entity-list-${user._id}`}
+                key={user._id}
                 _id={user._id}
                 collection={Meteor.users}
                 iconUrl={Util.fetchUserPhotoUrl(user)}

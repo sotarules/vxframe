@@ -50,7 +50,7 @@ export default class VXDate extends Component {
 
     componentDidMount() {
         UX.register(this)
-        let selector = this.getSelector()
+        const selector = this.getSelector()
         $(selector).datetimepicker({
             format: this.props.format,
             dayViewHeaderFormat: this.props.format,
@@ -59,8 +59,10 @@ export default class VXDate extends Component {
             useCurrent: false,
             focusOnShow: false
         })
-        let dateString = moment.tz(this.props.value, this.props.timezone).format(this.props.format)
-        $(selector).data("DateTimePicker").date(dateString)
+        if (this.props.value) {
+            const dateString = moment.tz(this.props.value, this.props.timezone).format(this.props.format)
+            $(selector).data("DateTimePicker").date(dateString)
+        }
         $(selector).on("dp.change", function(event) {
             let date
             let dateMoment = moment.tz(event.date, this.props.timezone)
@@ -92,7 +94,7 @@ export default class VXDate extends Component {
     componentWillUnmount() {
         let selector = this.getSelector()
         $(selector).off("dp.change")
-        $(selector).data("DateTimePicker").destroy()
+        $(selector).data("DateTimePicker")?.destroy()
         UX.unregister(this)
     }
 

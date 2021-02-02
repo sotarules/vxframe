@@ -56,7 +56,7 @@ Util = {
      * Return an array of the "raw" codes names.
      *
      * @param {string} codeSet Name of code set.
-     * @param {string} filter Optional filter criteria.
+     * @param {object} filter Optional filter object.
      * @return {array} Array of code names.
      */
     getCodes(codeSet, filter) {
@@ -67,7 +67,7 @@ Util = {
                 return
             }
             _.each(filter, (filterValue, filterName) => {
-                if (codeDefinition[filterName] === filterValue) {
+                if (codeDefinition[filterName] == filterValue) {
                     codeNameArray.push(codeName)
                     return
                 }
@@ -2562,5 +2562,29 @@ Util = {
         }
         const array = input.split(splitCharacter)
         return array[array.length - 1]
+    },
+
+    /**
+     * Given a date in any timezone, return the same date GMT at 00:00:00.
+     *
+     * @param {?} date Either date or moment.
+     * @param {string} timezone Timezone in IANA format.
+     * @return {object} Moment UTC with time zeroed.
+     */
+    dateUTC(date, timezone) {
+        const dateString = moment.tz(date, timezone).format("YYYY-MM-DD")
+        return moment.utc(dateString)
+    },
+
+    /**
+     * Given a date in UTC timezone, return the same date in local timezone.
+     *
+     * @param {?} date Either date or moment.
+     * @param {string} timezone Timezone in IANA format.
+     * @return {object} Moment UTC with time zeroed.
+     */
+    dateLocal(date, timezone) {
+        const dateString = moment.utc(date).format("YYYY-MM-DD")
+        return moment.tz(dateString, timezone)
     }
 }

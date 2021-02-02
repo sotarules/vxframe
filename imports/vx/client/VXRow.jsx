@@ -8,10 +8,7 @@ export default class VXRow extends Component {
         editable : PropTypes.bool.isRequired,
         itemClassName : PropTypes.string,
         standardPadding : PropTypes.bool,
-        control : PropTypes.bool,
-        controlClassName : PropTypes.string,
-        controlTooltip : PropTypes.string,
-        onClickControl : PropTypes.func
+        controls : PropTypes.array
     }
 
     static defaultProps = {
@@ -27,20 +24,35 @@ export default class VXRow extends Component {
                 data-row-id={this.props.id}
                 onFocus={this.handleFocus.bind(this)}>
                 {this.props.children}
-                {this.props.control &&
-                    <div>
-                        <a className={`entity-control fa fa-xs ${this.props.controlClassName}`}
-                            data-toggle="tooltip"
-                            data-container="body"
-                            title={this.props.controlTooltip}
-                            onClick={this.handleClickControl.bind(this)}>
-                        </a>
-                        <div className="entity-control-hotzone"
-                            onTouchStart={this.handleTouchStartControl.bind(this)}/>
-                    </div>
-                }
+                {this.renderControls()}
             </div>
         )
+    }
+
+    renderControls() {
+        if (!this.props.controls) {
+            return null
+        }
+        return (
+            <div className="entity-control-set">
+                {this.renderControlRow()}
+            </div>
+        )
+    }
+
+    renderControlRow() {
+        return this.props.controls.map((control, index) => {
+            return (
+                <a className={`entity-control-element fa fa-xs ${control.className}`}
+                    id={`${this.props.id}-${index}`}
+                    key={`${this.props.id}-${index}`}
+                    data-toggle="tooltip"
+                    data-container="body"
+                    title={control.tooltip}
+                    onClick={this.handleClickControlSet.bind(this)}>
+                </a>
+            )
+        })
     }
 
     paddingClassName() {
@@ -57,22 +69,12 @@ export default class VXRow extends Component {
         component.setSelectedRowId(event, this.props.id, this)
     }
 
-    handleClickControl(event) {
-        if (UX.isTouchClick(event)) {
-            OLog.debug("VXRow.jsx handleClickControl *touchclick* ignored")
-            return
-        }
-        this.handleControl(event)
-    }
-
-    handleTouchStartControl(event) {
-        UX.armTouchClick(event)
-        this.handleControl(event)
-    }
-
-    handleControl(event) {
-        if (this.props.onClickControl) {
-            this.props.onClickControl(event, this)
+    handleClickControlSet(event) {
+        const id = $(event.target).attr("id")
+        const index = Util.lastToken(id, "-")
+        const control = this.props.controls[index]
+        if (control.onClick) {
+            control.onClick(event, this, index)
         }
     }
 }

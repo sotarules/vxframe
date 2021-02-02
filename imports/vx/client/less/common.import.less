@@ -761,23 +761,6 @@ body {
     outline: 0;
 }
 
-.entity-control-container:hover .entity-control {
-    visibility: visible;
-}
-
-.entity-control {
-    right: 4px;
-    top: 3px;
-    z-index: 9;
-    visibility: hidden;
-    position: absolute;
-    color: #C0C0C0;
-}
-
-.entity-control:hover {
-    text-decoration: none;
-}
-
 .entity-control-container:hover .entity-control-hotzone {
     visibility: visible;
 }
@@ -785,6 +768,27 @@ body {
 .entity-control-hotzone {
     visibility: hidden;
     .control-hotzone;
+}
+
+.entity-control-container:hover .entity-control-set {
+    visibility: visible;
+}
+
+.entity-control-element:hover {
+    text-decoration: none;
+}
+
+.entity-control-set {
+    right: 4px;
+    top: 1px;
+    z-index: 9;
+    visibility: hidden;
+    position: absolute;
+}
+
+.entity-control-element {
+    margin-left: 5px;
+    color: #C0C0C0;
 }
 
 .entity-table {

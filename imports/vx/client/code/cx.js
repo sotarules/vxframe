@@ -49,6 +49,7 @@ CX.NOTIFICATION_ICON_MAP = {
     "UPLOAD" : "fa fa-upload",
     "BANK" : "fa fa-bank",
     "HISTORY" : "fa fa-history",
+    "ARCHIVE" : "fa fa-archive",
     "CAMPAIGN" : "fa fa-th",
     "DISCOVERED" : "fa fa-power-off",
     "CARD" : "fa fa-credit-card",

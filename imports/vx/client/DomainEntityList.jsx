@@ -13,10 +13,7 @@ export default class DomainEntityList extends Component {
         currentDomainId : PropTypes.string,
         selectable : PropTypes.bool,
         chevrons : PropTypes.bool,
-        control : PropTypes.bool,
-        controlClassName : PropTypes.string,
-        controlTooltip : PropTypes.string,
-        onClickControl : PropTypes.func,
+        controls : PropTypes.array,
         rightPanel : PropTypes.bool,
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
@@ -41,10 +38,7 @@ export default class DomainEntityList extends Component {
                 selectable={this.props.selectable}
                 chevrons={this.props.chevrons}
                 rightPanel={this.props.rightPanel}
-                control={this.props.control}
-                controlClassName={this.props.controlClassName}
-                controlTooltip={this.props.controlTooltip}
-                onClickControl={this.props.onClickControl}
+                controls={this.props.controls}
                 draggable={this.props.draggable}
                 droppable={this.props.droppable}
                 dragClassName="domain-drag-list"
@@ -57,7 +51,8 @@ export default class DomainEntityList extends Component {
 
     renderDomainItems() {
         return this.props.domains.map(domain => (
-            <EntityItem key={domain._id}
+            <EntityItem id={`domain-entity-list-${domain._id}`}
+                key={domain._id}
                 _id={domain._id}
                 collection={Domains}
                 iconUrl={Util.fetchDomainIconUrl(domain)}

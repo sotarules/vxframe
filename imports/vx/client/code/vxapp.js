@@ -1245,7 +1245,7 @@ VXApp = _.extend(VXApp || {}, {
                 return
             }
             OLog.debug(`vxapp.js addRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
-                `id=${row[rowId]} *success*`)
+                `id=${newRow[rowId]} *success*`)
         })
     },
 
@@ -1398,9 +1398,10 @@ VXApp = _.extend(VXApp || {}, {
                 rebuiltArray.push(element)
             }
         })
+        const mongoPath = Util.toMongoPath(rowsPath)
         const modifier = {}
         modifier.$set = {}
-        modifier.$set[rowsPath] = rebuiltArray
+        modifier.$set[mongoPath] = rebuiltArray
         OLog.debug(`vxapp.js updateCodeArray recordId=${record._id} componentId=${component.props.id} ` +
             `rowsPath=${rowsPath} componentRowId=${componentRowId} modifier=${OLog.debugString(modifier)}`)
         collection.update(record._id, modifier, error => {
