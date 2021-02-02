@@ -54,9 +54,8 @@ export default class TemplateViewLeft extends Component {
     }
 
     handleSelectEntity(event, component) {
-        let publishAuthoringTemplate = {}
+        const publishAuthoringTemplate = {}
         publishAuthoringTemplate.criteria = { _id : component.props._id }
-        OLog.debug("TemplateViewLeft.jsx handleSelectEntity will select new template publishAuthoringTemplate=" + OLog.debugString(publishAuthoringTemplate))
         Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_templates", "RIGHT")
@@ -72,11 +71,14 @@ export default class TemplateViewLeft extends Component {
                 UX.notifyForDatabaseError(error)
                 return
             }
+            const publishAuthoringTemplate = {}
+            publishAuthoringTemplate.criteria = { _id : templateId }
+            Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
             if (UX.isSlideMode()) {
-                UX.iosMajorPush("common.button_templates", "common.button_templates", "/template/" + templateId, "RIGHT")
+                UX.iosMajorPush("common.button_templates", "common.button_templates", `/template/${templateId}`, "RIGHT")
             }
             else {
-                UX.iosMajorPush(null, null, "/template/" + templateId, "RIGHT", "crossfade")
+                UX.iosMajorPush(null, null, `/template/${templateId}`, "RIGHT", "crossfade")
             }
         })
     }

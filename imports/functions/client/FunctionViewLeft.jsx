@@ -54,9 +54,8 @@ export default class FunctionViewLeft extends Component {
     }
 
     handleSelectEntity(event, component) {
-        let publishAuthoringFunction = {}
+        const publishAuthoringFunction = {}
         publishAuthoringFunction.criteria = { _id : component.props._id }
-        OLog.debug("FunctionViewLeft.jsx handleSelectEntity will select new template publishAuthoringFunction=" + OLog.debugString(publishAuthoringFunction))
         Store.dispatch(setPublishAuthoringFunction(publishAuthoringFunction))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_functions", "RIGHT")
@@ -68,15 +67,18 @@ export default class FunctionViewLeft extends Component {
         UX.setLocked(["function-view-left", "function-view-right"], true)
         Functions.insert({ }, (error, functionId) => {
             if (error) {
-                OLog.error("FunctionViewLeft.jsx error attempting to create template=" + error)
+                OLog.error(`FunctionViewLeft.jsx error attempting to create template=${error}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
+            const publishAuthoringFunction = {}
+            publishAuthoringFunction.criteria = { _id : functionId }
+            Store.dispatch(setPublishAuthoringFunction(publishAuthoringFunction))
             if (UX.isSlideMode()) {
-                UX.iosMajorPush("common.button_functions", "common.button_functions", "/function/" + functionId, "RIGHT")
+                UX.iosMajorPush("common.button_functions", "common.button_functions", `/function/${functionId}`, "RIGHT")
             }
             else {
-                UX.iosMajorPush(null, null, "/function/" + functionId, "RIGHT", "crossfade")
+                UX.iosMajorPush(null, null, `/function/${functionId}`, "RIGHT", "crossfade")
             }
         })
     }

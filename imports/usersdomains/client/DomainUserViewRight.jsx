@@ -1,4 +1,4 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
@@ -8,7 +8,7 @@ import VXFieldBox from "/imports/vx/client/VXFieldBox"
 import EntityListHeader from "/imports/vx/client/EntityListHeader"
 import UserEntityList from "/imports/vx/client/UserEntityList"
 import RetireModal from "/imports/vx/client/RetireModal"
-import { setPublishAuthoringDomain } from "/imports/vx/client/code/actions"
+import {setPublishAuthoringDomain} from "/imports/vx/client/code/actions"
 
 export default class UserDomainViewRight extends Component {
 
@@ -124,17 +124,20 @@ export default class UserDomainViewRight extends Component {
     handleClone(callback) {
         OLog.debug("DomainUserViewRight.jsx handleClone")
         callback()
-        let domain = EJSON.parse(EJSON.stringify(this.props.domain))
+        const domain = EJSON.parse(EJSON.stringify(this.props.domain))
         delete domain._id
         delete domain.base
         delete domain.iconUrl
-        Domains.insert(domain, (error, newDomainId) => {
+        Domains.insert(domain, (error, domainId) => {
             if (error) {
-                OLog.error("DomainUserViewRight.jsx handleClone error attempting to clone domain=" + error)
-                UX.notifyForDatabaseError(error);
+                OLog.error(`DomainUserViewRight.jsx handleClone error attempting to clone domain=${error}`)
+                UX.notifyForDatabaseError(error)
                 return
             }
-            UX.iosMajorPush(null, null, "/domain/" + newDomainId, "RIGHT", "crossfade")
+            const publishAuthoringDomain = {}
+            publishAuthoringDomain.criteria = { _id: domainId }
+            Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
+            UX.iosMajorPush(null, null, `/domain/${domainId}`, "RIGHT", "crossfade")
         })
     }
 

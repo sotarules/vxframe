@@ -1,4 +1,4 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
@@ -8,7 +8,7 @@ import VXFieldBox from "/imports/vx/client/VXFieldBox"
 import EntityListHeader from "/imports/vx/client/EntityListHeader"
 import DomainEntityList from "/imports/vx/client/DomainEntityList"
 import RetireModal from "/imports/vx/client/RetireModal"
-import { setPublishAuthoringUser } from "/imports/vx/client/code/actions"
+import {setPublishAuthoringUser} from "/imports/vx/client/code/actions"
 
 export default class UserDomainViewRight extends Component {
 
@@ -117,7 +117,10 @@ export default class UserDomainViewRight extends Component {
         UX.setLocked(["user-domain-view-left"], true)
         Meteor.call("cloneUser", this.props.user._id, (error, result) => {
             UX.notify(result, error)
-            UX.iosMajorPush(null, null, "/user/" + result.userId, "RIGHT", "crossfade")
+            const publishAuthoringUser = {}
+            publishAuthoringUser.criteria = { _id: result.userId }
+            Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
+            UX.iosMajorPush(null, null, `/user/${result.userId}`, "RIGHT", "crossfade")
         })
     }
 

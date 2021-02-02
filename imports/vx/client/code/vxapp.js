@@ -996,11 +996,14 @@ VXApp = _.extend(VXApp || {}, {
         delete template.subsystemStatus
         Templates.insert(template, (error, templateId) => {
             if (error) {
-                OLog.error("vxapp.js error attempting to clone templateId=" + templateId + " error=" + error)
+                OLog.error(`vxapp.js error attempting to clone templateId=${templateId} error=${error}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
-            UX.iosMajorPush(null, null, "/template/" + templateId, "RIGHT", "crossfade")
+            const publishAuthoringTemplate = {}
+            publishAuthoringTemplate.criteria = { _id: templateId }
+            Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
+            UX.iosMajorPush(null, null, `/template/${templateId}`, "RIGHT", "crossfade")
         })
     },
 
@@ -1024,6 +1027,9 @@ VXApp = _.extend(VXApp || {}, {
                 UX.notifyForDatabaseError(error)
                 return
             }
+            const publishAuthoringFunction = {}
+            publishAuthoringFunction.criteria = { _id: functionId }
+            Store.dispatch(setPublishAuthoringFunction(publishAuthoringFunction))
             UX.iosMajorPush(null, null, `/function/${functionId}`, "RIGHT", "crossfade")
         })
     },
