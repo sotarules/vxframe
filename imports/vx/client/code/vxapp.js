@@ -1122,7 +1122,7 @@ VXApp = _.extend(VXApp || {}, {
     makeFunctionArray(functionType) {
         const functions = VXApp.findFunctionList()
         const codeArray = _.filter(functions, funktion => funktion.functionType === functionType).map(funktion => {
-            return { code: funktion._id, localized: funktion.description }
+            return { code: funktion._id, localized: funktion.description || "" }
         })
         codeArray.sort((recordA, recordB) => {
             return recordA.localized.localeCompare(recordB.localized)
