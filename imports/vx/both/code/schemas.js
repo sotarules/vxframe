@@ -54,6 +54,10 @@ Schema.checkEventId = function() {
     return Schema.checkMongoId(this, Events)
 }
 
+Schema.checkFunctionId = function() {
+    return Schema.checkMongoId(this, Functions)
+}
+
 Schema.SubsystemStatus = new SimpleSchema({
     subsystem : {
         type : String

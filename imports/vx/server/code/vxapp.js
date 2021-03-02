@@ -1435,7 +1435,7 @@ VXApp = _.extend(VXApp || {}, {
                 return
             }
             Domains.find( { dateRetired : { $exists: false }, tenant: tenant._id }).forEach(domain => {
-                const functionAnchor = VXApp.functionAnchor(domain._id)
+                const functionAnchor = VXApp.functionAnchorForDomain(domain._id)
                 const qualifiedFunctionAnchor = VXApp.qualifiedFunctionAnchor(functionAnchor, domain._id)
                 const fullyQualifiedFunctionAnchor = VXApp.fullyQualifiedFunctionAnchor(qualifiedFunctionAnchor)
                 OLog.debug(`vxapp.js deployAllFunctions *instantiating* ${fullyQualifiedFunctionAnchor}`)
@@ -1460,7 +1460,7 @@ VXApp = _.extend(VXApp || {}, {
                 return { success : false, icon : "BUG", key : "common.alert_transaction_fail_function_not_found",
                     variables : { functionId : functionId } }
             }
-            const functionAnchor = VXApp.functionAnchor(newFunction.domain)
+            const functionAnchor = VXApp.functionAnchorForDomain(newFunction.domain)
             const qualifiedFunctionAnchor = VXApp.qualifiedFunctionAnchor(functionAnchor, newFunction.domain)
             const fullyQualifiedFunctionAnchor = VXApp.fullyQualifiedFunctionAnchor(qualifiedFunctionAnchor)
             if (!FunctionAnchors[qualifiedFunctionAnchor]) {
@@ -1526,38 +1526,5 @@ VXApp = _.extend(VXApp || {}, {
             indexVXApp = value.indexOf("VXApp", indexEndParen + replacement.length)
         }
         return value
-    },
-
-    /**
-     * Given a domain ID return the tenant function anchor property.
-     *
-     * @param {string} domainId Domain ID.
-     * @return {string} Function anchor from tenant.
-     */
-    functionAnchor(domainId) {
-        const tenantId = Util.getTenantId(domainId)
-        return Util.fetchTenantField(tenantId, "functionAnchor")
-    },
-
-    /**
-     * Given a function anchor and domain ID get form a guaranteed-unique object name
-     * for this domain.
-     *
-     * @param {string} functionAnchor User-declared function anchor in tenant.
-     * @param {string} domainId Domain ID.
-     * @return {string} Guaranteed-unique object "container" for functions.
-     */
-    qualifiedFunctionAnchor(functionAnchor, domainId) {
-        return `${functionAnchor}_${domainId}`
-    },
-
-    /**
-     * Given a qualified function anchor, return fully-qualified function anchor.
-     *
-     * @param {string} qualifiedFunctionAnchor Qualified function anchor.
-     * @return Fully-qualified function anchor.
-     */
-    fullyQualifiedFunctionAnchor(qualifiedFunctionAnchor) {
-        return `FunctionAnchors.${qualifiedFunctionAnchor}`
     }
 })

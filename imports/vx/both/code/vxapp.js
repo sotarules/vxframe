@@ -601,12 +601,40 @@ VXApp = _.extend(VXApp || {}, {
      */
     functionAnchor(tenantId) {
         tenantId = tenantId || Util.getCurrentTenantId(Meteor.userId())
-        const functionAnchor = Util.fetchTenantField(tenantId, "functionAnchor")
-        if (!functionAnchor) {
-            OLog.error("vxapp.js functionAnchor no function anchor defined in tenant settings")
-            return
-        }
-        return functionAnchor
+        return Util.fetchTenantField(tenantId, "functionAnchor")
+    },
+
+    /**
+     * Given a domain ID return the tenant function anchor property.
+     *
+     * @param {string} domainId Domain ID.
+     * @return {string} Function anchor from tenant.
+     */
+    functionAnchorForDomain(domainId) {
+        const tenantId = Util.getTenantId(domainId)
+        return VXApp.functionAnchor(tenantId)
+    },
+
+    /**
+     * Given a function anchor and domain ID get form a guaranteed-unique object name
+     * for this domain.
+     *
+     * @param {string} functionAnchor User-declared function anchor in tenant.
+     * @param {string} domainId Domain ID.
+     * @return {string} Guaranteed-unique object "container" for functions.
+     */
+    qualifiedFunctionAnchor(functionAnchor, domainId) {
+        return `${functionAnchor}_${domainId}`
+    },
+
+    /**
+     * Given a qualified function anchor, return fully-qualified function anchor.
+     *
+     * @param {string} qualifiedFunctionAnchor Qualified function anchor.
+     * @return Fully-qualified function anchor.
+     */
+    fullyQualifiedFunctionAnchor(qualifiedFunctionAnchor) {
+        return `FunctionAnchors.${qualifiedFunctionAnchor}`
     },
 
     /**

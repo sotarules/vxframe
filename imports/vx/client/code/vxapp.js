@@ -1712,7 +1712,7 @@ VXApp = _.extend(VXApp || {}, {
                 return
             }
             // We upload only one file, in case multiple files were selected:
-            const upload = Uploads.insert({ file : file, transport: "ddp", streams: "dynamic", chunkSize: "dynamic" }, false)
+            const upload = Uploads.insert({ file : file, transport: "ddp", chunkSize: "dynamic" }, false)
             upload.on("start", function() {
                 Store.dispatch(setListImportLastPercent(0))
                 currentUpload.set(this)

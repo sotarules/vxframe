@@ -1,5 +1,3 @@
-"use strict"
-
 CX.LOGO_PATH = CX.CLOUDFILES_IMAGE + "/" + "VX250x245.png"
 CX.TOP_BAR_LOGO_PATH = CX.CLOUDFILES_IMAGE + "/" + "VX250x245w.png"
 

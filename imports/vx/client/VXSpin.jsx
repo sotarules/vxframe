@@ -134,6 +134,10 @@ export default class VXSpin extends Component {
     }
 
     doStateChange(event) {
+        // Focus is necessary because the buttons consume events, preventing other fields from
+        // blurring and recording. This is apparent when a VXSpin control is used side-by-side
+        // with a VXInput field.
+        this.inputElement.focus()
         this.setState({value: event.target.value }, () => {
             UX.validateComponent(this)
             if (this.props.onChange) {
