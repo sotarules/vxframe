@@ -13,6 +13,7 @@ export default class VXTinyButton extends Component {
     render() {
         return (
             <a id={this.props.id}
+                tabIndex="0"
                 className={`btn btn-default btn-xs btn-small-icon-choose ${this.props.className}`}
                 onClick={this.handleClick.bind(this)}>
                 <span className={`fa fa-sm ${this.props.iconClassName}`}></span>

@@ -1,5 +1,7 @@
-import "/imports/vx/client/lib/jasny/extend/js/jasny-bootstrap.js"
+import "/imports/vx/client/lib/jqueryui/jquery-ui.js"
 import "/imports/vx/client/lib/jqueryui/jquery.ui.touch-punch.js"
+import "/imports/vx/client/lib/jqueryui/jquery.multiselectable.js"
+import "/imports/vx/client/lib/jasny/extend/js/jasny-bootstrap.js"
 import "/imports/vx/client/lib/switch/js/bootstrap-switch.js"
 
 import "/imports/vx/both/code/globals"

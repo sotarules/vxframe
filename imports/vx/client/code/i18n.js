@@ -10,6 +10,11 @@
         rx : "$Function has errors, please correct them first$"
     },
 
+    alert_cannot_remove_last_domain : {
+        en : "Cannot remove a user from his/her only remaining domain",
+        rx : "$Cannot remove a user from his/her only remaining domain$"
+    },
+
     required_fields_incomplete : {
         en : "Please complete all required fields",
         rx : "$Please complete all required fields$"

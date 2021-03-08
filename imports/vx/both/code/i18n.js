@@ -759,6 +759,11 @@ Meteor.i18nMessages.common = {
     status_twilio_green : {
         en : "Twilio API is functioning properly",
         rx : "$Twilio API is functioning properly$"
+    },
+
+    template_clone_name : {
+        en : "Clone of {{originalName}}",
+        rx : "$Clone of {{originalName}}$"
     }
 }
 

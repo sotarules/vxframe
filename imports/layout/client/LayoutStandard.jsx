@@ -15,7 +15,8 @@ export default class LayoutStandard extends Component {
         id : PropTypes.string.isRequired,
         exemptRoute : PropTypes.bool,
         authorizedRoute : PropTypes.bool,
-        loading : PropTypes.bool
+        wideRoute : PropTypes.bool,
+        loading : PropTypes.bool,
     }
 
     static defaultProps = {
@@ -36,7 +37,7 @@ export default class LayoutStandard extends Component {
                 className="flexi-grow">
                 <OffCanvasNavContainer/>
                 <TopBar/>
-                <div className="container container-width-100 nav-canvas flexi-grow">
+                <div className={`${this.containerClassName()} nav-canvas flexi-grow`}>
                     <div className="animation-top flexi-grow">
                         <div className="animation-container notification-container flexi-grow">
                             <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
@@ -54,6 +55,10 @@ export default class LayoutStandard extends Component {
                 <VXAnchor/>
             </div>
         )
+    }
+
+    containerClassName() {
+        return this.props.wideRoute ? "container-wide" : "container"
     }
 
     slidePanelId() {

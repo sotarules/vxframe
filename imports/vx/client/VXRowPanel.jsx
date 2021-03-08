@@ -9,6 +9,7 @@ export default class VXRowPanel extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         editable : PropTypes.bool.isRequired,
+        borders : PropTypes.bool.isRequired,
         title : PropTypes.string.isRequired,
         panelClassName : PropTypes.string,
         headingClassName : PropTypes.string,
@@ -24,7 +25,8 @@ export default class VXRowPanel extends Component {
         emptyMessage : PropTypes.string.isRequired,
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
-        dragClassName : PropTypes.string,
+        selectable : PropTypes.bool,
+        multi : PropTypes.bool,
         dropClassName : PropTypes.string,
         placeholderClassName : PropTypes.string,
         rowFilter : PropTypes.func,
@@ -36,16 +38,9 @@ export default class VXRowPanel extends Component {
     }
 
     static defaultProps = {
-        editable : false
-    }
-
-    constructor(props) {
-        super(props)
-        this.selectedRowId = null
-    }
-
-    setSelectedRowId(selectedRowId) {
-        this.selectedRowId = selectedRowId
+        editable : false,
+        selectable : false,
+        borders : false
     }
 
     render() {
@@ -74,7 +69,7 @@ export default class VXRowPanel extends Component {
                 <VXRowList {...this.props}
                     id={`${this.props.id}-row-list`}
                     editable={this.props.editable}
-                    borders={false}
+                    borders={this.props.borders}
                     bodyClassName={this.props.bodyClassName}
                     rows={get(this.props.record, this.props.rowsPath)}
                     rowId="id"
@@ -82,12 +77,12 @@ export default class VXRowPanel extends Component {
                     emptyMessage={this.props.emptyMessage}
                     draggable={this.props.draggable}
                     droppable={this.props.droppable}
-                    dragClassName={this.props.dragClassName}
+                    selectable={this.props.selectable}
+                    multi={this.props.multi}
                     dropClassName={this.props.dropClassName}
                     placeholderClassName={this.props.placeholderClassName}
                     rowFilter={this.props.rowFilter}
                     onDrop={this.props.onDrop}
-                    onSelectRow={this.handleSelectRow.bind(this)}
                     onUpdateRow={this.handleUpdateRow.bind(this)}/>
             </div>
         )
@@ -97,10 +92,6 @@ export default class VXRowPanel extends Component {
         if (this.props.onClickPanelHeadingControl) {
             this.props.onClickPanelHeadingControl(event, this)
         }
-    }
-
-    handleSelectRow(event, selectedRowId) {
-        this.setSelectedRowId(selectedRowId)
     }
 
     handleClickAdd(event) {
@@ -116,17 +107,17 @@ export default class VXRowPanel extends Component {
     handleClickRemove(event) {
         if (this.props.onClickRemove) {
             this.props.onClickRemove(event, this, this.props.collection, this.props.record,
-                this.props.rowsPath, this.props.rowId, this.selectedRowId)
+                this.props.rowsPath, this.props.rowId, UX.selectedRowIds(`${this.props.id}-row-list`))
             return
         }
         VXApp.removeRow(this.props.collection, this.props.record,
-            this.props.rowsPath, this.props.rowId, this.selectedRowId)
+            this.props.rowsPath, this.props.rowId, UX.selectedRowIds(`${this.props.id}-row-list`))
     }
 
     handleUpdateRow(component, value) {
         if (this.props.onUpdateRow) {
             this.props.onUpdateRow(component, value, this.props.collection, this.props.record,
-                this.props.rowsPath, this.props.rowId, this.selectedRowId)
+                this.props.rowsPath, this.props.rowId)
             return
         }
         VXApp.updateRow(this.props.collection, this.props.record,

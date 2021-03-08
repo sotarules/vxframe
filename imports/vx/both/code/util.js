@@ -515,7 +515,7 @@ Util = {
      */
     fetchUserPhotoUrl(userOrId) {
         let photoUrl = Util.getProfileValue("photoUrl", userOrId)
-        return photoUrl ? photoUrl : CX.CLOUDFILES_IMAGE + "/" + "user.png"
+        return photoUrl ? photoUrl : `${CX.CLOUDFILES_IMAGE}/user.png`
     },
 
     /**
@@ -2465,7 +2465,7 @@ Util = {
      * @return {string} Path suitable for MongoDB $set or $pull modifier.
      */
     toMongoPath(lodashPath) {
-        return lodashPath.replaceAll("[", ".").replaceAll("]", "")
+        return lodashPath.replace(/\[/g, ".").replace(/\]/g, "")
     },
 
     /**

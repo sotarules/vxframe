@@ -891,7 +891,8 @@ Schema.Users = new SimpleSchema({
     },
     profile : {
         type : Schema.UserProfile,
-        optional : true
+        optional : true,
+        blackbox : true
     },
     // Make sure this services field is in your schema if you're using any of the accounts packages
     services : {

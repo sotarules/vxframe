@@ -5,6 +5,7 @@ const mapStateToProps = state => {
     return {
         exemptRoute : state.exemptRoute,
         authorizedRoute : state.authorizedRoute,
+        wideRoute : state.wideRoute,
         loading : state.loading
     }
 }

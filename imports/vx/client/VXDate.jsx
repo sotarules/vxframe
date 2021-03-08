@@ -107,7 +107,7 @@ export default class VXDate extends Component {
             let selector = this.getSelector()
             let dateString = value ? moment.tz(value, this.props.timezone).format(this.props.format) : null
             //OLog.debug(`VXDate.jsx setValue componentId=${this.props.id} value=${value} dateString=${dateString}`)
-            $(selector).data("DateTimePicker").date(dateString)
+            $(selector).data("DateTimePicker")?.date(dateString)
         })
     }
 

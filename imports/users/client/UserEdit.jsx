@@ -8,8 +8,8 @@ export default class UserEdit extends Component {
         return (
             <SlidePairContainer leftPanel={(<UserEditLeftContainer/>)}
                 rightPanel={(<UserEditRightContainer/>)}
-                leftColumnCount={5}
-                rightColumnCount={7}/>
+                leftColumnCount={6}
+                rightColumnCount={6}/>
         )
     }
 }

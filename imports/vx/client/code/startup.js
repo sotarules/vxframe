@@ -3,6 +3,7 @@ import { createBrowserHistory } from "history"
 import { setRoutePath } from "/imports/vx/client/code/actions"
 import { setExemptRoute } from "/imports/vx/client/code/actions"
 import { setAuthorizedRoute } from "/imports/vx/client/code/actions"
+import { setWideRoute } from "/imports/vx/client/code/actions"
 
 // This makes it possible to debug even if the user hasn't yet logged in (very helpful for debugging hyperlinks
 // such as sign-off actions):
@@ -13,6 +14,7 @@ if (Meteor.absoluteUrl().indexOf("sota.ddns.net") >= 0) {
 
 const doRoute = () => {
     OLog.debug(`startup.js doRoute [${Util.routePath()}] *init*`)
+    UX.lockExitingComponents(true)
     const routePath = Util.routePath()
     if (routePath !== Store.getState().routePath) {
         Store.dispatch(setRoutePath(routePath))
@@ -22,6 +24,11 @@ const doRoute = () => {
         OLog.debug(`startup.js doRoute [${Util.routePath()}] *invalid* no subscriptions shall be performed`)
         VXApp.routeAfter()
         return
+    }
+    const wideRoute = VXApp.isWideRoute()
+    OLog.debug(`startup.js doRoute [${Util.routePath()}] wideRoute=${wideRoute}`)
+    if (wideRoute !== Store.getState().wideRoute) {
+        Store.dispatch(setWideRoute(wideRoute))
     }
     const exemptRoute = VXApp.isExemptRoute()
     if (exemptRoute) {

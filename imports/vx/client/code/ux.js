@@ -451,13 +451,13 @@ UX = {
     fixFocus(event, selector) {
         let $container = $(event.target).closest(selector)
         if (!$container.exists()) {
-            OLog.error("ux.js fixFocus selector=[" + selector + "] could not find container, no action will be taken")
+            OLog.error(`ux.js fixFocus selector=[${selector}] could not find container, no action will be taken`)
         }
         if ($container.is(":focus")) {
-            OLog.debug("ux.js fixFocus selector=[" + selector + "] container already has focus, no action will be taken")
+            OLog.debug(`ux.js fixFocus selector=[${selector}] container already has focus, no action will be taken`)
         }
         else {
-            OLog.debug("ux.js fixFocus selector=[" + selector + "] container does not already have focus, setting focus programmatically")
+            OLog.debug(`ux.js fixFocus selector=[${selector}] container does not already have focus, setting focus programmatically`)
             $container.focus()
         }
     },
@@ -480,84 +480,135 @@ UX = {
      * Make a component draggable via jQuery UI sortable.
      *
      * @param {string} id HTML element ID to made draggable.
-     * @param {string} dragClassName Drag class name (needed to correct problem with momentum scrolling).
      * @param {string} dropClassName Drop class name (used with connectWith).
      * @param {string} placeholderClassName Placeholder class name.
      */
-    makeDraggable(id, dragClassName, dropClassName, placeholderClassName) {
+    makeDraggable(id, dropClassName, placeholderClassName) {
         const $entitySource = $(`#${id}`)
-        if ($entitySource.exists()) {
-            $entitySource.sortable({
-                helper : "clone",
-                cursor : "move",
-                handle : ".entity-handle",
-                appendTo : document.body,
-                placeholder : placeholderClassName,
-                change : (event, ui) => {
-                    UX.initPlaceholder(ui, dropClassName)
-                },
-                opacity : ".7",
-                start : (event, ui) => {
-                    $(ui.item).show()
-                },
-                stop : () => {
-                    OLog.warn("ux.js makeDraggable *stop*")
-                    $entitySource.sortable("cancel")
-                },
-                connectWith : `.${dropClassName}`,
-                scroll : false
-            })
-        }
-        else {
-            OLog.error(`ux.js makeDraggable drag source id=${id} not found`)
-        }
+        $entitySource.sortable({
+            helper(event, $element) {
+                return UX.makeHelper(event, $element)
+            },
+            cursor : "move",
+            handle : ".entity-handle",
+            appendTo : document.body,
+            placeholder : placeholderClassName,
+            change(event, ui) {
+                UX.initPlaceholder(ui, dropClassName)
+            },
+            opacity : ".7",
+            start(event, ui) {
+                // For drag/clone operations, don't hide the source item, leave it static:
+                $(ui.item).show()
+            },
+            stop() {
+                $entitySource.sortable("cancel")
+            },
+            connectWith : `.${dropClassName}`,
+            scroll : false
+        })
     },
 
     /**
      * Make a component droppable via jQuery UI sortable.
      *
      * @param {string} id HTML element ID to made droppable.
+     * @param {string} dropClassName Drop class name (used with connectWith).
+     * @param {string} placeholderClassName Placeholder class name.
      * @param {object} component Component to receive drop notification via onDrop.
      */
-    makeDroppable(id, component) {
+    makeDroppable(id,  dropClassName, placeholderClassName, component) {
         const $entityTarget = $(`#${id}`)
-        if ($entityTarget.exists()) {
-            $entityTarget.sortable({
-                handle : ".entity-handle",
-                start : (event, ui) => {
-                    $(ui.item).attr("data-previndex", ui.item.index())
-                },
-                stop : (event, ui) => {
-                    $(ui.item).removeAttr("data-previndex")
-                    $(ui.item).removeAttr("style")
-                    const droppedId = $(ui.item).attr("id")
-                    const originalDisplay = $(`#${droppedId}`).css("display")
-                    $(`#${droppedId}`).css("display", "none")
-                    $entityTarget.sortable("cancel")
-                    Meteor.setTimeout(() => {
-                        $(`#${droppedId}`).css("display", originalDisplay)
-                    })
-                },
-                update : function(event, ui) {
-                    const parentId = ui.item.parent()[0].id
-                    const thisId = this.id
-                    OLog.debug(`ux.js makeDroppable update parentId=${parentId} thisId=${thisId} ` +
-                        `componentId=${component.props.id}`)
-                    if (this === ui.item.parent()[0]) {
-                        OLog.debug(`ux.js makeDroppable onDrop *fire* id=${component.props.id}`)
-                        if (component.props.onDrop) {
-                            component.props.onDrop(event, $entityTarget, ui, component)
-                        }
-                    }
-                    else {
-                        OLog.debug(`ux.js makeDroppable update *ignored* for id=${ui.item.parent()[0].id}`)
-                    }
+        $entityTarget.sortable({
+            start() {
+                // Do nothing - this overrides the logic that hides the dragged item.
+            },
+            handle : ".entity-handle",
+            placeholder : placeholderClassName,
+            change : (event, ui) => {
+                UX.initPlaceholder(ui, dropClassName)
+            },
+            stop() {
+                UX.hideTargetItems()
+                $entityTarget.sortable("cancel")
+                Meteor.setTimeout(() => {
+                    UX.showTargetItems()
+                    $entityTarget.scrollTop(UXState.originalTargetState.scrollTop)
+                })
+            },
+            update : function(event, ui) {
+                const thisId = this.id
+                const parentId = ui.item.parent().attr("id")
+                const ignore = thisId !== parentId
+                OLog.debug(`ux.js makeDroppable update thisId=${thisId} parentId=${parentId} ignore=${ignore}`)
+                if (ignore) {
+                    return
                 }
-            })
-        }
-        else {
-            OLog.error(`ux.js makeDroppable drop target id=${id} not found`)
-        }
+                OLog.debug(`ux.js makeDroppable onDrop *fire* id=${component.props.id}`)
+                if (component.props.onDrop) {
+                    const dropInfo = UX.makeDropInfo(event, ui, component, $entityTarget)
+                    component.props.onDrop(dropInfo)
+                }
+            },
+            hideDragged(event, ui) {
+                UX.hideSelected(event, ui, $entityTarget)
+            },
+            showDragged(event, ui) {
+                UX.showSelected(event, ui, $entityTarget)
+            }
+        })
+    },
+
+    /**
+     * Custom helper to support multiple drag/drop.
+     *
+     * @param {object} event Event from JQuery sortable.
+     * @param {object} $element jQuery element being dragged.
+     * @return {object} jQuery helper (either single or multi-row)
+     */
+    makeHelper(event, $element) {
+        UXState.originalIds = UX.captureOriginalIds($element)
+        UXState.originalTargetState = UX.captureTargetState($element.parents(".list-group"))
+        const helperHeight = _.reduce($element.parents(".list-group").children(".selected"), (memo, child) => {
+            return memo + $(child).outerHeight(true)
+        }, 0) + 1
+        const $listClone = $element.parents(".list-group").clone()
+        _.each($listClone.children(), child => {
+            $(child).attr("id", `helper-${$(child).attr("id")}`)
+        })
+        $listClone.children(":not(.selected)").remove()
+        $listClone.find(".entity-control-set").remove()
+        const height = `${helperHeight}px`
+        const css = {}
+        css.height = height
+        css["min-height"] = height
+        css["max-height"] = height
+        css["overflow-y"] = "hidden"
+        $listClone.css(css)
+        UXState.$helper = $listClone
+        return $listClone
+    },
+
+    /**
+     * Hide all selected elements (support multiple drag/drop).
+     *
+     * @param {object} event Event from JQuery sortable.
+     * @param {object} ui jQuery UI object.
+     * @param {object} $targetElement List being modified.
+     */
+    hideSelected(event, ui, $targetElement) {
+        $targetElement.children(".selected").hide()
+    },
+
+    /**
+     * Show all selected elements (support multiple drag/drop).
+     *
+     * @param {object} event Event from JQuery sortable.
+     * @param {object} ui jQuery UI object.
+     * @param {object} $targetElement List being modified.
+     */
+    showSelected(event, ui, $targetElement) {
+        $targetElement.children(".selected").show()
     },
 
     /**
@@ -568,19 +619,148 @@ UX = {
      * @param {boolean} horizontal Horizontal list.
      */
     initPlaceholder(ui, droppableClassName, horizontal) {
-        let parentDroppable = ui.placeholder.parent().hasClass(droppableClassName)
-        let actualList = ui.placeholder.parent().hasClass("list-group")
-        let blockType = (horizontal ? "inline-block" : "block")
-        $(ui.placeholder).css("display", parentDroppable && actualList ? blockType : "none")
+        const parentDroppable = ui.placeholder.parent().hasClass(droppableClassName)
+        const actualList = ui.placeholder.parent().hasClass("list-group")
+        const blockType = (horizontal ? "inline-block" : "block")
+        const css = {}
+        const height = `${ui.helper.outerHeight()}px`
+        css.display = parentDroppable && actualList ? blockType : "none"
+        css.height = height
+        css["min-height"] = height
+        css["max-height"] = height
+        ui.placeholder.css(css)
+    },
+
+    /**
+     * Capture ID array of dragged list before damage.
+     *
+     * @param {object} $element jQuery element being dragged.
+     */
+    captureOriginalIds($element) {
+        const originalIds = []
+        const $list = $element.parents(".list-group")
+        $list.children().each((index, child) => {
+            const id = $(child).attr("data-item-id")
+            if (id) {
+                originalIds.push(id)
+            }
+        })
+        return originalIds
+    },
+
+    /**
+     * Make a general-purpose drop information object to add in drop processing.
+     *
+     * clone: true indicates that drag/drop is from one list to another (clone).
+     * targetIndex: target index where dropped item(s) are to be inserted.
+     * items: list of items to be dropped of the form { _id: "r6m3kjxhcAZuTBXBF", sourceIndex: 1 }
+     *
+     * @param {object} event jQuery sortable update event.
+     * @param {object} ui jQuery sortable information.
+     * @param {object} component React component receving drop.
+     * @param {object} $entityTarget jQuery element representing drop target.
+     * @return {object} Drop info object.
+     */
+    makeDropInfo(event, ui, component, $entityTarget) {
+        const dropInfo = {}
+        dropInfo.event = event
+        dropInfo.senderId = ui.sender?.attr("id")
+        dropInfo.itemId = ui.item?.attr("id")
+        dropInfo.component = component
+        dropInfo.$entityTarget = $entityTarget
+        dropInfo.clone = UX.isDragClone(ui)
+        dropInfo.targetIndex = ui.item.index()
+        dropInfo.items = []
+        UXState.$helper.children().each((index, helperChild) => {
+            const item = {}
+            item.id = $(helperChild).attr("id")
+            item["data-item-id"] = $(helperChild).attr("data-item-id")
+            if (!dropInfo.clone) {
+                item.sourceIndex = UXState.originalIds.indexOf(item["data-item-id"])
+            }
+            dropInfo.items.push(item)
+        })
+        return dropInfo
+    },
+
+    /**
+     * Capture the state of the drop zone prior to cancel.
+     *
+     * @param {object} $entityTarget jQuery element representing drop target.
+     * @return {object} Original state bearing scrollTop and display.
+     */
+    captureTargetState($entityTarget) {
+        const scrollTop = $entityTarget.scrollTop()
+        const elementObjects = $entityTarget.children(".list-group-item").toArray().map(element => {
+            const id = $(element).attr("id")
+            const display = $(element).css("display") || ""
+            return { id, display }
+        })
+        return { scrollTop, elementObjects }
+    },
+
+    /**
+     * Hide target items.
+     */
+    hideTargetItems() {
+        const targetState = UXState.originalTargetState
+        targetState.elementObjects.forEach(elementObject => {
+            const id = elementObject.id
+            $(`#${id}`).css("display", "none")
+        })
+    },
+
+    /**
+     * Show target items.
+     */
+    showTargetItems() {
+        const targetState = UXState.originalTargetState
+        targetState.elementObjects.forEach(elementObject => {
+            const id = elementObject.id
+            const $element = $(`#${id}`)
+            $element.css("display", elementObject.display)
+        })
+    },
+
+    /**
+     * Determine whether this is a drag/clone (creational) operation.
+     *
+     * @param {object} ui jQuery sortable ui object.
+     * @return {boolean} True if this is a drag/clone operation.
+     */
+    isDragClone(ui) {
+        if (!ui.sender) {
+            return false
+        }
+        const draggable = ui.sender.hasClass("vx-draggable")
+        const droppable = ui.sender.hasClass("vx-droppable")
+        return draggable && !droppable
+    },
+
+    /**
+     * Return the IDs of selected rows that are children of the supplied id.
+     *
+     * @param {string} listId List ID.
+     * @return {array} Array of selected child IDs.
+     */
+    selectedRowIds(listId) {
+        const selectedRowIds = []
+        $(`#${listId}`).children(".selected").each((index, child) => {
+            const id = $(child).attr("data-item-id")
+            if (id) {
+                selectedRowIds.push(id)
+            }
+        })
+        return selectedRowIds
     },
 
     /**
      * Update the slide mode state in accord with device orientation.
      */
     updateSlideMode() {
-        const iosState = Store.getState().iosState
+        const iosState = { ...Store.getState().iosState }
         const slideModeOld = iosState.slideMode
-        const slideModeNew = UX.isGridCollapsed()
+        const slideModeNew = VXApp.isSlideMode()
         if (slideModeNew === slideModeOld) {
             return
         }
@@ -1791,7 +1971,7 @@ UX = {
         // Yield to let UI complete animations before transitions:
         Meteor.setTimeout(() => {
             animation = animation || "slideleft"
-            let iosState = Store.getState().iosState
+            let iosState = { ...Store.getState().iosState }
             let state = {}
             state.major = true
             state.majorLabel = iosState.majorBackLabel
@@ -1828,7 +2008,7 @@ UX = {
         // Yield to let UI complete animations before transitions:
         Meteor.setTimeout(() => {
             animation = animation || "slideleft"
-            let iosState = Store.getState().iosState
+            let iosState = { ...Store.getState().iosState }
             let state = {}
             state.major = false
             state.majorLabel = iosState.majorBackLabel
@@ -1857,7 +2037,7 @@ UX = {
     iosPopAndGo(animation) {
         animation = animation || "slideright"
         const path = Util.routePath()
-        const iosState = Store.getState().iosState
+        const iosState = { ...Store.getState().iosState }
         if (!iosState.stack || iosState.stack.length === 0) {
             OLog.error("ux.js iosPopAndGo stack length is zero, cannot pop")
             UX.goDefault()
@@ -1921,7 +2101,7 @@ UX = {
         UX.stopEditing(true)
         Meteor.setTimeout(() => {
             animation = animation || "crossfade"
-            let iosState = Store.getState().iosState
+            let iosState = { ...Store.getState().iosState }
             OLog.debug(`ux.js iosInvoke path=${path} animation=${animation}`)
             UX.lockExitingComponents(true)
             UX.beforeAnimate()
@@ -1956,7 +2136,7 @@ UX = {
                 return
             }
             component.setLocked(locked)
-            OLog.debug(`ux.js lockExitingComponents element id=${id} component *locked*`)
+            OLog.warn(`ux.js lockExitingComponents element id=${id} component *locked*`)
         })
     },
 
@@ -1981,7 +2161,7 @@ UX = {
      * @param {string} routePath Path to route coming up next.
      */
     initStackAndBackLabels(routePath) {
-        const iosState = Store.getState().iosState
+        const iosState = { ...Store.getState().iosState }
         iosState.stack = []
         iosState.majorBackLabel = null
         iosState.minorBackLabel = null
@@ -2303,7 +2483,7 @@ UX = {
     registerIosButtonDelegate(componentId, delegate, showLoading, minimumDuration) {
         //OLog.debug(`ux.js registerIosButtonDelegate componentId=${componentId}`)
         UXState[componentId] = delegate
-        const iosState = Store.getState().iosState
+        const iosState = { ...Store.getState().iosState }
         iosState.iosButtonState = iosState.iosButtonState || {}
         iosState.iosButtonState[componentId] = iosState.iosButtonState[componentId] || {}
         iosState.iosButtonState[componentId].delegateVisible = true
@@ -2320,7 +2500,7 @@ UX = {
     unregisterIosButtonDelegate(componentId) {
         //OLog.debug(`ux.js unregisterIosButtonDelegate componentId=${componentId}`)
         delete UXState[componentId]
-        const iosState = Store.getState().iosState
+        const iosState = { ...Store.getState().iosState }
         delete iosState.iosButtonState?.[componentId]
         Store.dispatch(setIosState(iosState))
     },
@@ -2330,7 +2510,7 @@ UX = {
      */
     unregisterIosButtonDelegates() {
         //OLog.debug("ux.js unregisterIosButtonDelegates *purging*")
-        const iosState = Store.getState().iosState
+        const iosState = { ...Store.getState().iosState }
         delete iosState.iosButtonState
         Store.dispatch(setIosState(iosState))
         Object.keys(UXState).forEach(componentId => {
@@ -2701,5 +2881,16 @@ UX = {
      */
     isCompositeTypeElement(element) {
         return UX.isElement(element) && typeof element.type === "function"
+    },
+
+    /**
+     * Convert a redux-stored (potentially rehydrated) date back to the correct form
+     * for VXDate.
+     *
+     * @param {?} dateString Date string or date.
+     * @return {object} JavaScript date object.
+     */
+    reduxDate(dateString) {
+        return moment.tz(dateString, Util.getUserTimezone()).toDate()
     }
 }

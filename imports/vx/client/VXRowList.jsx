@@ -20,9 +20,10 @@ export default class VXRowList extends Component {
         onSelectRow : PropTypes.func,
         onUpdateRow : PropTypes.func,
         rightPanel : PropTypes.bool,
+        selectable : PropTypes.bool,
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
-        dragClassName : PropTypes.string,
+        multi : PropTypes.bool,
         dropClassName : PropTypes.string,
         placeholderClassName : PropTypes.string,
         onDrop : PropTypes.func
@@ -36,21 +37,21 @@ export default class VXRowList extends Component {
     }
 
     componentDidMount() {
-        this.initDragAndDrop()
+        this.initSelectionAndDragAndDrop()
     }
 
     componentDidUpdate() {
-        this.initDragAndDrop()
+        // This is necessary if the drop target makes a transition between empty and non-empty:
+        this.initSelectionAndDragAndDrop()
     }
 
-    initDragAndDrop() {
+    initSelectionAndDragAndDrop() {
+        $(`#${this.props.id}`).multiselectable({ multi: this.props.multi, items: ".list-group-item" })
         if (this.props.draggable) {
-            UX.makeDraggable(`${this.props.id}-form`,
-                this.props.dragClassName, this.props.dropClassName, this.props.placeholderClassName)
+            UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName)
         }
-
         if (this.props.droppable) {
-            UX.makeDroppable(`${this.props.id}-form`, this)
+            UX.makeDroppable(this.props.id,  this.props.dropClassName, this.props.placeholderClassName, this)
         }
     }
 
@@ -58,27 +59,26 @@ export default class VXRowList extends Component {
     // jQuery sortable where the placeholder opens in the wrong position
     render() {
         const filteredRows = this.filteredRows()
+        if (filteredRows.length > 0) {
+            return (
+                <VXForm id={`${this.props.id}`}
+                    ref={form => {this.form = form}}
+                    formElement="ul"
+                    className={this.listClassName()}
+                    dynamic={true}
+                    updateHandler={this.handleUpdate.bind(this)}>
+                    {this.renderRows(filteredRows)}
+                    <div></div>
+                </VXForm>
+            )
+        }
         return (
-            <div id={`${this.props.id}`}
-                className="row-list flexi-grow">
-                {filteredRows.length > 0 ? (
-                    <VXForm id={`${this.props.id}-form`}
-                        ref={form => {this.form = form}}
-                        formElement="ul"
-                        className={this.listClassName()}
-                        dynamic={true}
-                        updateHandler={this.handleUpdate.bind(this)}>
-                        {this.renderRows(filteredRows)}
-                        <div></div>
-                    </VXForm>
-                ) : (
-                    <EmptyEntityList id={`${this.props.id}-form`}
-                        className={this.emptyListClassName()}
-                        dropClassName={this.props.dropClassName}
-                        emptyListSize="large"
-                        emptyMessage={this.props.emptyMessage} />
-                )}
-            </div>
+            <EmptyEntityList id={`${this.props.id}`}
+                className={this.emptyListClassName()}
+                droppable={this.props.droppable}
+                dropClassName={this.props.dropClassName}
+                emptyListSize="large"
+                emptyMessage={this.props.emptyMessage} />
         )
     }
 
@@ -105,8 +105,8 @@ export default class VXRowList extends Component {
     listClassName() {
         return "list-group scroll-y scroll-momentum scroll-fix flexi-grow zero-height-hack" +
             (this.props.rightPanel ? " dropzone-container-large" : "") +
-            (this.props.draggable ? " " + this.props.dragClassName : "") +
-            (this.props.droppable ? " " + this.props.dropClassName : "") +
+            (this.props.draggable ? " vx-draggable" : "") +
+            (this.props.droppable ? " vx-droppable " + this.props.dropClassName : "") +
             (this.props.bodyClassName ? " " + this.props.bodyClassName : "") +
             (this.props.editable ? " row-panel-background-edit" : " row-panel-background-view") +
             (this.props.borders ? " row-panel-borders" : "")
@@ -115,13 +115,6 @@ export default class VXRowList extends Component {
     emptyListClassName() {
         return (this.props.bodyClassName ? this.props.bodyClassName : "") +
             (this.props.borders ? " row-panel-borders" : "")
-    }
-
-    setSelectedRowId(event, selectedRowId) {
-        OLog.debug(`VXRowList.jsx setSelectedRowId selectedRowId=${selectedRowId}`)
-        if (this.props.onSelectRow) {
-            this.props.onSelectRow(event, selectedRowId, this)
-        }
     }
 
     handleUpdate(component, value) {

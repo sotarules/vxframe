@@ -47,6 +47,7 @@ const STYLES = [
 const OMITTED_PROPS = [
     "iconClass",
     "iconStacked",
+    "chevron",
     "tooltip",
     "minimumDuration",
     "defeat",
@@ -63,6 +64,7 @@ export default class VXButton extends Component {
         tooltip: PropTypes.string,
         iconClass: PropTypes.string,
         iconStacked: PropTypes.bool,
+        chevron : PropTypes.bool,
         minimumDuration: PropTypes.number,
         fileInput : PropTypes.bool,
         onChangeFile : PropTypes.func,
@@ -150,6 +152,9 @@ export default class VXButton extends Component {
                             <i className={this.iconClassName()}></i>
                         }
                         {UX.parseHtml(this.props.children)}
+                        {this.props.chevron &&
+                            <span className="fa fa-chevron-right btn-chevron"></span>
+                        }
                     </span>
                 )}
                 {this.props.fileInput &&

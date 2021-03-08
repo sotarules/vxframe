@@ -8,8 +8,8 @@ export default class TemplateView extends Component {
         return (
             <SlidePairContainer leftPanel={(<TemplateViewLeftContainer/>)}
                 rightPanel={(<TemplateViewRightContainer/>)}
-                leftColumnCount={5}
-                rightColumnCount={7}/>
+                leftColumnCount={6}
+                rightColumnCount={6}/>
         )
     }
 }

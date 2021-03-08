@@ -878,7 +878,6 @@ VXApp = _.extend(VXApp || {}, {
             modifier.$set = {}
             modifier.$set.index = transactions.history.length - 1
             modifier.$set.history = transactions.history
-            OLog.debug(`vxapp.js handleUpdate ${collection._name} domain=${selector.domain} userId=${userId} fieldNames=${OLog.debugString(fieldNames)} selector=${OLog.debugString(selector)} modifier=${OLog.debugString(modifier)}`)
             const result = Transactions.update(selector, modifier)
             if (result !== 1) {
                 OLog.error(`vxapp.js handleUpdate *fail* result=${result} ${collection._name} domain=${selector.domain} userId=${userId} fieldNames=${OLog.debugString(fieldNames)} selector=${OLog.debugString(selector)} modifier=${OLog.debugString(modifier)}`)

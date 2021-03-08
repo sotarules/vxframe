@@ -11,6 +11,7 @@ export default class BottomButton extends Component {
         onClick : PropTypes.func,
         text : PropTypes.string,
         iconClass : PropTypes.string,
+        chevron : PropTypes.bool,
         minimumDuration : PropTypes.number
     }
 
@@ -21,6 +22,7 @@ export default class BottomButton extends Component {
                     title={this.props.title}
                     className={`btn btn-block btn-bottom ${this.props.className || ""}`}
                     iconClass={this.props.iconClass}
+                    chevron={this.props.chevron}
                     minimumDuration={this.props.minimumDuration}
                     onClick={this.props.onClick ? this.props.onClick.bind(this) : null}>
                     {this.props.text}

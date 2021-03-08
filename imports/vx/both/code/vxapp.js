@@ -1088,6 +1088,15 @@ VXApp = _.extend(VXApp || {}, {
         message.fieldIdVariables = fieldIdVariables
         message.result = result
         messages.push(message)
+    },
+
+    /**
+     * Return the name field of a recently-cloned record.
+     *
+     * @param {string} originalName Original name of cloned record.
+     */
+    cloneName(originalName) {
+        return Util.i18n("common.template_clone_name", { originalName })
     }
 })
 

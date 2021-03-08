@@ -9,6 +9,7 @@ export default class RowListHeader extends Component {
         nameClassName : PropTypes.string,
         description : PropTypes.string,
         descriptionClassName : PropTypes.string,
+        draggable : PropTypes.bool,
         message : PropTypes.string,
         messageClassName : PropTypes.string,
         iconUrl : PropTypes.string.isRequired,
@@ -31,7 +32,7 @@ export default class RowListHeader extends Component {
                     <table className="top-table">
                         <tbody>
                             <tr>
-                                <td className="entity-left">
+                                <td className={`entity-left ${this.conditionalHandle()}`}>
                                     <div className="decoration-container">
                                         <img className={this.roundedClassName()}
                                             src={this.props.iconUrl}/>
@@ -63,7 +64,7 @@ export default class RowListHeader extends Component {
                                     </div>
                                 </td>
                                 {this.props.iconUrlRight &&
-                                    <td className="top-right">
+                                    <td className={`top-right ${this.conditionalHandle()}}`}>
                                         <div className="decoration-container">
                                             <img className={this.roundedRightClassName()}
                                                 src={this.props.iconUrlRight}/>
@@ -99,5 +100,9 @@ export default class RowListHeader extends Component {
 
     rightDecorationIconClassName() {
         return `${this.props.decorationIconClassNameRight} fa-lg entity-decoration-icon-small`
+    }
+
+    conditionalHandle() {
+        return this.props.draggable ? "entity-handle" : ""
     }
 }

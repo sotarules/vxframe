@@ -7,6 +7,7 @@ export default class EntityItem extends Component {
     static displayName = "EntityItem"
 
     static propTypes = {
+        id: PropTypes.string.isRequired,
         _id : PropTypes.string.isRequired,
         name : PropTypes.string,
         nameClassName : PropTypes.string,
@@ -20,29 +21,36 @@ export default class EntityItem extends Component {
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltip : PropTypes.string,
+        decorationPosition : PropTypes.oneOf(["upper-left", "upper-right", "lower-left", "lower-right"]),
         iconUrlRight : PropTypes.string,
         roundedRight : PropTypes.bool,
         iconTooltipRight : PropTypes.string,
         decorationIconClassNameRight : PropTypes.string,
         decorationColorRight : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltipRight : PropTypes.string,
+        decorationPositionRight : PropTypes.oneOf(["upper-left", "upper-right", "lower-left", "lower-right"]),
         chevrons : PropTypes.bool,
         selectable : PropTypes.bool,
+        draggable : PropTypes.bool,
+        droppable : PropTypes.bool,
+        multi : PropTypes.bool,
         controls : PropTypes.array,
         onSelect : PropTypes.func
     }
 
     render() {
         return (
-            <li tabIndex={this.props.selectable ? "0" : null}
-                className="list-group-item entity-control-container chevron-list-group-item"
+            <li id={this.props.id}
+                tabIndex={this.props.selectable ? "0" : null}
+                className="list-group-item chevron-list-group-item entity-control-container"
                 onFocus={this.handleFocus.bind(this)}
+                data-item-id={this.props._id}
                 ref={node => {this.node = node}}>
-                <div className="entity-container-small" data-mongo-id={this.props._id}>
+                <div className="entity-container-small">
                     <table className="entity-table">
                         <tbody>
                             <tr>
-                                <td className="entity-left entity-handle">
+                                <td className={`entity-left ${this.conditionalHandle()}`}>
                                     <div className="decoration-container">
                                         <img className={this.roundedClassName()}
                                             src={this.props.iconUrl}
@@ -51,7 +59,8 @@ export default class EntityItem extends Component {
                                             <Decoration iconClassName={this.decorationIconClassName()}
                                                 color={this.props.decorationColor}
                                                 size="small"
-                                                tooltip={this.props.decorationTooltip}/>
+                                                tooltip={this.props.decorationTooltip}
+                                                position={this.props.decorationPosition}/>
                                         }
                                     </div>
                                 </td>
@@ -76,16 +85,17 @@ export default class EntityItem extends Component {
                                 </td>
                                 {this.props.children}
                                 {this.props.iconUrlRight &&
-                                    <td className="entity-right entity-handle">
+                                    <td className={`entity-right  ${this.conditionalHandle()}`}>
                                         <div className="decoration-container">
-                                            <img className={this.roundedRightClassName()}
+                                            <img className={this.roundedClassNameRight()}
                                                 src={this.props.iconUrlRight}
                                                 title={this.props.iconTooltipRight}/>
                                             {this.props.decorationIconClassNameRight &&
                                                 <Decoration iconClassName={this.decorationIconClassNameRight()}
                                                     color={this.props.decorationColorRight}
                                                     size="small"
-                                                    tooltip={this.props.decorationTooltipRight}/>
+                                                    tooltip={this.props.decorationTooltipRight}
+                                                    position={this.props.decorationPositionRight}/>
                                             }
                                         </div>
                                     </td>
@@ -137,7 +147,7 @@ export default class EntityItem extends Component {
         return this.props.rounded ? "entity-list-image-rounded" : "entity-list-image"
     }
 
-    roundedRightClassName() {
+    roundedClassNameRight() {
         return this.props.roundedRight ? "entity-list-image-rounded" : "entity-list-image"
     }
 
@@ -145,8 +155,12 @@ export default class EntityItem extends Component {
         return `${this.props.decorationIconClassName} entity-decoration-icon-small`
     }
 
-    rightDecorationIconClassName() {
-        return `${this.props.decorationIconClassNameRight} entity-decoration-icon-medium`
+    decorationIconClassNameRight() {
+        return `${this.props.decorationIconClassNameRight} entity-decoration-icon-small`
+    }
+
+    conditionalHandle() {
+        return this.props.draggable ? "entity-handle" : ""
     }
 
     handleFocus(event) {

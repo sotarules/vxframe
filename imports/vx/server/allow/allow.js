@@ -15,8 +15,8 @@ Config.allow({
     insert: function() {
         return false
     },
-    update: function(userId, doc, fields, modifier) {
-        return Serv.isUserSuperAdmin(userId, "Config.allow update", doc, modifier)
+    update: function(userId) {
+        return Serv.isUserSuperAdmin(userId, "Config.allow update")
     },
     remove: function() {
         return false
@@ -26,10 +26,10 @@ Config.allow({
 
 Clipboard.allow({
     insert: function(userId, doc) {
-        return Serv.isAssertionTrue(userId === doc.userId, "Clipboard.allow insert", doc)
+        return Serv.isAssertionTrue(userId === doc.userId, "Clipboard.allow insert")
     },
-    update: function(userId, doc, fields, modifier) {
-        return Serv.isAssertionTrue(userId === doc.userId, "Clipboard.allow update", doc, modifier)
+    update: function(userId, doc) {
+        return Serv.isAssertionTrue(userId === doc.userId, "Clipboard.allow update")
     },
     remove: function() {
         return false
@@ -64,15 +64,15 @@ Notifications.allow({
 })
 
 Tenants.allow({
-    insert: function(userId, doc) {
-        OLog.error(`allow.js Tenants.allow insert *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+    insert: function(userId) {
+        OLog.error(`allow.js Tenants.allow insert *denied* userId=${userId}`)
         return false
     },
-    update: function(userId, doc, fields, modifier) {
-        return Serv.isUserAdmin(userId, doc._id, "Tenants.allow update", doc, modifier)
+    update: function(userId, doc) {
+        return Serv.isUserAdmin(userId, doc._id, "Tenants.allow update")
     },
-    remove: function(userId, doc) {
-        OLog.error(`allow.js Tenants.allow remove *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+    remove: function(userId) {
+        OLog.error(`allow.js Tenants.allow remove *denied* userId=${userId}`)
         return false
     },
     fetch: []
@@ -80,29 +80,29 @@ Tenants.allow({
 
 Domains.allow({
     insert: function(userId, doc) {
-        return Serv.isUserAdmin(userId, doc.tenant, "Domains.allow insert", doc)
+        return Serv.isUserAdmin(userId, doc.tenant, "Domains.allow insert")
     },
-    update: function(userId, doc, fields, modifier) {
-        return Serv.isUserAdmin(userId, doc.tenant, "Domains.allow update", doc, modifier)
+    update: function(userId, doc) {
+        return Serv.isUserAdmin(userId, doc.tenant, "Domains.allow update")
     },
-    remove: function(userId, doc) {
-        OLog.error(`allow.js Domains.allow remove *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+    remove: function(userId) {
+        OLog.error(`allow.js Domains.allow remove *denied* userId=${userId}`)
         return false
     },
     fetch: ["tenant"]
 })
 
 Meteor.users.allow({
-    insert: function(userId, doc) {
-        OLog.error(`allow.js Meteor.users.allow insert *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+    insert: function(userId) {
+        OLog.error(`allow.js Meteor.users.allow insert *denied* userId=${userId}`)
         return false
     },
-    update: function(userId, doc, fields, modifier) {
-        if (!Serv.isUserLoggedIn(userId, "Meteor.users.allow update", doc, modifier)) {
+    update: function(userId, doc) {
+        if (!Serv.isUserLoggedIn(userId, "Meteor.users.allow update")) {
             return false
         }
         const tenantId = Util.getCurrentTenantId(userId)
-        if (Serv.isUserAdmin(userId, tenantId, "Meteor.users.allow update", doc, modifier)) {
+        if (Serv.isUserAdmin(userId, tenantId, "Meteor.users.allow update")) {
             return true
         }
         if (userId === doc._id) {
@@ -112,43 +112,41 @@ Meteor.users.allow({
         OLog.error(`allow.js Meteor.users.allow update *denied* userId=${userId} doesn't qualify with respect to allow criteria`)
         return false
     },
-    remove: function(userId, doc) {
-        OLog.error(`allow.js Meteor.users.allow remove *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+    remove: function(userId) {
+        OLog.error(`allow.js Meteor.users.allow remove *denied* userId=${userId}`)
         return false
     },
     fetch: ["_id", "profile.tenants", "profile.domains"]
 })
 
 Meteor.users.deny({
-    insert: function(userId, doc) {
-        OLog.error(`allow.js Meteor.users.deny insert *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+    insert: function(userId) {
+        OLog.error(`allow.js Meteor.users.deny insert *denied* userId=${userId}`)
         return true
     },
     update: function(userId, doc, fields, modifier) {
         const validOperators = ["$set", "$unset", "$push", "$pull"]
-        const unsettableFields = ["profile", "profile.tenants", "profile.domains"]
-        OLog.debug(`allow.js Meteor.users.deny update attempted userId=${userId} ` +
-            `doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
-        if (!Serv.isUserLoggedIn(userId, "Meteor.users.deny update", doc, modifier)) {
+        const unsettableFields = ["profile", "profile.tenants"]
+        OLog.debug(`allow.js Meteor.users.deny update attempted userId=${userId}`)
+        if (!Serv.isUserLoggedIn(userId, "Meteor.users.deny update")) {
             return true
         }
         const badOperator = Serv.checkOperators(modifier, validOperators)
         if (badOperator) {
             OLog.error(`allow.js Meteor.users.deny update *denied* userId=${userId} ` +
-                `doc=${OLog.errorString(doc)} attempted to use MongoDB badOperator=${badOperator}`)
+                `attempted to use MongoDB badOperator=${badOperator}`)
             return true
         }
         const badField = Serv.checkUnsettableFields(modifier, unsettableFields)
         if (badField) {
             OLog.error(`allow.js Meteor.users.deny update *denied* userId=${userId} ` +
-                `doc=${OLog.errorString(doc)} attempted to set unsettable badField=${badField}`)
+                `attempted to set unsettable badField=${badField}`)
             return true
         }
         if (!_.contains(Util.getTenantIds(doc._id), Util.getCurrentTenantId(userId)) &&
-            !Serv.isUserSuperAdmin(userId, "Meteor.users.deny update", doc, modifier)) {
+            !Serv.isUserSuperAdmin(userId, "Meteor.users.deny update")) {
             OLog.error(`allow.js Meteor.users.deny update *denied* userId=${userId} ` +
-                `doc=${OLog.errorString(doc)} attempted to update user that doesn't belong to invoking ` +
-                "administrator's current tenant")
+                "attempted to update user that doesn't belong to invoking  administrator's current tenant")
             return true
         }
         if (modifier.$set) {
@@ -158,19 +156,19 @@ Meteor.users.deny({
                     if (!domainId) {
                         return true
                     }
-                    if (!Serv.isAllowUserSetCurrentDomain(userId, doc._id, domainId, "Meteor.users.deny update", doc, modifier)) {
+                    if (!Serv.isAllowUserSetCurrentDomain(userId, doc._id, domainId, "Meteor.users.deny update")) {
                         return true
                     }
                 }
                 if (/profile\.tenants\.\d+\./.test(fieldPath)) {
                     const tenantId = Util.getTenantIdFromPath(doc, fieldPath, true)
-                    if (!Serv.isUserAdmin(userId, tenantId, "Meteor.users.deny update", doc, modifier)) {
+                    if (!Serv.isUserAdmin(userId, tenantId, "Meteor.users.deny update")) {
                         return true
                     }
                 }
                 if (/profile\.domains\.\d+\./.test(fieldPath)) {
                     const tenantId = Util.getTenantIdFromPath(doc, fieldPath, false)
-                    if (!Serv.isUserAdmin(userId, tenantId, "Meteor.users.deny update", doc, modifier)) {
+                    if (!Serv.isUserAdmin(userId, tenantId, "Meteor.users.deny update")) {
                         return true
                     }
                 }
@@ -181,21 +179,20 @@ Meteor.users.deny({
 
                     if (!(Util.isUserManager(managerId, tenantId))) {
                         OLog.error(`allow.js Meteor.users.deny update *denied* userId=${userId} attempted ` +
-                            `to set manager=${managerId} for tenantId=${tenantId} but *not* manager in that tenant, ` +
-                            `doc=${OLog.errorString(doc)} modifier=${OLog.errorString(modifier)}`)
+                            `to set manager=${managerId} for tenantId=${tenantId} but *not* manager in that tenant`)
                         return true
                     }
 
                     OLog.debug(`allow.js Meteor.users.deny update *granted* userId=${userId} will set ` +
-                        `manager=${managerId} for tenantId=${tenantId} doc=${OLog.debugString(doc)} ` +
-                        `modifier=${OLog.debugString(modifier)}`)
+                        `manager=${managerId} for tenantId=${tenantId}`)
                 }
             }
         }
         if (modifier.$push) {
             if (modifier.$push["profile.tenants"]) {
                 if (modifier.$push["profile.tenants"].tenantId) {
-                    if (!Serv.isUserAdmin(userId, modifier.$push["profile.tenants"].tenantId, "Meteor.users.deny update", doc, "$push['profile.tenants']")) {
+                    if (!Serv.isUserAdmin(userId, modifier.$push["profile.tenants"].tenantId,
+                        "Meteor.users.deny update")) {
                         return true
                     }
                 }
@@ -207,7 +204,8 @@ Meteor.users.deny({
             }
             if (modifier.$push["profile.domains"]) {
                 if (modifier.$push["profile.domains"].$each && modifier.$push["profile.domains"].$each.length > 0 && modifier.$push["profile.domains"].$each[0].domainId) {
-                    if (!Serv.isUserAdmin(userId, Util.getTenantId(modifier.$push["profile.domains"].$each[0].domainId), "Meteor.users.deny update", doc, "$push['profile.domains']")) {
+                    if (!Serv.isUserAdmin(userId, Util.getTenantId(modifier.$push["profile.domains"].$each[0].domainId),
+                        "Meteor.users.deny update")) {
                         return true
                     }
                 }
@@ -227,7 +225,7 @@ Meteor.users.deny({
                         return false
                     }
 
-                    if (!Serv.isUserAdmin(userId, modifier.$pull["profile.tenants"].tenantId, "Meteor.users.deny update", doc, "$pull['profile.tenants']")) {
+                    if (!Serv.isUserAdmin(userId, modifier.$pull["profile.tenants"].tenantId, "Meteor.users.deny update")) {
                         return true
                     }
                 }
@@ -244,7 +242,8 @@ Meteor.users.deny({
                             `eject from domainId=${modifier.$pull["profile.domains"].domainId}`)
                         return false
                     }
-                    if (!Serv.isUserAdmin(userId, Util.getTenantId(modifier.$pull["profile.domains"].domainId), "Meteor.users.deny update", doc, "$pull['profile.domains']")) {
+                    if (!Serv.isUserAdmin(userId, Util.getTenantId(modifier.$pull["profile.domains"].domainId),
+                        "Meteor.users.deny update")) {
                         return true
                     }
                 }
@@ -255,12 +254,11 @@ Meteor.users.deny({
                 }
             }
         }
-        OLog.debug(`allow.js Meteor.users.deny update *granted* *catch-all* userId=${userId} ` +
-            `docId=${doc._id} modifier=${OLog.debugString(modifier)}`)
+        OLog.debug(`allow.js Meteor.users.deny update *granted* *catch-all* userId=${userId}`)
         return false
     },
-    remove: function(userId, doc) {
-        OLog.error("allow.js Meteor.users.deny remove *denied* userId=" + userId + " doc=" + OLog.errorString(doc))
+    remove: function(userId) {
+        OLog.error(`allow.js Meteor.users.deny remove *denied* userId=${userId}`)
         return true
     },
     fetch: ["_id", "profile.tenants", "profile.domains"]
@@ -268,13 +266,13 @@ Meteor.users.deny({
 
 Templates.allow({
     insert: function(userId, doc) {
-        return Serv.isUserDomain(userId, doc.domain, "Templates.allow insert", doc)
+        return Serv.isUserDomain(userId, doc.domain, "Templates.allow insert")
     },
-    update: function(userId, doc, fields, modifier) {
-        return Serv.isUserDomain(userId, doc.domain, "Templates.allow update", doc, modifier)
+    update: function(userId, doc) {
+        return Serv.isUserDomain(userId, doc.domain, "Templates.allow update")
     },
-    remove: function(userId, doc) {
-        OLog.error(`allow.js Templates.allow remove *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+    remove: function(userId) {
+        OLog.error(`allow.js Templates.allow remove *denied* userId=${userId}`)
         return false
     },
     fetch: ["domain"]
@@ -282,13 +280,13 @@ Templates.allow({
 
 Functions.allow({
     insert(userId, doc) {
-        return Serv.isUserDomain(userId, doc.domain, "Functions.allow insert", doc)
+        return Serv.isUserDomain(userId, doc.domain, "Functions.allow insert")
     },
-    update(userId, doc, fields, modifier) {
-        return Serv.isUserDomain(userId, doc.domain, "Functions.allow update", doc, modifier)
+    update(userId, doc) {
+        return Serv.isUserDomain(userId, doc.domain, "Functions.allow update")
     },
-    remove(userId, doc) {
-        OLog.error(`allow.js Functions.allow remove *denied* userId=${userId} doc=${OLog.errorString(doc)}`)
+    remove(userId) {
+        OLog.error(`allow.js Functions.allow remove *denied* userId=${userId}`)
         return false
     },
     fetch: ["domain"]

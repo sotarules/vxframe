@@ -17,11 +17,13 @@ export default class RightHeader extends Component {
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltip : PropTypes.string,
+        decorationPosition : PropTypes.oneOf(["upper-left", "upper-right", "lower-left", "lower-right"]),
         iconUrlRight : PropTypes.string,
         roundedRight : PropTypes.bool,
         decorationIconClassNameRight : PropTypes.string,
         decorationColorRight : PropTypes.oneOf(["green", "yellow", "red", "gray", "black", "blue"]),
         decorationTooltipRight : PropTypes.string,
+        decorationPositionRight : PropTypes.oneOf(["upper-left", "upper-right", "lower-left", "lower-right"]),
         isShowButton : PropTypes.bool,
         buttonId : PropTypes.string,
         buttonText : PropTypes.string,
@@ -46,7 +48,8 @@ export default class RightHeader extends Component {
                                                 <Decoration iconClassName={this.decorationIconClassName()}
                                                     color={this.props.decorationColor}
                                                     size="medium"
-                                                    tooltip={this.props.decorationTooltip}/>
+                                                    tooltip={this.props.decorationTooltip}
+                                                    position={this.props.decorationPosition}/>
                                             }
                                         </div>
                                     </td>
@@ -87,7 +90,8 @@ export default class RightHeader extends Component {
                                                 <Decoration iconClassName={this.rightDecorationIconClassName()}
                                                     color={this.props.decorationColorRight}
                                                     size="medium"
-                                                    tooltip={this.props.decorationTooltipRight}/>
+                                                    tooltip={this.props.decorationTooltipRight}
+                                                    position={this.props.decorationPositionRight}/>
                                                 }
                                             </div>
                                         </td>

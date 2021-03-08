@@ -158,6 +158,27 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
+     * Determine if this is a wide layout route.
+     *
+     * @return {boolean} True if this is a wide layout route.
+     */
+    isWideRoute() {
+        if (VXApp.isAppWideRoute) {
+            VXApp.isAppWideRoute()
+        }
+        return true
+    },
+
+    /**
+     * Return true if system is in slide mode.
+     *
+     * @return {boolean} True if system is in slide mode.
+     */
+    isSlideMode() {
+        return $(window).width() < 768
+    },
+
+    /**
      * Determine the initial panel for a given route.
      *
      * @param {string} Route path for which initial panel should be determined.
@@ -354,7 +375,7 @@ VXApp = _.extend(VXApp || {}, {
             return
         }
 
-        const iosState = Store.getState().iosState
+        const iosState = { ...Store.getState().iosState }
         delete iosState.iosButtonState
         Store.dispatch(setIosState(iosState))
 
@@ -431,6 +452,16 @@ VXApp = _.extend(VXApp || {}, {
         if (VXApp.setAppSessionVariables) {
             VXApp.setAppSessionVariables(userId)
         }
+    },
+
+    /**
+     * Extract the record ID from a standard publishing request.
+     *
+     * @param {object} publishingRequest Publishing request object.
+     * @return {string} ID of selected record.
+     */
+    criteriaId(publishingRequest) {
+        return get(publishingRequest, "criteria._id")
     },
 
     /**
@@ -697,133 +728,53 @@ VXApp = _.extend(VXApp || {}, {
         return Meteor.users.find( { "profile.dateRetired": { $exists: false }, "profile.domains": { $elemMatch : { domainId : domain._id } } }, { sort: { "profile.lastName": 1, dateCreated: 1 } } ).fetch()
     },
 
-    /**
-     * Drop domain on user.
-     *
-     * @param {Object} dropTarget Drop target.
-     * @param {Object} ui UI object (JQuery Sortable).
-     */
-    updateUserDomain(dropTarget, ui) {
-        let stringOldIndex = $(ui.item).attr("data-previndex")
-        let oldIndex = stringOldIndex ? parseInt(stringOldIndex) : null
-        let newIndex = ui.item.index()
-        let $domainContainer = ui.item.children(".entity-container-small")
-        let domainId = $domainContainer.attr("data-mongo-id")
-        let publishAuthoringUser = Store.getState().publishAuthoringUser
-        if (!publishAuthoringUser) {
-            return
-        }
-        let user = Meteor.users.findOne(publishAuthoringUser.criteria)
-        if (!user) {
-            return
-        }
-        let tenants = user.profile.tenants || []
-        let domains = user.profile.domains || []
-        // If we're from domain list, oldIndex will be null:
-        if (!Util.isWholeNumber(oldIndex)) {
-            // Resist duplicates:
-            if (_.findWhere(domains, { domainId: domainId })) {
-                OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} already has domain ` +
-                    `${Util.fetchDomainName(domainId)} duplicates suppressed`)
-                return
-            }
-        }
-        // If we have an old index we're moving dragging the domain from one place to another:
-        if (Util.isWholeNumber(oldIndex)) {
-            OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} domain ` +
-                `${Util.fetchDomainName(domainId)} dragged from ${oldIndex} to ${newIndex}`)
-            dropTarget.sortable("cancel")
-            // Currently MongoDB cannot do a $pull and $push operation in a single transaction.  There is
-            // an open issue about this but for now we have to do this in two steps.
-            let modifier = {}
-            modifier.$pull = {}
-            modifier.$pull["profile.domains"] = { domainId : domainId }
-            Meteor.users.update(user._id, modifier, error => {
-                if (error) {
-                    OLog.error(`vxapp.js updateUserDomain error returned from MongoDB update=${error}`)
-                    UX.notifyForDatabaseError(error)
-                    return
-                }
-            })
-            modifier = {}
-            modifier.$push = {}
-            modifier.$push["profile.domains"] = { $each: [ domains[oldIndex] ], $position: newIndex }
-            Meteor.users.update(user._id, modifier, error => {
-                if (error) {
-                    OLog.error(`vxapp.js updateUserDomain error returned from MongoDB update=${error}`)
-                    UX.notifyForDatabaseError(error)
-                    return
-                }
-            })
-        }
-        else {
-            OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} domain ` +
-                `${Util.fetchDomainName(domainId)} dragged from LHS list to index ${newIndex}`)
-            let modifier = {}
-            modifier.$push = {}
-            modifier.$push["profile.domains"] = { $each: [ { domainId : domainId, roles : [ ] } ], $position: newIndex }
-            let tenantId = Util.getTenantId(domainId)
-            if (!tenantId) {
-                OLog.error(`vxapp.js updateUserDomain cannot find tenant of domainId=${domainId}`)
-                return
-            }
-            if (!_.findWhere(tenants, { tenantId: tenantId })) {
-                OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} will get tenant ` +
-                    `${Util.fetchTenantName(tenantId)}`)
-                modifier.$push["profile.tenants"] = { tenantId: tenantId, roles : [ ]  }
-            }
-            OLog.debug(`vxapp.js updateUserDomain ${Util.fetchFullName(user._id)} modifier=${OLog.debugString(modifier)}`)
-            Meteor.users.update(user._id, modifier, error => {
-                if (error) {
-                    OLog.error(`vxapp.js updateUserDomain error returned from MongoDB update=${error}`)
-                    UX.notifyForDatabaseError(error)
-                    return
-                }
-            })
-        }
+    handleDropUserDomain(dropInfo, user) {
+        VXApp.handleDropMulti(Meteor.users, user, "profile.domains", "domainId", dropInfo, VXApp.userDomainNewItemHandler)
     },
 
-    /**
-     * Drop user on domain.
-     *
-     * @param {object} dropTarget Drag source.
-     * @param {object} ui UI object (JQuery Sortable).
-     */
-    updateDomainUser(dropTarget, ui) {
-        let $userContainer = ui.item.children(".entity-container-small")
-        let userId = $userContainer.attr("data-mongo-id")
-        let publishAuthoringDomain = Store.getState().publishAuthoringDomain
-        if (!publishAuthoringDomain) {
+    userDomainNewItemHandler(item, index, parameters) {
+        const user = parameters.targetRecord
+        const domainId = item["data-item-id"]
+        if (_.findWhere(user.profile.domains, { domainId : domainId })) {
+            OLog.debug(`vxapp.js userDomainNewItemHandler userId=${user._id} domainId=${domainId} ` +
+                " already exists *bypass*")
             return
         }
-        let domain = Domains.findOne(publishAuthoringDomain.criteria)
-        if (!domain) {
-            return
-        }
-        let user = Meteor.users.findOne(userId)
-        if (!user) {
-            return
-        }
-        let tenants = user.profile.tenants || []
-        let domains = user.profile.domains || []
-        // Resist duplicates:
+        const newRow = {}
+        newRow.domainId = domainId
+        newRow.roles = []
+        return newRow
+    },
+
+    handleDropDomainUser(dropInfo, domain, users) {
+        dropInfo.items.forEach(item => {
+            const userId = item["data-item-id"]
+            const user = _.findWhere(users, { _id: userId })
+            VXApp.updateDomainUser(domain, user)
+        })
+    },
+
+    updateDomainUser(domain, user) {
+        const tenants = user.profile.tenants || []
+        const domains = user.profile.domains || []
         if (_.findWhere(domains, { domainId: domain._id })) {
-            OLog.debug("vxapp.js updateDomainUser " + Util.fetchFullName(user._id) + " already has domain " + Util.fetchDomainName(domain._id) + " duplicates suppressed")
+            OLog.debug(`vxapp.js updateDomainUser ${Util.fetchFullName(user._id)} ` +
+                `already has domain ${Util.fetchDomainName(domain._id)} duplicates suppressed`)
             return
         }
-        let modifier = {}
+        const modifier = {}
         modifier.$push = {}
-        // Each operator is supplied even when immaterial to simplify schema validation rules:
         modifier.$push["profile.domains"] = { $each: [ { domainId : domain._id, roles : [ ] } ] }
-        OLog.debug("vxapp.js updateDomainUser add domain " + Util.fetchDomainName(domain._id) + " to " + Util.fetchFullName(userId))
+        OLog.debug(`vxapp.js updateDomainUser add domain ${Util.fetchDomainName(domain._id)} to ${Util.fetchFullName(user)}`)
         if (!_.findWhere(tenants, { tenantId: domain.tenant })) {
-            OLog.debug("vxapp.js updateDomainUser add tenant " + Util.fetchTenantName(domain.tenant) + " to " + Util.fetchFullName(user._id))
+            OLog.debug(`vxapp.js updateDomainUser add tenant ${Util.fetchTenantName(domain.tenant)} ` +
+                `to ${Util.fetchFullName(user._id)}`)
             modifier.$push["profile.tenants"] = { tenantId: domain.tenant, roles : [ ]  }
         }
-        OLog.debug("vxapp.js updateDomainUser modifier=" + OLog.debugString(modifier))
-        Meteor.users.update( { _id: userId }, modifier, error => {
+        OLog.debug(`vxapp.js updateDomainUser modifier=${OLog.debugString(modifier)}`)
+        Meteor.users.update( { _id: user._id }, modifier, error => {
             if (error) {
-                OLog.error("vxapp.js updateDomainUser error returned from MongoDB update=" + error)
+                OLog.error(`vxapp.js updateDomainUser error returned from MongoDB update=${error}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
@@ -837,60 +788,54 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} domainIdDeleted Domain ID.
      */
     deleteUserDomain(userId, domainIdDeleted) {
-        let user = Meteor.users.findOne(userId)
+        const user = Meteor.users.findOne(userId)
         if (!user) {
-            OLog.error("vxapp.js deleteUserDomain unable to find userId=" + userId)
+            OLog.error(`vxapp.js deleteUserDomain unable to find userId=${userId}`)
             return
         }
-        let domains = user.profile.domains || []
-        let index = _.indexOf(_.pluck(user.profile.domains, "domainId"), domainIdDeleted)
+        const domains = user.profile.domains || []
+        const index = _.indexOf(_.pluck(user.profile.domains, "domainId"), domainIdDeleted)
         if (index < 0 || index >= domains.length) {
-            OLog.error("vxapp.js deleteUserDomain index " + index + " out of range domains.length=" + domains.length)
+            OLog.error(`vxapp.js deleteUserDomain index ${index} out of range domains.length=${domains.length}`)
             return
         }
-        let domainRecordDeleted = Domains.findOne( { _id: domainIdDeleted } )
+        const domainRecordDeleted = Domains.findOne( { _id: domainIdDeleted } )
         if (!domainRecordDeleted) {
-            OLog.error("vxapp.js deleteUserDomain unable to find domainId=" + domainIdDeleted)
+            OLog.error(`vxapp.js deleteUserDomain unable to find domainId=${domainIdDeleted}`)
             return
         }
-        let tenantIdDeleted = domainRecordDeleted.tenant
-        let modifier = {}
+        const tenantId = domainRecordDeleted.tenant
+        const modifier = {}
         modifier.$pull = {}
         modifier.$pull["profile.domains"] = { domainId: domainIdDeleted }
         domains.splice(index, 1)
         let tenantStillUsed = false
-        domains.every(domainObject => {
-            let domainRecordRemaining = Domains.findOne(domainObject.domainId)
-            if (!domainRecordRemaining) {
-                // At this time, delete domain is running on the client.
-                // Very tricky here, since not all domains and tenants are in memory we need to simply
-                // bypass this one (assume no system integrity issue)
-                return true
-            }
-            if (domainRecordRemaining.tenant === tenantIdDeleted) {
+        domains.forEach(domainObject => {
+            const domainRecordRemaining = Domains.findOne(domainObject.domainId)
+            if (domainRecordRemaining?.tenant === tenantId) {
                 tenantStillUsed = true
-                return false
             }
-            return true
         })
-        OLog.debug("vxapp.js deleteUserDomain for user " + Util.fetchFullName(userId) + " deleting domain " + Util.fetchDomainName(domainIdDeleted))
+        OLog.debug(`vxapp.js deleteUserDomain for user ${Util.fetchFullName(userId)} deleting ` +
+            `domain ${Util.fetchDomainName(domainIdDeleted)}`)
         if (!tenantStillUsed) {
-            OLog.debug("vxapp.js deleteUserDomain deleting domain " + Util.fetchDomainName(domainIdDeleted) + " tenant " + Util.fetchTenantName(tenantIdDeleted) + " will no longer be required and will be removed")
-            modifier.$pull["profile.tenants"] = { tenantId: tenantIdDeleted }
+            OLog.debug(`vxapp.js deleteUserDomain deleting domain ${Util.fetchDomainName(domainIdDeleted)} ` +
+                `tenant ${Util.fetchTenantName(tenantId)} will no longer be required and will be removed`)
+            modifier.$pull["profile.tenants"] = { tenantId }
         }
         if (user.profile.currentDomain === domainIdDeleted) {
             if (domains.length < 1) {
-                OLog.error("vxapp.js deleteUserDomain user domains length is zero (impossible) unable to reset currentDomain")
+                OLog.error(`vxapp.js deleteUserDomain ${Util.fetchFullName(userId)} cannot remove last domain`)
+                UX.notify({ success: false, icon: "TRIANGLE", key: "common.alert_cannot_remove_last_domain" })
                 return
             }
-            OLog.debug("vxapp.js deleteUserDomain resetting currentDomain, old=" + Util.fetchDomainName(domainIdDeleted) + " new=" + Util.fetchDomainName(domains[0].domainId))
             modifier.$set = {}
-            modifier.$set["profile.currentDomain"] = null
+            modifier.$set["profile.currentDomain"] = domains[0].domainId
         }
-        OLog.debug("vxapp.js deleteUserDomain for user " + Util.fetchFullName(userId) + " modifier=" + OLog.debugString(modifier))
+        OLog.debug(`vxapp.js deleteUserDomain for user ${Util.fetchFullName(userId)} modifier=${OLog.debugString(modifier)}`)
         Meteor.users.update(user._id, modifier, error => {
             if (error) {
-                OLog.error("vxapp.js deleteUserDomain error returned from MongoDB update=" + error)
+                OLog.error(`vxapp.js deleteUserDomain error returned from MongoDB update=${error}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
@@ -1256,33 +1201,35 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Add handler for VXRowPanel and VXRowList.
+     * Remove handler for VXRowPanel and VXRowList.
      *
      * @param {object} collection MongoDB collection to update.
      * @param {object} record Record to be updated.
      * @param {string} rowsPath JSON path to array of rows to be updated.
      * @param {string} rowId Name of a property that uniquely identifies row.
-     * @param {string} id Unique ID of this row (typically GUID).
+     * @param {string} selectedRowIds IDs of rows to be removed.
      */
-    removeRow(collection, record, rowsPath, rowId, id) {
+    removeRow(collection, record, rowsPath, rowId, selectedRowIds) {
         const rows = get(record, rowsPath)
         if (!(rows && rows.length > 0)) {
             return
         }
-        id = id || rows[rows.length - 1][rowId]
+        if (selectedRowIds.length === 0) {
+            selectedRowIds.push(rows[rows.length - 1][rowId])
+        }
         const mongoPath = Util.toMongoPath(rowsPath)
         const modifier = {}
         modifier.$pull = {}
-        modifier.$pull[mongoPath] = { id }
-        OLog.debug(`vxapp.js removeRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} id=${id} ` +
-            `modifier=${OLog.debugString(modifier)}`)
+        modifier.$pull[mongoPath] = { [rowId]: { $in: selectedRowIds } }
+        OLog.debug(`vxapp.js removeRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
+            `selectedRowIds=${selectedRowIds} modifier=${OLog.debugString(modifier)}`)
         collection.update(record._id, modifier, error => {
             if (error) {
                 UX.notifyForError(error)
                 return
             }
             OLog.debug(`vxapp.js removeRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
-                `id=${id} *success*`)
+                `selectedRowIds=${selectedRowIds} *success*`)
         })
     },
 
@@ -1420,31 +1367,150 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Determine the MongoDB modifier to push an object bearing a code into a destination
-     * array while preserving the order determined by a source array. This function can
-     * be used in drag/drop operation where the goal is to ensure that the drop zone order
-     * matches the drag list order.
+     * Drop handler for multi-select drops.
      *
-     * @param {array} sourceArray Array of codes in canonical sequence.
-     * @param {array} destinationArray Array of codes in order matching drop zone.
-     * @param {array} newCodeName Code to be inserted.
-     * @param {object} newObject New object bearing code to be inserted.
-     * @return {string} MongoDB modifier either newObject unchanged or wrapped with $each and $position.
+     * @param {object} collection Collection to be updated.
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath Path to array within record.
+     * @param {string} rowId Name of the property that uniquely identifies the row.
+     * @param {object} dropInfo Drop information object.
+     * @param {func} newItemHandler Function to transform a single new row from dropped item.
      */
-    codeArrayPushModifier(sourceArray, destinationArray, newCodeName, newObject) {
-        const newObjectCanonicalIndex = sourceArray.indexOf(newCodeName)
-        if (newObjectCanonicalIndex < 0) {
-            OLog.error(`vxapp.js codeArrayPushModifier sourceArray=${sourceArray} does not contain newCodeName=${newCodeName}`)
-            return
-        }
-        for (let destinationIndex = 0; destinationIndex < destinationArray.length; destinationIndex++) {
-            const existingCode = destinationArray[destinationIndex]
-            const existingObjectCanonicalIndex = sourceArray.indexOf(existingCode)
-            if (newObjectCanonicalIndex < existingObjectCanonicalIndex) {
-                return { $each: [ newObject ], $position: destinationIndex }
+    handleDropMulti(collection, record, rowsPath, rowId, dropInfo, newItemHandler) {
+        const parameters = {}
+        parameters.dropInfo = dropInfo
+        parameters.rowId = rowId
+        parameters.newItemHandler = newItemHandler
+        parameters.sourceCollection = collection
+        parameters.sourceRecord = record
+        parameters.sourceRowsPath = rowsPath
+        parameters.targetCollection = collection
+        parameters.targetRecord = record
+        parameters.targetRowsPath = rowsPath
+        VXApp.handleDropMultiPrime(parameters)
+    },
+
+    /**
+     * Generalized drop handler for cross-list drag/drop.
+     *
+     * @param {object} parameteters Parameters object with source and target information.
+     */
+    handleDropMultiPrime(parameters) {
+        try {
+            const singleList =
+                parameters.sourceCollection === parameters.targetCollection &&
+                parameters.sourceRecord._id === parameters.targetRecord._id &&
+                parameters.sourceRowsPath === parameters.targetRowsPath
+            const dropInfo = parameters.dropInfo
+            const sourceRows = get(parameters.sourceRecord, parameters.sourceRowsPath, [])
+            const targetRows = get(parameters.targetRecord, parameters.targetRowsPath, [])
+            if (dropInfo.clone) {
+                dropInfo.items.forEach((item, index) => {
+                    const newRow = parameters.newItemHandler(item, index, parameters)
+                    if (!newRow) {
+                        return
+                    }
+                    const newIndex = dropInfo.targetIndex + index
+                    OLog.debug("vxapp.js handleDropMultiPrime *splicing* single row " +
+                        `newIndex=${newIndex} newRow=${OLog.debugString(newRow)}`)
+                    targetRows.splice(newIndex, 0, newRow)
+                })
             }
+            else {
+                const insertArray = dropInfo.items.map(item => {
+                    return _.findWhere(sourceRows, { [parameters.rowId]: item["data-item-id"] })
+                })
+                let spliceIndex = dropInfo.targetIndex
+                if (singleList && dropInfo.targetIndex > dropInfo.items[0].sourceIndex) {
+                    spliceIndex++
+                }
+                const insertedIds = _.pluck(dropInfo.items, "data-item-id")
+                const insertStartIndex = spliceIndex
+                const insertEndIndex = insertStartIndex + dropInfo.items.length - 1
+                OLog.debug(`vxapp.js handleDropMultiPrime *splicing* singleList=${singleList} ${insertArray.length} rows ` +
+                    `into ${targetRows.length} existng rows first item sourceIndex=${dropInfo.items[0].sourceIndex} ` +
+                    `targetIndex=${dropInfo.targetIndex} spliceIndex=${spliceIndex} ` +
+                    `dropInfo.items=${OLog.debugString(dropInfo.items)}`)
+                targetRows.splice(spliceIndex, 0, ...insertArray)
+                if (singleList) {
+                    for (let purgeIndex = targetRows.length - 1; purgeIndex >= 0; purgeIndex--) {
+                        if (purgeIndex < insertStartIndex || purgeIndex > insertEndIndex) {
+                            const targetRow = targetRows[purgeIndex]
+                            if (insertedIds.includes(targetRow[parameters.rowId])) {
+                                targetRows.splice(purgeIndex, 1)
+                            }
+                        }
+                    }
+                }
+                else {
+                    for (let purgeIndex = sourceRows.length - 1; purgeIndex >= 0; purgeIndex--) {
+                        const sourceRow = sourceRows[purgeIndex]
+                        if (insertedIds.includes(sourceRow[parameters.rowId])) {
+                            sourceRows.splice(purgeIndex, 1)
+                        }
+                    }
+                }
+            }
+            if (!singleList) {
+                const mongoPath = Util.toMongoPath(parameters.sourceRowsPath)
+                const modifier = {}
+                modifier.$set = {}
+                modifier.$set[mongoPath] = sourceRows
+                OLog.debug(`vxapp.js handleDropMultiPrime *source* recordId=${parameters.sourceRecord._id} ` +
+                    `rowsPath=${parameters.sourceRowsPath} rowId=${parameters.rowId} ` +
+                    `modifier=${OLog.debugString(modifier)}`)
+                parameters.sourceCollection.update(parameters.sourceRecord._id, modifier)
+            }
+            const mongoPath = Util.toMongoPath(parameters.targetRowsPath)
+            const modifier = {}
+            modifier.$set = {}
+            modifier.$set[mongoPath] = targetRows
+            OLog.debug(`vxapp.js handleDropMultiPrime *target* recordId=${parameters.targetRecord._id} ` +
+                `rowsPath=${parameters.targetRowsPath} rowId=${parameters.rowId} ` +
+                `modifier=${OLog.debugString(modifier)}`)
+            parameters.targetCollection.update(parameters.targetRecord._id, modifier)
         }
-        return newObject
+        catch (error) {
+            UX.notifyForError(error)
+        }
+    },
+
+    /**
+     * Append a new coverage to the coverages array and sort it. Return the sorted array.
+     *
+     * @param {array} covereages Array of coverages.
+     * @param {object} coverage New coverage to be added.
+     */
+    appendAndSortCoverages(coverages, coverage) {
+        coverages = coverages || []
+        const carrierSequence = {}
+        let sequence = 1
+        coverages.forEach(coverageObject => {
+            if (Util.isNullish(carrierSequence[coverageObject.carrierId])) {
+                carrierSequence[coverageObject.carrierId] = sequence
+                sequence++
+            }
+        })
+        const coverageTypes = Util.getCodes("coverageType")
+        coverages.push(coverage)
+        coverages.sort((coverageA, coverageB) => {
+            const coverageSequenceA = carrierSequence[coverageA.carrierId]
+            const coverageSequenceB = carrierSequence[coverageB.carrierId]
+            if (coverageSequenceA && !coverageSequenceB) return -1
+            if (!coverageSequenceA && coverageSequenceB) return +1
+            if (coverageSequenceA < coverageSequenceB) return -1
+            if (coverageSequenceA > coverageSequenceB) return +1
+            const coverageIndexA = coverageTypes.indexOf(coverageA.coverageType)
+            const coverageIndexB = coverageTypes.indexOf(coverageB.coverageType)
+            if (coverageIndexA < coverageIndexB) return -1
+            if (coverageIndexA > coverageIndexB) return +1
+            if (coverageA.dateCreated && coverageB.dateCreated) {
+                if (coverageA.dateCreated < coverageB.dateCreated) return -1
+                if (coverageA.dateCreated > coverageB.dateCreated) return +1
+            }
+            return 0
+        })
+        return coverages
     },
 
     /**

@@ -8,8 +8,8 @@ export default class TemplateEdit extends Component {
         return (
             <SlidePairContainer leftPanel={(<TemplateEditLeftContainer/>)}
                 rightPanel={(<TemplateEditRightContainer/>)}
-                leftColumnCount={5}
-                rightColumnCount={7}/>
+                leftColumnCount={6}
+                rightColumnCount={6}/>
         )
     }
 }

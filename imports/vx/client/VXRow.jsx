@@ -5,24 +5,24 @@ export default class VXRow extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        editable : PropTypes.bool.isRequired,
+        selectable : PropTypes.bool,
+        editable : PropTypes.bool,
         itemClassName : PropTypes.string,
         standardPadding : PropTypes.bool,
         controls : PropTypes.array
     }
 
     static defaultProps = {
-        editable : false,
         standardPadding : true
     }
 
     render() {
         return (
-            <div tabIndex={this.props.editable ? "0" : null} id={this.props.id}
-                className={"list-group-item entity-control-container flexi-fixed " +
+            <div tabIndex={this.props.selectable ? "0" : null}
+                id={this.props.id}
+                className={"list-group-item flexi-fixed entity-control-container " +
                     `${this.paddingClassName()} ${this.viewEditClassName()} ${this.props.itemClassName || ""}`}
-                data-row-id={this.props.id}
-                onFocus={this.handleFocus.bind(this)}>
+                data-item-id={this.props.id}>
                 {this.props.children}
                 {this.renderControls()}
             </div>
@@ -61,12 +61,6 @@ export default class VXRow extends Component {
 
     viewEditClassName() {
         return this.props.editable ? "row-panel-list-group-item-edit" : "row-panel-list-group-item-view"
-    }
-
-    handleFocus() {
-        const $rowList = $("#" + this.props.id).closest(".row-list")
-        const component = UX.findComponentById($rowList.attr("id"))
-        component.setSelectedRowId(event, this.props.id, this)
     }
 
     handleClickControlSet(event) {

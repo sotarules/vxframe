@@ -123,7 +123,10 @@ export default class UserEditRight extends Component {
                             domains={this.props.domains}
                             currentDomainId={this.props.currentDomainId}
                             rightPanel={true}
+                            selectable={true}
+                            draggable={true}
                             droppable={true}
+                            multi={true}
                             dropClassName="domain-drop-list"
                             roleCheckboxes={true}
                             roleCheckboxesDisabled={false}
@@ -133,7 +136,7 @@ export default class UserEditRight extends Component {
                                 className: "fa-times",
                                 onClick: this.handleClickDelete.bind(this)
                             }]}
-                            onDrop={this.handleDropDomain.bind(this)}/>
+                            onDrop={this.handleDropUserDomain.bind(this)}/>
                     </RightPanel>
                 ) : (
                     <EmptyRightPanel emptyMessage={Util.i18n("common.empty_edit_record_missing")}/>
@@ -173,9 +176,8 @@ export default class UserEditRight extends Component {
         })
     }
 
-    handleDropDomain(event, entityTarget, ui, component) {
-        OLog.debug(`UserEditRight.jsx handleDropDomain componentId=${component.props.id}`)
-        VXApp.updateUserDomain(entityTarget, ui)
+    handleDropUserDomain(dropInfo) {
+        VXApp.handleDropUserDomain(dropInfo, this.props.user)
     }
 
     updateEmail(component, strippedValue) {

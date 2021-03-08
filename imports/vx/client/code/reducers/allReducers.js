@@ -37,6 +37,7 @@ import loading from "./loading"
 import routePath from "./routePath"
 import exemptRoute from "./exemptRoute"
 import authorizedRoute from "./authorizedRoute"
+import wideRoute from "./wideRoute"
 import listImportLastPercent from "./listImportLastPercent"
 
 export default {
@@ -79,5 +80,6 @@ export default {
     routePath,
     exemptRoute,
     authorizedRoute,
+    wideRoute,
     listImportLastPercent
 }

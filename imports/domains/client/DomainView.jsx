@@ -9,8 +9,8 @@ export default class DomainView extends Component {
         return (
             <SlidePairContainer leftPanel={(<DomainViewLeftContainer/>)}
                 rightPanel={(<DomainViewRightContainer/>)}
-                leftColumnCount={5}
-                rightColumnCount={7}/>
+                leftColumnCount={6}
+                rightColumnCount={6}/>
         )
     }
 }

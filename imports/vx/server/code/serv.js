@@ -33,84 +33,75 @@ Serv = {
         return results
     },
 
-    isAssertionTrue(assertion, operation, doc, modifier) {
+    isAssertionTrue(assertion, operation) {
         if (assertion) {
-            OLog.debug(`serv.js isAssertionTrue ${operation} *granted* doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+            OLog.debug(`serv.js isAssertionTrue ${operation} *granted*`)
             return true
         }
-        OLog.debug(`serv.js isAssertionTrue ${operation} *denied* doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+        OLog.debug(`serv.js isAssertionTrue ${operation} *denied*`)
         return false
     },
 
-    isUserSuperAdmin(userId, operation, doc, modifier) {
+    isUserSuperAdmin(userId, operation) {
         if (Util.isUserSuperAdmin(userId)) {
-            OLog.debug(`serv.js isUserSuperAdmin ${operation} *granted* userId=${userId} is super administrator ` +
-                `doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+            OLog.debug(`serv.js isUserSuperAdmin ${operation} *granted* userId=${userId} is super administrator`)
             return true
         }
         // Note test for Super Admin severity show not generate hard error on failure:
-        OLog.debug(`serv.js isUserSuperAdmin ${operation} *denied* userId=${userId} is *not* super administrator ` +
-            `doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+        OLog.debug(`serv.js isUserSuperAdmin ${operation} *denied* userId=${userId} is *not* super administrator`)
         return false
     },
 
-    isUserAdmin(userId, tenantId, operation, doc, modifier) {
+    isUserAdmin(userId, tenantId, operation) {
         if (!tenantId) {
-            OLog.error(`serv.js isUserAdmin ${operation} *denied* missing tenantId ` +
-                `doc=${OLog.errorString(doc)} modifier=${OLog.errorString(modifier)}`)
+            OLog.error(`serv.js isUserAdmin ${operation} *denied* missing tenantId`)
             return false
         }
         if (Util.isUserAdmin(userId, tenantId)) {
             OLog.debug(`serv.js isUserAdmin ${operation} *granted* userId=${userId} is administrator ` +
-                `for tenantId=${tenantId} doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+                `for tenantId=${tenantId}`)
             return true
         }
         OLog.error(`serv.js isUserAdmin ${operation} *denied* userId=${userId} is *not* administrator for ` +
-            `tenantId=${tenantId} doc=${OLog.errorString(doc)} modifier=${OLog.errorString(modifier)}`)
+            `tenantId=${tenantId}`)
         return false
     },
 
-    isUserLoggedIn(userId, operation, doc, modifier) {
+    isUserLoggedIn(userId, operation) {
         if (!!userId) {
-            OLog.debug(`serv.js isUserLoggedIn ${operation} *granted* user=${userId} is logged in ` +
-                `doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+            OLog.debug(`serv.js isUserLoggedIn ${operation} *granted* user=${userId} is logged in`)
             return true
         }
-        OLog.error(`serv.js isUserLoggedIn ${operation} *denied* userId=${userId} is *not* logged in ` +
-            `doc=${OLog.errorString(doc)} modifier=${OLog.errorString(modifier)}`)
+        OLog.error(`serv.js isUserLoggedIn ${operation} *denied* userId=${userId} is *not* logged in`)
         return false
     },
 
-    isUserDomain(userId, domainId, operation, doc, modifier) {
-
+    isUserDomain(userId, domainId, operation) {
         if (Util.isUserDomain(userId, domainId)) {
-            OLog.debug(`serv.js isUserDomain ${operation} *granted* user=${userId} is member of ${domainId} ` +
-                `doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+            OLog.debug(`serv.js isUserDomain ${operation} *granted* user=${userId} is member of ${domainId}`)
             return true
         }
-
-        OLog.error(`serv.js isUserDomain ${operation} *denied* userId=${userId} is *not* a member of ${domainId} ` +
-            `doc=${OLog.errorString(doc)} modifier=${OLog.errorString(modifier)}`)
+        OLog.error(`serv.js isUserDomain ${operation} *denied* userId=${userId} is *not* a member of ${domainId}`)
         return false
     },
 
-    isAllowUserSetCurrentDomain(adminId, userId, domainId, operation, doc, modifier) {
+    isAllowUserSetCurrentDomain(adminId, userId, domainId, operation) {
         if (!domainId) {
             OLog.debug(`serv.js isAllowUserSetCurrentDomain *null-domain* ${operation} *granted* adminId=${adminId} ` +
-                `userId=${userId} domainId=${domainId} doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+                `userId=${userId} domainId=${domainId}`)
             return true
         }
         let tenantId = Util.getTenantId(domainId)
-        let allowSetDomain = (Serv.isUserAdmin(adminId, tenantId, operation, doc, modifier) || adminId === userId) &&
-            Serv.isUserDomain(adminId, domainId, operation, doc, modifier) &&
-            Serv.isUserDomain(userId, domainId, operation, doc, modifier)
+        let allowSetDomain = (Serv.isUserAdmin(adminId, tenantId, operation) || adminId === userId) &&
+            Serv.isUserDomain(adminId, domainId, operation) &&
+            Serv.isUserDomain(userId, domainId, operation)
         if (allowSetDomain) {
             OLog.debug(`serv.js isAllowUserSetCurrentDomain ${operation} *granted* adminId=${adminId} userId=${userId} ` +
-                `tenantId=${tenantId} domainId=${domainId} doc=${OLog.debugString(doc)} modifier=${OLog.debugString(modifier)}`)
+                `tenantId=${tenantId} domainId=${domainId}`)
         }
         else {
             OLog.error(`serv.js isAllowUserSetCurrentDomain ${operation} *denied* adminId=${adminId} userId=${userId} ` +
-                `tenantId=${tenantId} domainId=${domainId} doc=${OLog.errorString(doc)} modifier=${OLog.errorString(modifier)}`)
+                `tenantId=${tenantId} domainId=${domainId}`)
         }
         return allowSetDomain
     },

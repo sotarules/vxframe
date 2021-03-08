@@ -21,10 +21,10 @@ export default class DomainEditLeft extends Component {
                 </RadioButtonGroup>
                 <UserEntityList id="domain-edit-left-list"
                     users={this.props.users}
+                    selectable={true}
                     draggable={true}
-                    dragClassName="user-drag-list"
-                    dropClassName="user-drop-list"
-                    chevrons={false}/>
+                    multi={true}
+                    dropClassName="user-drop-list"/>
             </div>
         )
     }

@@ -14,7 +14,14 @@ export default class RetireModal extends Component {
         collection : PropTypes.object.isRequired,
         _id : PropTypes.string.isRequired,
         retireMethod : PropTypes.string.isRequired,
-        publishSetAction : PropTypes.func.isRequired
+        publishSetAction : PropTypes.func.isRequired,
+        comment : PropTypes.bool.isRequired,
+        beforeCallback : PropTypes.func,
+        afterCallback : PropTypes.func
+    }
+
+    static defaultProps = {
+        comment : true
     }
 
     render() {
@@ -25,28 +32,36 @@ export default class RetireModal extends Component {
                     closeButton={false}
                     centerTitle={true}
                     iconClass="fa fa-times"/>
-                <ModalBody thinPaddingTop={true}>
-                    <VXForm id="retire-modal-form"
-                        elementType="div"
-                        receiveProps={false}
-                        ref={(form) => { this.form = form }}>
-                        <VXTextArea id="comment"
-                            label={Util.i18n("common.label_enter_comment")}
-                            className="text-area-resize modal-basic-comment"
-                            rows={4}/>
-                    </VXForm>
-                </ModalBody>
+                {this.props.comment &&
+                    <ModalBody thinPaddingTop={true}>
+                        <VXForm id="retire-modal-form"
+                            elementType="div"
+                            receiveProps={false}
+                            ref={(form) => { this.form = form }}>
+                            <VXTextArea id="comment"
+                                label={Util.i18n("common.label_enter_comment")}
+                                className="text-area-resize modal-basic-comment"
+                                rows={4}/>
+                        </VXForm>
+                    </ModalBody>
+                }
                 <ModalFooterConfirm onClickConfirm={this.handleClickConfirm.bind(this)}/>
             </VXModal>
         )
     }
 
     handleClickConfirm(callback) {
-        let settings = UX.makeFormObject(this.form)
-        Meteor.call(this.props.retireMethod, this.props._id, settings.comment, (error, result) => {
+        if (this.props.beforeCallback) {
+            this.props.beforeCallback(this.props._id)
+        }
+        const comment = this.props.comment ? UX.makeFormObject(this.form).comment : null
+        Meteor.call(this.props.retireMethod, this.props._id, comment, (error, result) => {
             callback(true)
             UX.notify(result, error, true)
             if (!error && result && result.success) {
+                if (this.props.afterCallback) {
+                    this.props.afterCallback(this.props._id)
+                }
                 Store.dispatch(this.props.publishSetAction(null))
                 if (UX.isSlideMode()) {
                     UX.iosPopAndGo()

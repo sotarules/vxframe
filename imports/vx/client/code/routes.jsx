@@ -1,5 +1,5 @@
 import React from "react"
-import { Router, Route, Switch } from "react-router-dom"
+import {Route, Router, Switch} from "react-router-dom"
 import DomainEdit from "/imports/domains/client/DomainEdit"
 import DomainUserView from "/imports/usersdomains/client/DomainUserView"
 import DomainView from "/imports/domains/client/DomainView"
@@ -7,7 +7,6 @@ import EventsContainer from "/imports/events/client/EventsContainer"
 import LayoutDiagContainer from "/imports/layout/client/LayoutDiagContainer"
 import LayoutNoneContainer from "/imports/layout/client/LayoutNoneContainer"
 import LayoutStandardContainer from "/imports/layout/client/LayoutStandardContainer"
-import LayoutWideContainer from "/imports/layout/client/LayoutWideContainer"
 import NotFoundPage from "/imports/notfound/client/NotFoundPage"
 import ProfileContainer from "/imports/profile/client/ProfileContainer"
 import SettingsContainer from "/imports/settings/client/SettingsContainer"
@@ -74,8 +73,6 @@ Routes = {
                     </Route>
                     <Route exact path={Routes.pathArrayFor("LayoutStandardContainer")}
                         render={Routes.renderStandardLayout}/>
-                    <Route exact path={Routes.pathArrayFor("LayoutWideContainer")}
-                        render={Routes.renderWideLayout}/>
                     <Route>
                         <LayoutNoneContainer>
                             <NotFoundPage />
@@ -92,15 +89,6 @@ Routes = {
             <LayoutStandardContainer location={location}>
                 {Routes.routesFor("LayoutStandardContainer")}
             </LayoutStandardContainer>
-        )
-    },
-
-    renderWideLayout({location}) {
-        OLog.debug(`routes.jsx renderWideLayout key=${location.key} pathname=${location.pathname}`)
-        return (
-            <LayoutWideContainer location={location}>
-                {Routes.routesFor("LayoutWideContainer")}
-            </LayoutWideContainer>
         )
     },
 

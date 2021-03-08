@@ -8,8 +8,8 @@ export default class DomainEdit extends Component {
         return (
             <SlidePairContainer leftPanel={(<DomainEditLeftContainer/>)}
                 rightPanel={(<DomainEditRightContainer/>)}
-                leftColumnCount={5}
-                rightColumnCount={7}/>
+                leftColumnCount={6}
+                rightColumnCount={6}/>
         )
     }
 }

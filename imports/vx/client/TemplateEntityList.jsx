@@ -33,7 +33,6 @@ export default class TemplateEntityList extends Component {
                 rightPanel={this.props.rightPanel}
                 draggable={this.props.draggable}
                 droppable={this.props.droppable}
-                dragClassName="template-drag-list"
                 dropClassName="template-drop-list"
                 onDrop={this.handleDrop.bind(this)}>
                 {this.renderEntityItems()}
@@ -43,7 +42,8 @@ export default class TemplateEntityList extends Component {
 
     renderEntityItems() {
         return this.props.templates.map(template => (
-            <EntityItem key={template._id}
+            <EntityItem id={`template-entity-list-${template._id}`}
+                key={template._id}
                 _id={template._id}
                 iconUrl={CX.CLOUDFILES_PREFIX + "/img/system/template5.png"}
                 decorationIconClassName={VXApp.getSubsystemStatusDecorationIconClassName("TEMPLATE", template, "small")}
@@ -64,9 +64,9 @@ export default class TemplateEntityList extends Component {
         })
     }
 
-    handleDrop(event, entityTarget, ui) {
+    handleDrop(dropInfo) {
         if (this.props.onDrop) {
-            this.props.onDrop(event, entityTarget, ui, this)
+            this.props.onDrop(dropInfo)
         }
     }
 }

@@ -17,6 +17,7 @@ export default class DomainEntityList extends Component {
         rightPanel : PropTypes.bool,
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
+        multi : PropTypes.bool,
         roleCheckboxes : PropTypes.bool,
         roleCheckboxesDisabled : PropTypes.bool,
         domainRolesChecked : PropTypes.object,
@@ -41,7 +42,7 @@ export default class DomainEntityList extends Component {
                 controls={this.props.controls}
                 draggable={this.props.draggable}
                 droppable={this.props.droppable}
-                dragClassName="domain-drag-list"
+                multi={this.props.multi}
                 dropClassName="domain-drop-list"
                 onDrop={this.handleDrop.bind(this)}>
                 {this.renderDomainItems()}
@@ -51,7 +52,7 @@ export default class DomainEntityList extends Component {
 
     renderDomainItems() {
         return this.props.domains.map(domain => (
-            <EntityItem id={`domain-entity-list-${domain._id}`}
+            <EntityItem id={`${this.props.id}-${domain._id}`}
                 key={domain._id}
                 _id={domain._id}
                 collection={Domains}
@@ -89,9 +90,9 @@ export default class DomainEntityList extends Component {
         }
     }
 
-    handleDrop(event, entityTarget, ui) {
+    handleDrop(dropInfo) {
         if (this.props.onDrop) {
-            this.props.onDrop(event, entityTarget, ui, this)
+            this.props.onDrop(dropInfo)
         }
     }
 }

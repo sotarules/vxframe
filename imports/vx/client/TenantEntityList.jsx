@@ -35,7 +35,8 @@ export default class TenantEntityList extends Component {
 
     renderEntityItems() {
         return this.props.tenants.map(tenant => (
-            <EntityItem key={tenant._id}
+            <EntityItem id={`tenant-entity-list-${tenant._id}`}
+                key={tenant._id}
                 _id={tenant._id}
                 iconUrl={Util.fetchTenantIconUrl(tenant._id)}
                 decorationIconClassName={Util.isTenantCurrent(tenant._id) ? "entity-decoration-icon-small fa fa-asterisk" : null}

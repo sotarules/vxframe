@@ -15,6 +15,7 @@ export default class DomainEditRight extends Component {
         id : PropTypes.string.isRequired,
         domain : PropTypes.object,
         users : PropTypes.array,
+        domainUsers : PropTypes.array,
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["blue"]),
         decorationTooltip : PropTypes.string,
@@ -109,7 +110,7 @@ export default class DomainEditRight extends Component {
                         </RightHeaderEdit>
                         <EntityListHeader label={Util.i18n("user_domain.label_users_header")}/>
                         <UserEntityList id="domain-edit-right-list"
-                            users={this.props.users}
+                            users={this.props.domainUsers}
                             rightPanel={true}
                             droppable={true}
                             dropClassName="user-drop-list"
@@ -121,7 +122,7 @@ export default class DomainEditRight extends Component {
                                 className: "fa-times",
                                 onClick: this.handleClickDelete.bind(this)
                             }]}
-                            onDrop={this.handleDropUser.bind(this)}/>
+                            onDrop={this.handleDropDomainUser.bind(this)}/>
                     </RightPanel>
                 ) : (
                     <EmptyRightPanel emptyMessage={Util.i18n("common.empty_edit_record_missing")}/>
@@ -136,13 +137,13 @@ export default class DomainEditRight extends Component {
     }
 
     handleUpdateRoleCheckbox(component, value, userRole, userId) {
-        OLog.debug(`DomainEditRight.jsx handleUpdateRoleCheckbox componentId=${component.props.id} userRole=${userRole} value=${value} userId=${userId} domainId=${this.props.domain._id}`)
+        OLog.debug(`DomainEditRight.jsx handleUpdateRoleCheckbox componentId=${component.props.id} ` +
+            `userRole=${userRole} value=${value} userId=${userId} domainId=${this.props.domain._id}`)
         VXApp.updateTenantOrDomainRole(userId, this.props.domain._id, userRole, false, value)
     }
 
-    handleDropUser(event, entityTarget, ui, component) {
-        OLog.debug(`DomainEditRight.jsx handleDropUser componentId=${component.props.id}`)
-        VXApp.updateDomainUser(entityTarget, ui)
+    handleDropDomainUser(dropInfo) {
+        VXApp.handleDropDomainUser(dropInfo, this.props.domain, this.props.users)
     }
 
     handleClickDelete(event, component) {
