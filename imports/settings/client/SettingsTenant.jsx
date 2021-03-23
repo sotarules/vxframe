@@ -16,7 +16,8 @@ export default class SettingsTenant extends Component {
         tenant : PropTypes.object.isRequired,
         admins : PropTypes.array.isRequired,
         states : PropTypes.array.isRequired,
-        countries : PropTypes.array.isRequired
+        countries : PropTypes.array.isRequired,
+        timezones : PropTypes.array.isRequired
     }
 
     render() {
@@ -45,6 +46,13 @@ export default class SettingsTenant extends Component {
                                         label={Util.i18n("system_settings.label_tenant_function_anchor")}
                                         tooltip={Util.i18n("system_settings.tooltip_tenant_function_anchor")}
                                         value={this.props.tenant.functionAnchor}/>
+                                </div>
+                                <div className="col-sm-4">
+                                    <VXSelect id="timezone"
+                                        codeArray={this.props.timezones}
+                                        label={Util.i18n("system_settings.label_tenant_timezone")}
+                                        tooltip={Util.i18n("system_settings.tooltip_tenant_timezone")}
+                                        value={this.props.tenant.timezone}/>
                                 </div>
                             </div>
                             <div className="row">
@@ -126,7 +134,7 @@ export default class SettingsTenant extends Component {
         UX.resetForm(this.form)
     }
 
-    onSave(callback) {
-        UX.save(this.form, callback)
+    onSave(laddaCallback) {
+        UX.save(this.form, laddaCallback)
     }
 }

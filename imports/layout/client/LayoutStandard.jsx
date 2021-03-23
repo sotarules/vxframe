@@ -58,7 +58,7 @@ export default class LayoutStandard extends Component {
     }
 
     containerClassName() {
-        return this.props.wideRoute ? "container-wide" : "container"
+        return this.props.wideRoute ? "container-wide" : "container container-width-100"
     }
 
     slidePanelId() {

@@ -56,37 +56,24 @@ const doRoute = () => {
 }
 
 Meteor.startup(() => {
-
     OLog.debug(`startup.js startup *genesis* welcome to ${CX.SYSTEM_NAME}`)
-
     // Default loading to hold off any rendering until subscriptions are loaded (see below).
     UX.setLoading(true)
-
     BrowserHistory = createBrowserHistory()
     BrowserHistory.listen((location, action) => {
         OLog.debug(`startup.js browser history listen URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
         doRoute()
     })
-
     ReactDOM.render(Routes.renderRoutes(), document.getElementById("react-root"))
-
     // Compute initial slide mode based on device characteristics:
     UX.updateSlideMode()
-
     PNotify.prototype.options.styling = "fontawesome"
-    // Disable scroll for the document, we'll handle it ourselves
-    $(document).on("touchmove", event => {
-        event.preventDefault()
-    })
-
     // Dynamic changes in screen size can change the slide-mode state of the system:
     $(window).on("resize", () => {
         UX.updateSlideMode()
     })
-
     // Anti-rubber-band logic:
     UX.noRubberBand()
-
     // Capture and log the client version:
     Accounts.onLogin(() => {
         OLog.debug("startup.js Accounts onLogin *fire*")
@@ -97,9 +84,7 @@ Meteor.startup(() => {
             }
         })
     })
-
     // Use React-friendly FastClick:
     initReactFastclick()
-
     doRoute()
 })

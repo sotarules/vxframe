@@ -47,14 +47,14 @@ export default class VXRowPanel extends Component {
         return (
             <div id={this.props.id}
                 className={`panel panel-default flexi-grow ${this.props.panelClassName || ""}`}>
-                <div className={`panel-heading flexi-fixed flex-direction-row flex-justify-space-between ${this.props.headingClassName || ""}`}>
+                <div className={`panel-heading flexi-fixed flex-direction-row ${this.props.headingClassName || ""}`}>
                     <div className={`row-panel-title ${this.props.titleClassName || ""}`}>
                         {this.props.title}
                         <a className={`row-panel-header-control ${this.props.panelHeadingControlClass || "" }`}
                             onClick={this.handleClickPanelHeadingControl.bind(this)}/>
                     </div>
                     {this.props.editable &&
-                        <div className="row-panel-button-container flexi-fixed flex-direction-row">
+                        <div className="row-panel-button-container flex-direction-row">
                             <VXTinyButton id={`${this.props.id}-button-plus`}
                                 className="row-panel-button-margin"
                                 iconClassName="fa-plus"

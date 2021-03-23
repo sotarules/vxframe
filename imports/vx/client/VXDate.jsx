@@ -50,7 +50,18 @@ export default class VXDate extends Component {
 
     componentDidMount() {
         UX.register(this)
+        this.initDatePicker()
+    }
+
+    componentDidUpdate() {
+        this.initDatePicker()
+    }
+
+    initDatePicker() {
         const selector = this.getSelector()
+        if ($(selector).data("DateTimePicker")) {
+            return
+        }
         $(selector).datetimepicker({
             format: this.props.format,
             dayViewHeaderFormat: this.props.format,
@@ -75,8 +86,6 @@ export default class VXDate extends Component {
             else {
                 date = ""
             }
-            OLog.debug(`VXDate.jsx componentDidMount on dp.change componentId=${this.props.id} ` +
-                ` event.date=${event.date} date=${date}`)
             this.setState({ value : date })
             UX.validateComponent(this)
             if (this.props.onChange) {
@@ -99,6 +108,9 @@ export default class VXDate extends Component {
     }
 
     getValue() {
+        if (Util.isNullish(this.state.value)) {
+            return null
+        }
         return this.state.value
     }
 

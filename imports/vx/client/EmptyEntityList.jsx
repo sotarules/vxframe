@@ -1,16 +1,19 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import Parser from "html-react-parser"
+import VXForm from "./VXForm"
 
 export default class EmptyEntityList extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
         className : PropTypes.string,
-        emptyMessage : PropTypes.string.isRequired,
+        emptyMessage : PropTypes.string,
         emptyListSize : PropTypes.oneOf(["small", "large"]).isRequired,
         droppable : PropTypes.bool,
-        dropClassName : PropTypes.string
+        dropClone : PropTypes.bool,
+        dropClassName : PropTypes.string,
+        onDrop : PropTypes.func
     }
 
     static defaultProps = {
@@ -25,18 +28,20 @@ export default class EmptyEntityList extends Component {
 
     render() {
         return (
-            <div id={this.props.id}
+            <VXForm id={this.props.id}
                 className={this.dropZoneClassNames()}>
-                <span className={`empty-list-text-${this.props.emptyListSize}`}>
-                    <span className="fa fa-lightbulb-o"></span>
-                    {Parser(` ${this.props.emptyMessage}`)}
-                </span>
-            </div>
+                {this.props.emptyMessage &&
+                    <span className={`empty-list-text-${this.props.emptyListSize}`}>
+                        <span className="fa fa-lightbulb-o"></span>
+                        {Parser(` ${this.props.emptyMessage}`)}
+                    </span>
+                }
+            </VXForm>
         )
     }
 
     dropZoneClassNames() {
-        return `empty-list flexi-grow flex-section-center ${this.props.className || ""}` +
+        return `empty-list list-group flexi-grow flex-section-center ${this.props.className || ""}` +
             (this.props.droppable ? " vx-droppable " + this.props.dropClassName : "")
     }
 }

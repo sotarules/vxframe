@@ -50,7 +50,7 @@ export default class ProfileReportsModal extends Component {
                             <VXDate id={parameterDefinition.fieldName}
                                 label={parameterDefinition.fieldNameLocalized}
                                 required={true}
-                                format="MM/DD/YYYY"
+                                format="M/D/YYYY"
                                 timezone={Util.reportTimezone(this.props.reportType, this.props.user)}
                                 value={reportParameterDefaults[parameterDefinition.fieldName]}>
                             </VXDate>

@@ -2488,7 +2488,7 @@ Util = {
      * @param {Set} setB Set B.
      * @return {Set} Difference.
      */
-    difference(setA, setB) {
+    differenceSet(setA, setB) {
         let _difference = new Set(setA)
         for (let elem of setB) {
             _difference.delete(elem)
@@ -2497,12 +2497,35 @@ Util = {
     },
 
     /**
+     * Given two objects, return an object that represents the differences
+     * between the two.
+     *
+     * @param {object} objectOne Object one.
+     * @param {object} objectTwo Object two.
+     * @param {array} ignoreNames Array of property names to ignore.
+     * @return {object} Object consisting solely of those properties that differ between the two objects.
+     */
+    objectDifferences(objectOne, objectTwo, ignoreNames) {
+        ignoreNames = ignoreNames || []
+        return _.reduce(objectOne, (result, value, key) => {
+            if (ignoreNames.includes(key)) {
+                return result
+            }
+            if (_.isEqual(value, objectTwo[key])) {
+                return result
+            }
+            result[key] = value
+            return result
+        }, {})
+    },
+
+    /**
      * Get parsed value given a binding type.
      *
      * @param {string} bindingType Binding type.
      * @param {string} value Raw value string.
      * @param {string} dateFormat Optional date format for Date type.
-     * @param {string} timezine Optional timezone for Date type.
+     * @param {string} timezone Optional timezone for Date type.
      * @return {?} Parsed value or null if input is nullish.
      */
     parsedValue(bindingType, value, dateFormat, timezone) {
@@ -2554,14 +2577,16 @@ Util = {
      *
      * @param {string} input Input string.
      * @param {string} splitCharacter Character to use to split.
+     * @param {string} offset Offset from last expressed as negative.
      * @return {string} Last token of the string.
      */
-    lastToken(input, splitCharacter) {
+    lastToken(input, splitCharacter, offset) {
         if (!input) {
             return input
         }
+        offset = offset || -1
         const array = input.split(splitCharacter)
-        return array[array.length - 1]
+        return array[array.length + offset]
     },
 
     /**

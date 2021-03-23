@@ -88,3 +88,41 @@ CX.TOP_BAR_SUBSYSTEM_STATUS_CLASS_MAP = {
 }
 
 CX.SLIDE_ANIMATION_DURATION = 610
+
+CX.IOS_BUTTON_DEFAULTS = {
+    "ios-button-edit" : {
+        iconClass : "fa-edit",
+        title : "common.popup_menu_edit",
+        position : "right"
+    },
+    "ios-button-clone" : {
+        iconClass : "fa-copy",
+        title : "common.popup_menu_clone",
+        position : "right"
+    },
+    "ios-button-delete" : {
+        iconClass : "fa-times",
+        title : "common.popup_menu_delete",
+        position : "right"
+    },
+    "ios-button-undo" : {
+        iconClass : "fa-undo",
+        title : "common.popup_menu_undo",
+        position : "right"
+    },
+    "ios-button-redo" : {
+        iconClass : "fa-repeat",
+        title : "common.popup_menu_redo",
+        position : "right"
+    },
+    "ios-button-print" : {
+        iconClass : "fa-print",
+        title : "common.popup_menu_print",
+        position : "right"
+    },
+    "ios-button-done-editing" : {
+        iconClass : "fa-check-square-o",
+        title : "common.popup_menu_done_editing",
+        position : "right"
+    }
+}

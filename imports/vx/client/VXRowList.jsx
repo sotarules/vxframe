@@ -1,6 +1,6 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
-import { get } from "lodash"
+import {get} from "lodash"
 import EmptyEntityList from "./EmptyEntityList"
 import VXForm from "./VXForm"
 
@@ -24,15 +24,18 @@ export default class VXRowList extends Component {
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
         multi : PropTypes.bool,
+        dragClone : PropTypes.bool,
+        dropClone : PropTypes.bool,
+        zeroHeightHack : PropTypes.bool,
         dropClassName : PropTypes.string,
-        placeholderClassName : PropTypes.string,
-        onDrop : PropTypes.func
+        placeholderClassName : PropTypes.string
     }
 
     static defaultProps = {
         editable : false,
         borders : true,
         rightPanel : true,
+        zeroHeightHack : true,
         placeholderClassName : "entity-drag-placeholder-conditional"
     }
 
@@ -48,7 +51,7 @@ export default class VXRowList extends Component {
     initSelectionAndDragAndDrop() {
         $(`#${this.props.id}`).multiselectable({ multi: this.props.multi, items: ".list-group-item" })
         if (this.props.draggable) {
-            UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName)
+            UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)
         }
         if (this.props.droppable) {
             UX.makeDroppable(this.props.id,  this.props.dropClassName, this.props.placeholderClassName, this)
@@ -61,7 +64,7 @@ export default class VXRowList extends Component {
         const filteredRows = this.filteredRows()
         if (filteredRows.length > 0) {
             return (
-                <VXForm id={`${this.props.id}`}
+                <VXForm id={this.props.id}
                     ref={form => {this.form = form}}
                     formElement="ul"
                     className={this.listClassName()}
@@ -73,12 +76,12 @@ export default class VXRowList extends Component {
             )
         }
         return (
-            <EmptyEntityList id={`${this.props.id}`}
+            <EmptyEntityList id={this.props.id}
                 className={this.emptyListClassName()}
                 droppable={this.props.droppable}
                 dropClassName={this.props.dropClassName}
                 emptyListSize="large"
-                emptyMessage={this.props.emptyMessage} />
+                emptyMessage={this.props.emptyMessage}/>
         )
     }
 
@@ -103,7 +106,8 @@ export default class VXRowList extends Component {
     }
 
     listClassName() {
-        return "list-group scroll-y scroll-momentum scroll-fix flexi-grow zero-height-hack" +
+        return "list-group scroll-y scroll-momentum scroll-fix flexi-grow " +
+            (this.props.zeroHeightHack ? " zero-height-hack" : "") +
             (this.props.rightPanel ? " dropzone-container-large" : "") +
             (this.props.draggable ? " vx-draggable" : "") +
             (this.props.droppable ? " vx-droppable " + this.props.dropClassName : "") +

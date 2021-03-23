@@ -302,6 +302,7 @@
 }
 
 .row-panel-button-container {
+    margin-left: auto;
     margin-top: 10px;
     margin-bottom: 10px;
 }
@@ -434,6 +435,12 @@ fieldset[disabled] .form-control {
     margin-bottom: 4px;
 }
 
+.modal-subtitle {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: @modal-title-line-height;
+}
+
 .modal-content {
     background-color: #F5F5F5;
 }
@@ -534,6 +541,16 @@ fieldset[disabled] .form-control {
 
 .checkbox-vertical-middle {
     margin-top: 37px;
+}
+
+.checkbox-stacked-first {
+    margin-top: 26px;
+    margin-bottom: 5px;
+}
+
+.checkbox-stacked-other {
+    margin-top: 0px;
+    margin-bottom: 5px;
 }
 
 .textarea-default-height {
@@ -1304,8 +1321,10 @@ legend.group-legend {
 .big-button {
     width: 100px;
     height: 100px;
-    margin-left: 20px;
-    margin-right: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+    padding-left: 0px;
+    padding-right: 0px;
 }
 
 .cell-vertical-top {
@@ -1401,11 +1420,11 @@ legend.group-legend {
 }
 
 /* Show the sides when the entity is being dragged in a list */
-.dropzone-container-large .list-group-item.ui-sortable-helper {
-    border-top-style: solid;
-    border-left-style: solid;
-    border-right-style: solid;
-    border-bottom-style: solid;
+.ui-sortable-helper {
+    border-top: 1px solid #DDDDDD;
+    border-left: 1px solid #DDDDDD;
+    border-right: 1px solid #DDDDDD;
+    border-bottom: 1px solid #DDDDDD;
 }
 
 .dropzone-container-small {
@@ -2527,35 +2546,56 @@ legend.group-legend {
 .ios-button-back {
     font-size: 17px !important;
     line-height: 20px;
-    display: inline-block;
 }
 
 .ios-button-icon {
-    font-size: 18px !important;
+    font-size: 18px;
     line-height: 20px;
-    display: inline-block;
 }
 
 .ios-button-text {
-    display: inline-block;
     font-size: 16px;
     margin-left: 6px;
     line-height: 20px;
 }
 
-.ios-button-group {
-    display: inline-block;
+.ios-button-group-left {
+    display: flex;
+    .justify-content(flex-start);
+}
+
+.ios-button-group-center {
+    display: flex;
+    .justify-content(center);
+}
+
+.ios-button-group-right {
+    display: flex;
+    .justify-content(flex-end);
 }
 
 .ios-button-group-member {
     position: relative;
     font-size: 18px;
     line-height: 18px;
-    margin-left: 18px;
-    margin-right: 0px;
     display: inline-block;
     /* color: rgb(84, 152, 254); */
     color: @brand-primary;
+}
+
+.ios-button-group-member-left {
+    margin-left: 0px;
+    margin-right: 10px;
+}
+
+.ios-button-group-member-center {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+.ios-button-group-member-right {
+    margin-left: 10px;
+    margin-right: 0px;
 }
 
 .ios-button-link {
@@ -2969,4 +3009,24 @@ legend.group-legend {
     margin-left: 4px;
     font-size: 12px !important;
     display: inline-block;
+}
+
+.react-contexify {
+    .border-radius(4px);
+    z-index: 11;
+}
+
+.context-menu-icon {
+    margin-top: 1px;
+    margin-right: 5px;
+    font-size: 17px;
+}
+
+.context-menu-text {
+    font-size: 13px;
+}
+
+.react-contexify__item:not(.react-contexify__item--disabled):hover>.react-contexify__item__content {
+    background-color: #EAEAEA !important;
+    color: rgb(51,51,51) !important;
 }

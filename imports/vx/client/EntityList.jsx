@@ -14,6 +14,8 @@ export default class EntityList extends Component {
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
         multi : PropTypes.bool,
+        dragClone : PropTypes.bool,
+        dropClone : PropTypes.bool,
         dropClassName : PropTypes.string,
         placeholderClassName : PropTypes.string,
         onDrop : PropTypes.func
@@ -36,7 +38,7 @@ export default class EntityList extends Component {
     initSelectionAndDragAndDrop() {
         $(`#${this.props.id}`).multiselectable({ multi: this.props.multi })
         if (this.props.draggable) {
-            UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName)
+            UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)
         }
         if (this.props.droppable) {
             UX.makeDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)

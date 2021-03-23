@@ -372,6 +372,11 @@ Meteor.i18nMessages.common = {
         rx : "$Transaction failed, function not found, functionId={{functionId}}$"
     },
 
+    alert_transaction_fail_record_not_found : {
+        en : "Transaction failed, record not found, recordId={{recordId}}",
+        rx : "$Transaction failed, record not found, recordId={{recordId}}$"
+    },
+
     alert_transaction_fail_undo_transactions_not_found : {
         en : "Undo failed transaction set not found",
         rx : "$Undo failed transaction set not found$"
@@ -390,6 +395,16 @@ Meteor.i18nMessages.common = {
     alert_transaction_fail_redo_no_later_state : {
         en : "Cannot redo because you're at the end of the history",
         rx : "$Cannot redo because you're at the end of the history$"
+    },
+
+    alert_transaction_fail_undo_wrong_user : {
+        en : "Cannot undo because record was last updated by {{fullName}}",
+        rx : "$Cannot undo because record was last updated by {{fullName}}$"
+    },
+
+    alert_transaction_fail_redo_wrong_user : {
+        en : "Cannot redo because record was last updated by {{fullName}}",
+        rx : "$Cannot redo because record was last updated by {{fullName}}$"
     },
 
     alert_transaction_fail_unable_to_update_record_state : {

@@ -54,7 +54,7 @@ export default class SettingsSystem extends Component {
         UX.resetForm(this.form)
     }
 
-    onSave(callback) {
-        UX.save(this.form, callback)
+    onSave(laddaCallback) {
+        UX.save(this.form, laddaCallback)
     }
 }

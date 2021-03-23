@@ -1,4 +1,5 @@
 import {get, set, cloneDeep} from "lodash"
+import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
 import {
     setFunctionUpdateTimestamp,
     setCurrentDomainId,
@@ -24,7 +25,17 @@ import {
     setListImportLastPercent
 } from "/imports/vx/client/code/actions"
 
+
 VXApp = _.extend(VXApp || {}, {
+
+    /**
+     * Return unioned reducers. This function will likely be overridden at the application level.
+     *
+     * @return {object} Union of all reducers system-wide.
+     */
+    unionedReducers() {
+        return { ...allReducersVx }
+    },
 
     /**
      * Clear user session settings.
@@ -163,8 +174,8 @@ VXApp = _.extend(VXApp || {}, {
      * @return {boolean} True if this is a wide layout route.
      */
     isWideRoute() {
-        if (VXApp.isAppWideRoute) {
-            VXApp.isAppWideRoute()
+        if (VXApp.isAppWideRoute && VXApp.isAppWideRoute()) {
+            return true
         }
         return true
     },
@@ -1179,25 +1190,27 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} rowsPath JSON path to array of rows to be updated.
      * @param {string} rowId Name of a property that uniquely identifies row.
      * @param {object} row Optional pre-populated row.
+     * @param {string} GUID of added row.
      */
     addRow(collection, record,  rowsPath, rowId, row) {
-        const mongoPath = Util.toMongoPath(rowsPath)
-        let newRow = { }
-        newRow[rowId] = Util.getGuid()
-        newRow = { ...newRow, ...row }
-        const modifier = {}
-        modifier.$push = {}
-        modifier.$push[mongoPath] = newRow
-        OLog.debug(`vxapp.js addRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
-            `modifier=${OLog.debugString(modifier)}`)
-        collection.update(record._id, modifier, error => {
-            if (error) {
-                UX.notifyForError(error)
-                return
-            }
+        try {
+            const mongoPath = Util.toMongoPath(rowsPath)
+            let newRow = { }
+            newRow[rowId] = Util.getGuid()
+            newRow = { ...newRow, ...row }
+            const modifier = {}
+            modifier.$push = {}
+            modifier.$push[mongoPath] = newRow
+            OLog.debug(`vxapp.js addRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
+                `modifier=${OLog.debugString(modifier)}`)
+            collection.update(record._id, modifier)
             OLog.debug(`vxapp.js addRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
                 `id=${newRow[rowId]} *success*`)
-        })
+            return newRow[rowId]
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
     },
 
     /**
@@ -1210,27 +1223,27 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} selectedRowIds IDs of rows to be removed.
      */
     removeRow(collection, record, rowsPath, rowId, selectedRowIds) {
-        const rows = get(record, rowsPath)
-        if (!(rows && rows.length > 0)) {
-            return
-        }
-        if (selectedRowIds.length === 0) {
-            selectedRowIds.push(rows[rows.length - 1][rowId])
-        }
-        const mongoPath = Util.toMongoPath(rowsPath)
-        const modifier = {}
-        modifier.$pull = {}
-        modifier.$pull[mongoPath] = { [rowId]: { $in: selectedRowIds } }
-        OLog.debug(`vxapp.js removeRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
-            `selectedRowIds=${selectedRowIds} modifier=${OLog.debugString(modifier)}`)
-        collection.update(record._id, modifier, error => {
-            if (error) {
-                UX.notifyForError(error)
+        try {
+            const rows = get(record, rowsPath)
+            if (!(rows && rows.length > 0)) {
                 return
             }
+            if (selectedRowIds.length === 0) {
+                selectedRowIds.push(rows[rows.length - 1][rowId])
+            }
+            const mongoPath = Util.toMongoPath(rowsPath)
+            const modifier = {}
+            modifier.$pull = {}
+            modifier.$pull[mongoPath] = { [rowId]: { $in: selectedRowIds } }
+            OLog.debug(`vxapp.js removeRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
+                `selectedRowIds=${selectedRowIds} modifier=${OLog.debugString(modifier)}`)
+            collection.update(record._id, modifier)
             OLog.debug(`vxapp.js removeRow recordId=${record._id} rowsPath=${rowsPath} mongoPath=${mongoPath} ` +
                 `selectedRowIds=${selectedRowIds} *success*`)
-        })
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
     },
 
     /**
@@ -1244,29 +1257,29 @@ VXApp = _.extend(VXApp || {}, {
      * @param {?} value New value.
      */
     updateRow(collection, record, rowsPath, rowId, component, value) {
-        // The IDs of all components must start with the row ID
-        const componentRowId = component.props.id.split("-")[0]
-        if (!componentRowId) {
-            return
-        }
-        const rows = get(record, rowsPath)
-        const mongoPath = Util.toMongoPath(rowsPath)
-        const index = Util.indexOf(rows, rowId, componentRowId)
-        if (index < 0) {
-            return
-        }
-        const modifier = {}
-        modifier.$set = {}
-        modifier.$set[`${mongoPath}.${index}.${component.props.dbName}`] = value
-        OLog.debug(`vxapp.js updateRow recordId=${record._id} componentId=${component.props.id} ` +
-            `rowsPath=${rowsPath} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
-        collection.update(record._id, modifier, error => {
-            if (error) {
-                UX.notifyForError(error)
+        try {
+            // The IDs of all components must start with the row ID
+            const componentRowId = component.props.id.split("-")[0]
+            if (!componentRowId) {
                 return
             }
+            const rows = get(record, rowsPath)
+            const mongoPath = Util.toMongoPath(rowsPath)
+            const index = Util.indexOf(rows, rowId, componentRowId)
+            if (index < 0) {
+                return
+            }
+            const modifier = {}
+            modifier.$set = {}
+            modifier.$set[`${mongoPath}.${index}.${component.props.dbName}`] = value
+            OLog.debug(`vxapp.js updateRow recordId=${record._id} componentId=${component.props.id} ` +
+                `rowsPath=${rowsPath} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
+            collection.update(record._id, modifier)
             OLog.debug(`vxapp.js updateRow recordId=${record._id} *success*`)
-        })
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
     },
 
     /**
@@ -1280,35 +1293,35 @@ VXApp = _.extend(VXApp || {}, {
      * @param {object} row Row with new data (will be merged with existing data).
      */
     replaceRow(collection, record, rowsPath, rowId, id, row) {
-        const rows = get(record, rowsPath)
-        const selector = {}
-        selector[rowId] = id
-        const existingRow = _.findWhere(rows, selector)
-        if (!existingRow) {
-            OLog.error(`vxapp.js replaceRow replacement recordId=${record._id} rowsPath=${rowsPath} ` +
-            `rowId=${rowId} id=${id} row could not be found no update will occur`)
-            return
-        }
-        const replacementRow = { ...existingRow, ...row }
-        const mongoPath = Util.toMongoPath(rowsPath)
-        const index = Util.indexOf(rows, rowId, id)
-        if (index < 0) {
-            OLog.error(`vxapp.js replaceRow replacement recordId=${record._id} rowsPath=${rowsPath} ` +
-            `rowId=${rowId} id=${id} unable to derive index of row no update will occur`)
-            return
-        }
-        const modifier = {}
-        modifier.$set = {}
-        modifier.$set[`${mongoPath}.${index}`] = replacementRow
-        OLog.debug(`vxapp.js replaceRow recordId=${record._id} rowsPath=${rowsPath} ` +
-            `rowId=${rowId} id=${id} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
-        collection.update(record._id, modifier, error => {
-            if (error) {
-                UX.notifyForError(error)
+        try {
+            const rows = get(record, rowsPath)
+            const selector = {}
+            selector[rowId] = id
+            const existingRow = _.findWhere(rows, selector)
+            if (!existingRow) {
+                OLog.error(`vxapp.js replaceRow replacement recordId=${record._id} rowsPath=${rowsPath} ` +
+                `rowId=${rowId} id=${id} row could not be found no update will occur`)
                 return
             }
+            const replacementRow = { ...existingRow, ...row }
+            const mongoPath = Util.toMongoPath(rowsPath)
+            const index = Util.indexOf(rows, rowId, id)
+            if (index < 0) {
+                OLog.error(`vxapp.js replaceRow replacement recordId=${record._id} rowsPath=${rowsPath} ` +
+                `rowId=${rowId} id=${id} unable to derive index of row no update will occur`)
+                return
+            }
+            const modifier = {}
+            modifier.$set = {}
+            modifier.$set[`${mongoPath}.${index}`] = replacementRow
+            OLog.debug(`vxapp.js replaceRow recordId=${record._id} rowsPath=${rowsPath} ` +
+                `rowId=${rowId} id=${id} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
+            collection.update(record._id, modifier)
             OLog.debug(`vxapp.js replaceRow recordId=${record._id} *success*`)
-        })
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
     },
 
     /**
@@ -1327,43 +1340,43 @@ VXApp = _.extend(VXApp || {}, {
      * @param {?} value Value that has been updated.
      */
     updateCodeArray(codeArray, collection, record, rowsPath, rowId, checkboxdbName, component, value) {
-        // The IDs of all components must start with the row ID
-        const componentRowId = component.props.id.split("-")[0]
-        if (!componentRowId) {
-            return
-        }
-        const rebuiltArray = []
-        codeArray.forEach(code => {
-            let element = _.find(get(record, rowsPath), element => {
-                return element[rowId] === code
-            })
-            if (componentRowId === code) {
-                if (component.props.dbName === checkboxdbName && !value) {
-                    return
-                }
-                if (!element) {
-                    element = {}
-                    element[rowId] = code
-                }
-                set(element, component.props.dbName, value)
-            }
-            if (element) {
-                rebuiltArray.push(element)
-            }
-        })
-        const mongoPath = Util.toMongoPath(rowsPath)
-        const modifier = {}
-        modifier.$set = {}
-        modifier.$set[mongoPath] = rebuiltArray
-        OLog.debug(`vxapp.js updateCodeArray recordId=${record._id} componentId=${component.props.id} ` +
-            `rowsPath=${rowsPath} componentRowId=${componentRowId} modifier=${OLog.debugString(modifier)}`)
-        collection.update(record._id, modifier, error => {
-            if (error) {
-                UX.notifyForError(error)
+        try {
+            // The IDs of all components must start with the row ID
+            const componentRowId = component.props.id.split("-")[0]
+            if (!componentRowId) {
                 return
             }
+            const rebuiltArray = []
+            codeArray.forEach(code => {
+                let element = _.find(get(record, rowsPath), element => {
+                    return element[rowId] === code
+                })
+                if (componentRowId === code) {
+                    if (component.props.dbName === checkboxdbName && !value) {
+                        return
+                    }
+                    if (!element) {
+                        element = {}
+                        element[rowId] = code
+                    }
+                    set(element, component.props.dbName, value)
+                }
+                if (element) {
+                    rebuiltArray.push(element)
+                }
+            })
+            const mongoPath = Util.toMongoPath(rowsPath)
+            const modifier = {}
+            modifier.$set = {}
+            modifier.$set[mongoPath] = rebuiltArray
+            OLog.debug(`vxapp.js updateCodeArray recordId=${record._id} componentId=${component.props.id} ` +
+                `rowsPath=${rowsPath} componentRowId=${componentRowId} modifier=${OLog.debugString(modifier)}`)
+            collection.update(record._id, modifier)
             OLog.debug(`vxapp.js updateCodeArray recordId=${record._id} *success*`)
-        })
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
     },
 
     /**
@@ -1628,16 +1641,12 @@ VXApp = _.extend(VXApp || {}, {
      * Add a database-resident function to KeepTrack global object.
      *
      * @param {object} newFunction New function.
-     * @param {boolean} quiet True to add quietly.
      */
-    addFunction(newFunction, quiet) {
+    addFunction(newFunction) {
         try {
             const functionAnchor = VXApp.functionAnchor()
             if (!functionAnchor) {
                 return
-            }
-            if (!quiet) {
-                console.log(`vxapp.js addFunction will add ${newFunction.name} to ${functionAnchor} global object`)
             }
             if (!newFunction.name) {
                 console.log(`vxapp.js addFunction no name yet ignoring functionId=${newFunction._id}`)
@@ -1919,5 +1928,25 @@ VXApp = _.extend(VXApp || {}, {
             })
         })
         return messagesLocalized.join("<br>")
+    },
+
+    /**
+     * Handler for context menus (react-contexify). Extract and supply helpful data.
+     *
+     * @param {object} event Event object.
+     * @return {object} Context menu information.
+     */
+    makeContextCellData(event) {
+        const $cell = $(event.target).closest(".context-menu-cell")
+        const $list = $(event.target).closest(".list-group", $cell[0])
+        const $item = $(event.target).closest(".list-group-item", $cell[0])
+        const data = {}
+        data.cellId = $cell.attr("id")
+        data.listId = $list.attr("id")
+        data.itemId = $item.attr("id")
+        data.index = $item.index()
+        data.selectedRowIds = UX.selectedRowIds(data.listId)
+        data["data-item-id"] =  $item.attr("data-item-id")
+        return data
     }
 })

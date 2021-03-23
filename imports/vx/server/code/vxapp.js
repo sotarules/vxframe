@@ -961,6 +961,19 @@ VXApp = _.extend(VXApp || {}, {
                 OLog.error("vxapp.js undo security check failed user is not logged in")
                 return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
             }
+            const record = collection.findOne(docCurrent._id)
+            if (!record) {
+                OLog.error(`vxapp.js undo transaction failed failed record does not exist recordId=${docCurrent._id}`)
+                return { success : false, icon : "TRIANGLE", key : "common.alert_transaction_fail_record_not_found",
+                    variables: { recordId: docCurrent._id } }
+            }
+            if (record.userModified !== Meteor.userId()) {
+                OLog.error(`vxapp.js undo collectionName=${collectionName} _id=${docCurrent._id} ` +
+                    `was requested by  ${Util.fetchFullName(Meteor.userId())} but record was ` +
+                    `last updated by ${Util.fetchFullName(record.userModified)}`)
+                return { success : false, icon : "TRIANGLE", key : "common.alert_transaction_fail_undo_wrong_user",
+                    variables: { fullName:Util.fetchFullName(record.userModified) } }
+            }
             const transactions = VXApp.findTransactions(collection, userId, docCurrent)
             if (!transactions) {
                 OLog.debug(`vxapp.js undo unable to find transaction set collectionName=${collectionName} docCurrent=${OLog.debugString(docCurrent)}`)
@@ -1017,6 +1030,19 @@ VXApp = _.extend(VXApp || {}, {
             if (!userId) {
                 OLog.error("vxapp.js redo security check failed user is not logged in")
                 return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            const record = collection.findOne(docCurrent._id)
+            if (!record) {
+                OLog.error(`vxapp.js redo transaction failed failed record does not exist recordId=${docCurrent._id}`)
+                return { success : false, icon : "TRIANGLE", key : "common.alert_transaction_fail_record_not_found",
+                    variables: { recordId: docCurrent._id } }
+            }
+            if (record.userModified !== Meteor.userId()) {
+                OLog.error(`vxapp.js redo collectionName=${collectionName} _id=${docCurrent._id} ` +
+                    `was requested by  ${Util.fetchFullName(Meteor.userId())} but record was ` +
+                    `last updated by ${Util.fetchFullName(record.userModified)}`)
+                return { success : false, icon : "TRIANGLE", key : "common.alert_transaction_fail_redo_wrong_user",
+                    variables: { fullName:Util.fetchFullName(record.userModified) } }
             }
             const transactions = VXApp.findTransactions(collection, userId, docCurrent)
             if (!transactions) {

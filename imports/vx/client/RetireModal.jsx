@@ -11,6 +11,7 @@ export default class RetireModal extends Component {
 
     static propTypes = {
         title : PropTypes.string.isRequired,
+        subtitle : PropTypes.string,
         collection : PropTypes.object.isRequired,
         _id : PropTypes.string.isRequired,
         retireMethod : PropTypes.string.isRequired,
@@ -29,6 +30,7 @@ export default class RetireModal extends Component {
             <VXModal id="retire-modal"
                 contentClass="modal-basic-content">
                 <ModalHeaderSimple title={this.props.title}
+                    subtitle={this.props.subtitle}
                     closeButton={false}
                     centerTitle={true}
                     iconClass="fa fa-times"/>

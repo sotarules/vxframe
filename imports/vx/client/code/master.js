@@ -1,7 +1,7 @@
 import { combineReducers, createStore } from "redux"
 import { persistStore, persistReducer } from "redux-persist"
+import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2"
 import storage from "redux-persist/lib/storage"
-import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
 import { setCurrentLocale } from "/imports/vx/client/code/actions"
 import {setFunctionUpdateTimestamp} from "/imports/vx/client/code/actions"
 
@@ -10,8 +10,14 @@ ReactDOM = require("react-dom")
 
 console.log("master.js (vx) *init*")
 
-const persistConfig = { key: "root", storage, blacklist: ["loading"] }
-const persistedReducer = persistReducer(persistConfig, combineReducers(allReducersVx))
+const persistConfig = {
+    key: "root",
+    storage,
+    stateReconciler: autoMergeLevel2,
+    blacklist: ["loading"]
+}
+
+const persistedReducer = persistReducer(persistConfig, combineReducers(VXApp.unionedReducers()))
 Store = createStore(persistedReducer)
 
 Persistor = persistStore(Store, null, () => {

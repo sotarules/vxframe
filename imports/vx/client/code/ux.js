@@ -305,32 +305,24 @@ UX = {
 
     /**
      * Given a click event (triggered by clicking or touching a menu control), transform
-     * the event into a "context" event to bring up the menu via bootstrap-contextmenu.js.
-     * To support re-targeting of hotzone touch events, supply a JQuery selector to find
-     * the element that should receive the "context" event.
+     * the event into a "context" event compatible with react-contexify.
      *
      * @param {event} oldEvent Original event.
-     * @param {string} targetSelector Selector to re-target event.
      */
-    triggerRightClick(oldEvent, targetSelector) {
-
-        let offset = $(oldEvent.currentTarget).offset()
+    makeContextEvent(oldEvent ) {
+        const offset = $(oldEvent.target).offset()
         let X
         let Y
-
         if (oldEvent.type === "touchstart") {
-            X = oldEvent.originalEvent.changedTouches[0].clientX
-            Y = oldEvent.originalEvent.changedTouches[0].clientY
-            OLog.debug("ux.js triggerRightClick touchstart event x=" + X + " y=" + Y)
+            X = oldEvent.changedTouches[0].clientX
+            Y = oldEvent.changedTouches[0].clientY
         }
         else {
             X = oldEvent.clientX
             Y = oldEvent.clientY
-            OLog.debug("ux.js triggerRightClick " + oldEvent.type + " event x=" + X + " y=" + Y)
         }
-
         // Create synthetic event transforming left-click to right-click:
-        let newEvent = $.extend($.Event("contextmenu"), {
+        const newEvent = $.extend($.Event("contextmenu"), {
             which: 1,
             clientX: X,
             clientY: Y,
@@ -339,11 +331,7 @@ UX = {
             screenX: X,
             screenY: Y
         })
-
-        let $controlTarget = $(oldEvent.target).parent().find(targetSelector)
-        $controlTarget.trigger(newEvent)
-
-        oldEvent.stopPropagation()
+        return newEvent
     },
 
     /**
@@ -352,7 +340,7 @@ UX = {
      * @param {object} event Event.
      */
     consume(event) {
-        OLog.debug("ux.js consume event will be neutralized, event=" + event.type)
+        OLog.debug(`ux.js consume event will be neutralized, event=${event.type}`)
         event.preventDefault()
         event.stopPropagation()
     },
@@ -482,30 +470,32 @@ UX = {
      * @param {string} id HTML element ID to made draggable.
      * @param {string} dropClassName Drop class name (used with connectWith).
      * @param {string} placeholderClassName Placeholder class name.
+     * @param {object} component Component that is drag source.
      */
-    makeDraggable(id, dropClassName, placeholderClassName) {
+    makeDraggable(id, dropClassName, placeholderClassName, component) {
         const $entitySource = $(`#${id}`)
         $entitySource.sortable({
-            helper(event, $element) {
-                return UX.makeHelper(event, $element)
-            },
             cursor : "move",
             handle : ".entity-handle",
             appendTo : document.body,
             placeholder : placeholderClassName,
+            opacity : ".7",
+            connectWith : `.${dropClassName}`,
+            scroll : false,
+            helper(event, $element) {
+                return UX.makeHelper(event, $element)
+            },
+            hideDragged(event, ui) {
+                if (!component.props.dragClone && component.props.droppable) {
+                    UX.hideSelected(event, ui, $entitySource)
+                }
+            },
             change(event, ui) {
                 UX.initPlaceholder(ui, dropClassName)
             },
-            opacity : ".7",
-            start(event, ui) {
-                // For drag/clone operations, don't hide the source item, leave it static:
-                $(ui.item).show()
-            },
             stop() {
                 $entitySource.sortable("cancel")
-            },
-            connectWith : `.${dropClassName}`,
-            scroll : false
+            }
         })
     },
 
@@ -520,21 +510,10 @@ UX = {
     makeDroppable(id,  dropClassName, placeholderClassName, component) {
         const $entityTarget = $(`#${id}`)
         $entityTarget.sortable({
-            start() {
-                // Do nothing - this overrides the logic that hides the dragged item.
-            },
             handle : ".entity-handle",
             placeholder : placeholderClassName,
             change : (event, ui) => {
                 UX.initPlaceholder(ui, dropClassName)
-            },
-            stop() {
-                UX.hideTargetItems()
-                $entityTarget.sortable("cancel")
-                Meteor.setTimeout(() => {
-                    UX.showTargetItems()
-                    $entityTarget.scrollTop(UXState.originalTargetState.scrollTop)
-                })
             },
             update : function(event, ui) {
                 const thisId = this.id
@@ -550,8 +529,13 @@ UX = {
                     component.props.onDrop(dropInfo)
                 }
             },
-            hideDragged(event, ui) {
-                UX.hideSelected(event, ui, $entityTarget)
+            stop() {
+                UX.hideTargetItems()
+                $entityTarget.sortable("cancel")
+                Meteor.setTimeout(() => {
+                    UX.showTargetItems()
+                    $entityTarget.scrollTop(UXState.originalTargetState.scrollTop)
+                })
             },
             showDragged(event, ui) {
                 UX.showSelected(event, ui, $entityTarget)
@@ -619,8 +603,11 @@ UX = {
      * @param {boolean} horizontal Horizontal list.
      */
     initPlaceholder(ui, droppableClassName, horizontal) {
-        const parentDroppable = ui.placeholder.parent().hasClass(droppableClassName)
-        const actualList = ui.placeholder.parent().hasClass("list-group")
+        const $parent = ui.placeholder.parent()
+        const parentDroppable = $parent.hasClass(droppableClassName)
+        const listGroup = $parent.hasClass("list-group")
+        const emptyList = $parent.hasClass("empty-list")
+        const actualList = listGroup && !emptyList
         const blockType = (horizontal ? "inline-block" : "block")
         const css = {}
         const height = `${ui.helper.outerHeight()}px`
@@ -668,7 +655,7 @@ UX = {
         dropInfo.itemId = ui.item?.attr("id")
         dropInfo.component = component
         dropInfo.$entityTarget = $entityTarget
-        dropInfo.clone = UX.isDragClone(ui)
+        dropInfo.clone = UX.isDropClone(ui, component)
         dropInfo.targetIndex = ui.item.index()
         dropInfo.items = []
         UXState.$helper.children().each((index, helperChild) => {
@@ -723,14 +710,18 @@ UX = {
     },
 
     /**
-     * Determine whether this is a drag/clone (creational) operation.
+     * Determine whether this is a clone (creational) operation.
      *
      * @param {object} ui jQuery sortable ui object.
-     * @return {boolean} True if this is a drag/clone operation.
+     * @param {object} component Component receiving drop.
+     * @return {boolean} True if this is a clone operation.
      */
-    isDragClone(ui) {
+    isDropClone(ui, component) {
         if (!ui.sender) {
             return false
+        }
+        if (component.props.dropClone) {
+            return true
         }
         const draggable = ui.sender.hasClass("vx-draggable")
         const droppable = ui.sender.hasClass("vx-droppable")
@@ -977,67 +968,60 @@ UX = {
      * Prevent iOS "rubber-banding" on scroll.
      */
     noRubberBand() {
-
         // Disable scroll for the document, we'll handle it ourselves
-        $(document).on("touchmove", (e) => {
+        document.addEventListener("touchmove", function(e) {
             e.preventDefault()
-        })
-
-        // Anti-rubber-banding on iOS part I:
-        $(document.body).on("touchstart", ".scroll-y, .scroll-x, .scroll-both", function(e) {
-
-            // If the element is scrollable (content overflows), then...
-            if (this.scrollHeight !== this.clientHeight) {
-
-                // If we're at the top, scroll down one pixel to allow scrolling up
-                if (this.scrollTop === 0) {
-                    this.scrollTop = 1
-                }
-
-                // If we're at the bottom, scroll up one pixel to allow scrolling down
-                if (this.scrollTop === this.scrollHeight - this.clientHeight) {
-                    this.scrollTop = this.scrollHeight - this.clientHeight - 1
-                }
+        }, { passive: false })
+        document.body.addEventListener("touchstart", function(e) {
+            const listElement = UX.listElement(e.target)
+            if (!listElement) {
+                return
             }
-
-            // Check if we can scroll
-            this.allowUp = this.scrollTop > 0
-            this.allowDown = this.scrollTop < (this.scrollHeight - this.clientHeight)
-
+            // See if we're already scrolled to the extreme top or bottom:
+            this.allowUp = listElement.scrollTop > 0
+            this.allowDown = listElement.scrollTop < (listElement.scrollHeight - listElement.clientHeight)
             // Remember where the touchstart began so we can compute the shift in X or Y later:
-            this.lastX = e.originalEvent.touches[0].pageX
-            this.lastY = e.originalEvent.touches[0].pageY
-        })
-
+            this.lastX = e.touches[0].pageX
+            this.lastY = e.touches[0].pageY
+        }, { passive: false })
         // Anti-rubber-banding on iOS part II:
-        $(document.body).on("touchmove", ".scroll-y, .scroll-x, .scroll-both", function(e) {
-
-            var up, down, deltaX, deltaY
-
-            up = e.originalEvent.touches[0].pageY > this.lastY
-            down = !up
-
-            deltaX = Math.abs(e.originalEvent.touches[0].pageX - this.lastX)
-            deltaY = Math.abs(e.originalEvent.touches[0].pageY - this.lastY)
-
+        document.body.addEventListener("touchmove", function(e) {
+            const listElement = UX.listElement(e.target)
+            if (!listElement) {
+                return
+            }
+            const pageX = e.touches[0].pageX
+            const pageY = e.touches[0].pageY
+            const up = pageY > this.lastY
+            const down = !up
+            const deltaX = Math.abs(pageX - this.lastX)
+            const deltaY = Math.abs(pageY - this.lastY)
             // If the deltaY is greater than deltaX, this is largely a Y move.  Only a significantly Y
             // move will trigger the anti-rubber-banding logic:
             if (deltaY > deltaX) {
-
                 if (up && !this.allowUp) {
                     event.preventDefault()
                     return
                 }
-
                 if (down && !this.allowDown) {
                     event.preventDefault()
                     return
                 }
             }
-
             // Ironically, stopPropagation is tantamount to allowing the events to take effect:
             event.stopPropagation()
-        })
+        }, { passive: false })
+    },
+
+    /**
+     * Return the list element "above" the supplied element.
+     *
+     * @param {object} element DOM element to test.
+     * @return {boolean} List element if available
+     */
+    listElement(element) {
+        const $element = $(element).closest(".scroll-momentum")
+        return $element.exists() ? $element[0] : null
     },
 
     /**
@@ -1378,10 +1362,12 @@ UX = {
      *
      * @param {object} component Component bearing binding type.
      * @param {string} value Raw value (typically string).
+     * @param {string} dateFormat Optional date format for Date type.
+     * @param {string} timezone Optional timezone for Date type.
      * @return {?} Parsed value or null if input is nullish.
      */
-    parsedValue(component, value) {
-        return Util.parsedValue(component.props.bindingType, value)
+    parsedValue(component, value, dateFormat, timezone) {
+        return Util.parsedValue(component.props.bindingType, value, dateFormat, timezone)
     },
 
     /**
@@ -1734,14 +1720,14 @@ UX = {
     saveFormAlertAndCallback(error, result, callback, nomessage, userCallback) {
         Meteor.defer(() => {
             if (error) {
-                OLog.error("ux.js saveFormAlertAndCallback error=" + error)
+                OLog.error(`ux.js saveFormAlertAndCallback error=${error}`)
                 UX.notifyForDatabaseError(error)
             }
-            else if (!nomessage) {
+            if (!nomessage) {
                 UX.notify({ success : true, icon : "SAVE", key: "common.alert_save_succeeded" })
-                if (userCallback) {
-                    userCallback()
-                }
+            }
+            if (userCallback) {
+                userCallback()
             }
             if (callback) {
                 callback(error, result)
@@ -1950,7 +1936,6 @@ UX = {
      * @param {function} userCallback Optional callback to invoke on successful save.
      */
     save(form, laddaCallback, nomessage, userCallback) {
-        OLog.debug("ux.js save nomessage=" + !!nomessage)
         if (!UX.checkForm(form)) {
             laddaCallback(false)
             return
@@ -2456,7 +2441,9 @@ UX = {
         _.each(form.components, component => {
             let dbName = component.props.dbName || component.props.id
             let value = component.getValue()
-            formObject[dbName] = value
+            if (!Util.isNullish(value)) {
+                formObject[dbName] = value
+            }
         })
         return formObject
     },
@@ -2477,18 +2464,27 @@ UX = {
      *
      * @param {string} componentId Component ID.
      * @param {function} delegate Delegate function.
+     * @param {string} iconClass Icon class.
+     * @param {string} iconStyle Icon style.
+     * @param {string} title Title (tooltip).
+     * @param {position} position Button position (i.e., left, center, right}
      * @param {boolean} showLoading True to enable loading indicator for iOS button.
      * @param {number} minimumDuration Minimum duration in milliseconds for loading indicator.
      */
-    registerIosButtonDelegate(componentId, delegate, showLoading, minimumDuration) {
-        //OLog.debug(`ux.js registerIosButtonDelegate componentId=${componentId}`)
+    registerIosButtonDelegate(componentId, delegate, iconClass, iconStyle, title, position,
+        showLoading, minimumDuration) {
         UXState[componentId] = delegate
         const iosState = { ...Store.getState().iosState }
         iosState.iosButtonState = iosState.iosButtonState || {}
-        iosState.iosButtonState[componentId] = iosState.iosButtonState[componentId] || {}
-        iosState.iosButtonState[componentId].delegateVisible = true
-        iosState.iosButtonState[componentId].showLoading = showLoading
-        iosState.iosButtonState[componentId].minimumDuration = minimumDuration
+        const defaultButtonState = iosState.iosButtonState[componentId] || CX.IOS_BUTTON_DEFAULTS[componentId] || {}
+        iosState.iosButtonState[componentId] = { ...defaultButtonState,
+            ...iconClass && { iconClass },
+            ...iconStyle && { iconStyle },
+            ...title && { title },
+            ...position && { position },
+            ...showLoading && { showLoading },
+            ...minimumDuration && { minimumDuration }
+        }
         Store.dispatch(setIosState(iosState))
     },
 
@@ -2891,6 +2887,9 @@ UX = {
      * @return {object} JavaScript date object.
      */
     reduxDate(dateString) {
+        if (!dateString) {
+            return dateString
+        }
         return moment.tz(dateString, Util.getUserTimezone()).toDate()
     }
 }

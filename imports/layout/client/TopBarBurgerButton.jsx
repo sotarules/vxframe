@@ -31,8 +31,8 @@ export default class TopBarBurgerButton extends Component {
         this.conditionallyReset(event)
     }
 
-    conditionallyReset(event) {
-        event.preventDefault()
+    conditionallyReset() {
+        // event.preventDefault()
         if ($("#offcanvas-menu-react").hasClass("navslide-show")) {
             OLog.debug("TopBarBurgerButton.jsx conditionallyReset nav is currently showing, queue reset nav")
             $("#offcanvas-menu-react").one("animationend webkitAnimationEnd MSAnimationEnd oAnimationEnd", () => {
