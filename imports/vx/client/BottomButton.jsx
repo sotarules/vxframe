@@ -17,17 +17,15 @@ export default class BottomButton extends Component {
 
     render() {
         return (
-            <div className="btn-bottom-container flex-section-fixed">
-                <VXButton id={this.props.id}
-                    title={this.props.title}
-                    className={`btn btn-block btn-bottom ${this.props.className || ""}`}
-                    iconClass={this.props.iconClass}
-                    chevron={this.props.chevron}
-                    minimumDuration={this.props.minimumDuration}
-                    onClick={this.props.onClick ? this.props.onClick.bind(this) : null}>
-                    {this.props.text}
-                </VXButton>
-            </div>
+            <VXButton id={this.props.id}
+                title={this.props.title}
+                className={`btn btn-block btn-bottom ${this.props.className || ""}`}
+                iconClass={this.props.iconClass}
+                chevron={this.props.chevron}
+                minimumDuration={this.props.minimumDuration}
+                onClick={this.props.onClick ? this.props.onClick.bind(this) : null}>
+                {this.props.text}
+            </VXButton>
         )
     }
 }

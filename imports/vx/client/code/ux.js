@@ -746,7 +746,7 @@ UX = {
     },
 
     /**
-     * Update the slide mode state in accord with device orientation.
+     * Update redux slide mode state if necessary.
      */
     updateSlideMode() {
         const iosState = { ...Store.getState().iosState }

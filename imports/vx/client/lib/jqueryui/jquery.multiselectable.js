@@ -11,21 +11,45 @@ $.fn.multiselectable = function(options) {
     }
     options = $.extend({}, $.fn.multiselectable.defaults, options)
 
+    function touchstart(e) {
+        OLog.warn("jquery.multiselectable.js touchstart")
+        if (options.multi && UX.touchCount > 0) {
+            OLog.warn("jquery.multiselectable.js touchstart conditions met for control-click simulation")
+            UX.consume(e)
+            const item = $(this)
+            const parent = item.parent()
+            handleMulti(item, parent, true)
+        }
+    }
+
     function mouseDown(e) {
+        OLog.warn("jquery.multiselectable.js mousedown")
         if (e.button !== 0) {
             return
         }
         const item = $(this)
         const parent = item.parent()
         if (options.multi) {
-            mouseDownMulti(e, item, parent)
+            handleMulti(item, parent, e.ctrlKey, e.shiftKey, e.metaKey)
         }
         else {
-            mouseDownSingle(item, parent)
+            handleSingle(item, parent)
         }
     }
 
-    function mouseDownMulti(e, item, parent) {
+    function click(e) {
+        OLog.warn("jquery.multiselectable.js click")
+        const item = $(this)
+        const parent = item.parent()
+        if (options.multi) {
+            clickMulti(e, item, parent)
+        }
+        else {
+            clickSingle(item, parent)
+        }
+    }
+
+    function handleMulti(item, parent, ctrlKey, shiftKey, metaKey) {
         const myIndex = item.index()
         let prev = parent.find(".multiselectable-previous")
         // If no previous selection found, start selecting from first selected item.
@@ -33,7 +57,7 @@ $.fn.multiselectable = function(options) {
 
         const prevIndex = prev.index()
 
-        if (e.ctrlKey || e.metaKey) {
+        if (ctrlKey || metaKey) {
             if (item.hasClass(options.selectedClass)) {
                 item.removeClass(options.selectedClass).removeClass("multiselectable-previous")
                 if (item.not(".child").length) {
@@ -49,7 +73,7 @@ $.fn.multiselectable = function(options) {
             }
         }
 
-        if (e.shiftKey) {
+        if (shiftKey) {
             let last_shift_range = parent.find(".multiselectable-shift")
             last_shift_range.removeClass(options.selectedClass).removeClass("multiselectable-shift")
 
@@ -66,12 +90,12 @@ $.fn.multiselectable = function(options) {
             parent.find(".multiselectable-shift").removeClass("multiselectable-shift")
         }
 
-        if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
-            mouseDownSingle(item, parent)
+        if (!ctrlKey && !metaKey && !shiftKey) {
+            handleSingle(item, parent)
         }
     }
 
-    function mouseDownSingle(item, parent) {
+    function handleSingle(item, parent) {
         parent.find(".multiselectable-previous").removeClass("multiselectable-previous")
         if (!item.hasClass(options.selectedClass)) {
             parent.find("." + options.selectedClass).removeClass(options.selectedClass)
@@ -82,16 +106,6 @@ $.fn.multiselectable = function(options) {
         }
     }
 
-    function click(e) {
-        const item = $(this)
-        const parent = item.parent()
-        if (options.multi) {
-            clickMulti(e, item, parent)
-        }
-        else {
-            clickSingle(item, parent)
-        }
-    }
 
     function clickMulti(e, item, parent) {
         // If item wasn't dragged and is not multiselected, it should reset selection for other items.
@@ -159,6 +173,7 @@ $.fn.multiselectable = function(options) {
             $list.on("focusout", containerFocusout)
             $list.data("multiselectable", true)
                 .delegate(options.items, "mousedown", mouseDown)
+                .delegate(options.items, "touchstart", touchstart)
                 .delegate(options.items, "click", click)
                 .delegate(options.items, "focusin", focusin)
         }
