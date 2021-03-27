@@ -17,9 +17,8 @@ export default class CancelChangesModal extends Component {
 
     render() {
         return (
-            <VXModal id={this.props.id} contentClass="modal-cancel-changes-content">
+            <VXModal id={this.props.id} width="180px">
                 <ModalHeaderSimple title={Util.i18n("common.label_cancel_changes")}
-                    closeButton={false}
                     centerTitle={true}/>
                 <ModalFooterYesNo onClickYes={this.props.onClickYes}/>
             </VXModal>

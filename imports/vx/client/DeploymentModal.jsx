@@ -34,7 +34,7 @@ export default class DeploymentModal extends Component {
 
     render() {
         return (
-            <VXModal id={this.props.id} contentClass="modal-deployment-content">
+            <VXModal id={this.props.id} width="550px">
                 <ModalHeaderImage imageUrl={CX.CLOUDFILES_PREFIX + "/img/system/deployment.png"}
                     heading={Util.i18n("common.label_deployment")}/>
                 <ModalBody thinPaddingTop={true}>

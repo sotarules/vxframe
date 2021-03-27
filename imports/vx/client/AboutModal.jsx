@@ -16,7 +16,7 @@ export default class AboutModal extends Component {
 
     render() {
         return (
-            <VXModal id={this.props.id} contentClass="modal-layout-about-content">
+            <VXModal id={this.props.id} width="320px">
                 <ModalBody thinPaddingTop={true}>
                     <div className="row">
                         <div className="col-xs-12 margin-top-10">
@@ -41,7 +41,7 @@ export default class AboutModal extends Component {
                             </div>
                             <div className="top-fieldbox">
                                 <span className="top-fieldbox-text">
-                                {this.systemBuildDate()}</span>
+                                    {this.systemBuildDate()}</span>
                             </div>
                         </div>
                     </div>

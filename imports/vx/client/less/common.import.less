@@ -435,24 +435,6 @@ fieldset[disabled] .form-control {
     margin-bottom: 4px;
 }
 
-.modal-subtitle {
-  margin-top: 5px;
-  font-size: 13px;
-  line-height: @modal-title-line-height;
-}
-
-.modal-content {
-    background-color: #F5F5F5;
-}
-
-.modal-cancel-changes-content {
-    max-width: 180px;
-}
-
-.modal-deployment-content {
-    max-width: 550px;
-}
-
 .pull-center {
     display: table;
     margin-left: auto;
@@ -1548,10 +1530,6 @@ legend.group-legend {
     margin-bottom: 0px !important;
 }
 
-.modal-dialog-center {
-    margin-top: 10% !important;
-}
-
 .list-group-text {
     margin-left: 5px;
 }
@@ -2317,45 +2295,19 @@ legend.group-legend {
     .flexi-fixed;
 }
 
-.modal-container {
-    width: 100%;
-    text-align: center;
+.modal-centered.in {
+    display: flex !important;
 }
 
-.modal-label {
-    font-size: 14px;
+.modal-centered .modal-dialog {
+    display: flex;
+    margin: auto;
 }
 
-.modal-label-introduction {
-    font-size: 14px;
-    margin-bottom: 10px;
-}
-
-.modal-vertical-alignment-helper {
-    display: table;
-    height: 100%;
-    width: 100%;
-}
-
-.modal-vertical-align-center {
-    /* To center vertically */
-    display: table-cell;
-    vertical-align: middle;
-}
-
-.modal-content {
-    /* Bootstrap sets the size of the modal in the modal-dialog class, we need to inherit it */
-    width: inherit;
-    height: inherit;
-    /* To center horizontally */
-    margin: 0 auto;
-}
-
-.modal-header {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left: 20px;
-    padding-right: 20px;
+.modal-centered .modal-content {
+    display: flex;
+    flex-direction: column;
+    background-color: #F5F5F5;
 }
 
 .modal-body {
@@ -2363,6 +2315,9 @@ legend.group-legend {
     padding-bottom: 20px;
     padding-left: 20px;
     padding-right: 20px;
+    .flexi-grow;
+    .scroll-y;
+    .scroll-momentum;
 }
 
 .modal-body-thin-padding-top {
@@ -2432,6 +2387,33 @@ legend.group-legend {
     white-space: normal !important;
 }
 
+.modal-title-container {
+    width: 100%;
+    text-align: center;
+}
+
+.modal-header {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.modal-subtitle {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: @modal-title-line-height;
+}
+
+.modal-label {
+    font-size: 14px;
+}
+
+.modal-label-introduction {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
 .modal-label-table {
     display: table;
     width: 100%;
@@ -2455,6 +2437,12 @@ legend.group-legend {
     .truncate;
 }
 
+@media ( max-width: 767px) {
+    .modal-label-large {
+        font-size: 14px;
+    }
+}
+
 .modal-label-large-margin-extra {
     margin-bottom: 10px;
 }
@@ -2471,22 +2459,10 @@ legend.group-legend {
     margin-bottom: 50px;
 }
 
-@media ( max-width: 767px) {
-    .modal-label-large {
-        font-size: 14px;
-    }
-}
-
-.modal-send-test-email-content {
-    max-width: 400px;
-}
-
-.modal-report-parameters-content {
-    max-width: 350px;
-}
-
-.modal-basic-content {
-    max-width: 350px;
+.modal-subtitle {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: @modal-title-line-height;
 }
 
 .loading-message {

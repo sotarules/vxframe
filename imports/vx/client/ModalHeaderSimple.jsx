@@ -8,8 +8,7 @@ export default class ModalHeaderSimple extends Component {
         title : PropTypes.string.isRequired,
         subtitle : PropTypes.string,
         iconClass : PropTypes.string,
-        closeButton : PropTypes.bool,
-        centerTitle : PropTypes.bool,
+        centerTitle : PropTypes.bool
     }
 
     static defaultProps = {
@@ -19,12 +18,7 @@ export default class ModalHeaderSimple extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className={"modal-header" + (this.props.centerTitle ? " modal-container" : "")}>
-                {this.props.closeButton &&
-                    <button type="button" className="close" aria-hidden="true" onClick={this.handleClickClose.bind(this)}>
-                    &times;
-                    </button>
-                }
+                className={"modal-header flexi-fixed" + (this.props.centerTitle ? " modal-title-container" : "")}>
                 <div  id={`${this.props.id}-title`}
                     className="modal-title">
                     {this.props.iconClass &&

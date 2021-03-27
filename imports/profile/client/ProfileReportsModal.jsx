@@ -22,7 +22,7 @@ export default class ProfileReportsModal extends Component {
 
     render() {
         return (
-            <VXModal id={this.props.id} contentClass="modal-report-parameters-content">
+            <VXModal id={this.props.id} width="350px">
                 <ModalHeaderImage imageUrl={CX.LOGO_PATH}
                     heading={this.reportDescription()}
                     subheading={Util.i18n("common.label_report_parameters")}/>

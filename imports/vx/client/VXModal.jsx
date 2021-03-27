@@ -5,40 +5,43 @@ export default class VXModal extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        contentClass : PropTypes.string,
-        backdrop : PropTypes.string
+        backdrop : PropTypes.string,
+        width : PropTypes.string,
+        scrollBody : PropTypes.bool
     }
 
     static defaultProps = {
-        backdrop : "true"
+        backdrop : "true",
+        width : "600px",
+        scrollBody : false
     }
 
     render() {
         return (
             <div id={this.props.id}
-                className="modal fade modal-centered not-selectable"
+                className={this.className()}
                 tabIndex="-1"
                 role="dialog"
                 data-backdrop={this.props.backdrop}
                 aria-labelledby="modal-title"
                 aria-hidden="true">
-                <div className="modal-vertical-alignment-helper">
-                    <div className="modal-dialog modal-vertical-align-center">
-                        <div className={`modal-content ${this.props.contentClass || ""}`}>
-                            {this.props.children}
-                        </div>
+                <div className="modal-dialog"
+                    style={{ width: this.props.width }}>
+                    <div className="modal-content"
+                        style={{ width: this.props.width }}>
+                        {this.props.children}
                     </div>
                 </div>
             </div>
         )
     }
 
-    contentClasses() {
-        return "modal-content " + this.props.contentClass
+    className() {
+        return `modal fade modal-centered not-selectable ${this.props.scrollBody ? "modal-scroll-body" : ""}`
     }
 
     componentDidMount() {
-        OLog.debug("VXModal.jsx componentDidMount displaying modal id=" + this.props.id)
+        OLog.debug(`VXModal.jsx componentDidMount displaying modal id=${this.props.id}`)
         UX.modal("#" + this.props.id)
     }
 }

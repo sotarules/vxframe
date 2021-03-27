@@ -27,11 +27,9 @@ export default class RetireModal extends Component {
 
     render() {
         return (
-            <VXModal id="retire-modal"
-                contentClass="modal-basic-content">
+            <VXModal id="retire-modal" width="350px">
                 <ModalHeaderSimple title={this.props.title}
                     subtitle={this.props.subtitle}
-                    closeButton={false}
                     centerTitle={true}
                     iconClass="fa fa-times"/>
                 {this.props.comment &&

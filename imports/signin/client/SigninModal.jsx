@@ -33,9 +33,8 @@ export default class SigninModal extends Component {
 
     render() {
         return (
-            <VXModal id="signin-modal" contentClass="modal-reset-password-content">
-                <ModalHeaderSimple title={this.modeData[this.props.mode].title}
-                    closeButton={true}/>
+            <VXModal id="signin-modal" width="250px">
+                <ModalHeaderSimple title={this.modeData[this.props.mode].title}/>
                 <ModalBody thinPaddingTop={true}>
                     <VXForm id="signin-modal-form"
                         popoverContainer="body"

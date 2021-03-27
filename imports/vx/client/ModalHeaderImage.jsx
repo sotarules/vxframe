@@ -12,7 +12,7 @@ export default class ModalHeaderImage extends Component {
 
     render() {
         return (
-            <div className={`modal-header hidden-xs ${this.props.className || ""}`}>
+            <div className={`modal-header flexi-fixed hidden-xs ${this.props.className || ""}`}>
                 <div className="row">
                     <div className="col-sm-12">
                         <table className="modal-top-table">
