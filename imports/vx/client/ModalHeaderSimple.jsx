@@ -8,7 +8,7 @@ export default class ModalHeaderSimple extends Component {
         title : PropTypes.string.isRequired,
         subtitle : PropTypes.string,
         iconClass : PropTypes.string,
-        centerTitle : PropTypes.bool
+        centerTitle : PropTypes.bool,
     }
 
     static defaultProps = {

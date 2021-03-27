@@ -15,11 +15,18 @@ export default class ModalBody extends Component {
 
     render() {
         return (
-            <div id={this.props.id} className={`modal-body ${this.props.thinPaddingTop ? "modal-body-thin-padding-top" : ""} ${this.props.className || ""}`}>
+            <div id={this.props.id} className={this.className()}>
                 <div className="modal-form">
                     {this.props.children}
                 </div>
             </div>
         )
+    }
+
+    className() {
+        return "modal-body" +
+            (this.props.thinPaddingTop ? " modal-body-thin-padding-top" : "") +
+            (this.props.scrollBody ? " scroll-y scroll-momentum scroll-fix" : "") +
+            (this.props.className ? " " + this.props.className : "")
     }
 }

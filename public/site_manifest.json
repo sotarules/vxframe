@@ -1,0 +1,7 @@
+{
+  "name": "VXFrame",
+  "short_name": "VXFrame",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/"
+}

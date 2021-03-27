@@ -804,7 +804,14 @@ UX = {
      * @return {boolean} True if any iOS button bar delegates are visible.
      */
     isIosButtonBarDelegatesVisible(iosState) {
-        return iosState.iosButtonState && Object.keys(iosState.iosButtonState).length > 0
+        if (!iosState.iosButtonState) {
+            return false
+        }
+        if (!iosState.slideMode) {
+            return Object.keys(iosState.iosButtonState).length > 0
+        }
+        const currentPanel = UX.getCurrentPanel(Util.routePath())
+        return !!_.findWhere(iosState.iosButtonState, { position : currentPanel.toLowerCase() })
     },
 
     /**

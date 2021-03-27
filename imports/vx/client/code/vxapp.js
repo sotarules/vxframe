@@ -6,7 +6,6 @@ import {
     setCurrentLocale,
     setCurrentPublishingMode,
     setCurrentUserId,
-    setIosState,
     setPublishAuthoringDomain,
     setPublishAuthoringTemplate,
     setPublishAuthoringFunction,
@@ -386,9 +385,7 @@ VXApp = _.extend(VXApp || {}, {
             return
         }
 
-        const iosState = { ...Store.getState().iosState }
-        delete iosState.iosButtonState
-        Store.dispatch(setIosState(iosState))
+        UX.unregisterIosButtonDelegates()
 
         let tenantId = Util.getCurrentTenantId(userId)
         let domainId = Util.getCurrentDomainId(userId)

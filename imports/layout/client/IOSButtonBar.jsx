@@ -39,7 +39,6 @@ export default class IOSButtonBar extends Component {
                     className={`ios-button-bar ${this.className()}`}>
                     {this.renderBackButton()}
                     {this.renderPosition("left")}
-                    {this.renderPosition("center")}
                     {this.renderPosition("right")}
                 </div>
             )
