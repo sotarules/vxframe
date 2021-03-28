@@ -33,7 +33,7 @@ export default class RetireModal extends Component {
                     centerTitle={true}
                     iconClass="fa fa-times"/>
                 {this.props.comment &&
-                    <ModalBody thinPaddingTop={true}>
+                    <ModalBody>
                         <VXForm id="retire-modal-form"
                             elementType="div"
                             receiveProps={false}

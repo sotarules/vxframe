@@ -5,8 +5,7 @@ export default class ModalBody extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        className : PropTypes.string,
-        thinPaddingTop : PropTypes.bool
+        className : PropTypes.string
     }
 
     static defaultProps = {
@@ -24,9 +23,6 @@ export default class ModalBody extends Component {
     }
 
     className() {
-        return "modal-body" +
-            (this.props.thinPaddingTop ? " modal-body-thin-padding-top" : "") +
-            (this.props.scrollBody ? " scroll-y scroll-momentum scroll-fix" : "") +
-            (this.props.className ? " " + this.props.className : "")
+        return `modal-body scroll-y scroll-momentum scroll-fix ${this.props.className || ""}`
     }
 }

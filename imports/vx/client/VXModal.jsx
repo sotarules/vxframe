@@ -6,20 +6,18 @@ export default class VXModal extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         backdrop : PropTypes.string,
-        width : PropTypes.string,
-        scrollBody : PropTypes.bool
+        width : PropTypes.string
     }
 
     static defaultProps = {
         backdrop : "true",
         width : "600px",
-        scrollBody : false
     }
 
     render() {
         return (
             <div id={this.props.id}
-                className={this.className()}
+                className="modal fade modal-centered not-selectable"
                 tabIndex="-1"
                 role="dialog"
                 data-backdrop={this.props.backdrop}
@@ -34,10 +32,6 @@ export default class VXModal extends Component {
                 </div>
             </div>
         )
-    }
-
-    className() {
-        return `modal fade modal-centered not-selectable ${this.props.scrollBody ? "modal-scroll-body" : ""}`
     }
 
     componentDidMount() {

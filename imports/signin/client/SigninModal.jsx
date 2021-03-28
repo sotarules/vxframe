@@ -35,7 +35,7 @@ export default class SigninModal extends Component {
         return (
             <VXModal id="signin-modal" width="250px">
                 <ModalHeaderSimple title={this.modeData[this.props.mode].title}/>
-                <ModalBody thinPaddingTop={true}>
+                <ModalBody>
                     <VXForm id="signin-modal-form"
                         popoverContainer="body"
                         receiveProps={false}

@@ -26,7 +26,7 @@ export default class ProfileReportsModal extends Component {
                 <ModalHeaderImage imageUrl={CX.LOGO_PATH}
                     heading={this.reportDescription()}
                     subheading={Util.i18n("common.label_report_parameters")}/>
-                <ModalBody thinPaddingTop={true}>
+                <ModalBody>
                     <VXForm id="profile-reports-modal-form"
                         elementType="div"
                         receiveProps={false}

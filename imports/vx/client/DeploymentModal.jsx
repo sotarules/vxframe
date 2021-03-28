@@ -37,7 +37,7 @@ export default class DeploymentModal extends Component {
             <VXModal id={this.props.id} width="550px">
                 <ModalHeaderImage imageUrl={CX.CLOUDFILES_PREFIX + "/img/system/deployment.png"}
                     heading={Util.i18n("common.label_deployment")}/>
-                <ModalBody thinPaddingTop={true}>
+                <ModalBody>
                     <VXForm id="component-deployment-modal-form"
                         elementType="div"
                         receiveProps={true}

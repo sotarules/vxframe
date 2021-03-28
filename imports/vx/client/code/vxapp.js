@@ -1,27 +1,27 @@
-import {get, set, cloneDeep} from "lodash"
+import {cloneDeep, get, set} from "lodash"
 import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
 import {
-    setFunctionUpdateTimestamp,
     setCurrentDomainId,
     setCurrentLocale,
     setCurrentPublishingMode,
     setCurrentUserId,
+    setFunctionUpdateTimestamp,
+    setListImportLastPercent,
     setPublishAuthoringDomain,
-    setPublishAuthoringTemplate,
     setPublishAuthoringFunction,
+    setPublishAuthoringTemplate,
     setPublishAuthoringUser,
     setPublishCurrentDomain,
     setPublishCurrentDomains,
+    setPublishCurrentFunctions,
+    setPublishCurrentTemplates,
     setPublishCurrentTenant,
     setPublishCurrentTenants,
-    setPublishCurrentUsers,
-    setPublishCurrentTemplates,
-    setPublishCurrentFunctions,
     setPublishCurrentUploadStats,
+    setPublishCurrentUsers,
     setPublishingModeClient,
     setPublishingModeServer,
-    setSubscriptionParameters,
-    setListImportLastPercent
+    setSubscriptionParameters
 } from "/imports/vx/client/code/actions"
 
 
