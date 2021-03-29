@@ -11,19 +11,21 @@ $.fn.multiselectable = function(options) {
     }
     options = $.extend({}, $.fn.multiselectable.defaults, options)
 
-    function touchstart(e) {
-        OLog.warn("jquery.multiselectable.js touchstart")
-        if (options.multi && UX.touchCount > 0) {
-            OLog.warn("jquery.multiselectable.js touchstart conditions met for control-click simulation")
-            UX.consume(e)
-            const item = $(this)
-            const parent = item.parent()
-            handleMulti(item, parent, true)
+    function touchstart() {
+        const item = $(this)
+        const parent = item.parent()
+        if (options.multi) {
+            if (UX.touchCount > 0) {
+                handleMulti(item, parent, true)
+                return
+            }
+            handleMulti(item, parent)
+            return
         }
+        handleSingle(item, parent)
     }
 
     function mouseDown(e) {
-        OLog.warn("jquery.multiselectable.js mousedown")
         if (e.button !== 0) {
             return
         }
@@ -38,7 +40,6 @@ $.fn.multiselectable = function(options) {
     }
 
     function click(e) {
-        OLog.warn("jquery.multiselectable.js click")
         const item = $(this)
         const parent = item.parent()
         if (options.multi) {

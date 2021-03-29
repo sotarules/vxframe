@@ -58,12 +58,10 @@ window.onerror = (error, url, line) => {
 
 document.addEventListener("touchstart", event => {
     UX.touchCount = event.touches.length
-    OLog.warn(`master.js touchstart UX.touchCount=${UX.touchCount}`)
 }, false)
 
 document.addEventListener("touchend", event => {
     UX.touchCount = event.touches.length
-    OLog.warn(`master.js touchend UX.touchCount=${UX.touchCount}`)
 }, false)
 
 /**
