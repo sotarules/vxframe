@@ -8,8 +8,6 @@ import {setFunctionUpdateTimestamp} from "/imports/vx/client/code/actions"
 React = require("react")
 ReactDOM = require("react-dom")
 
-console.log("master.js (vx) *init*")
-
 const persistConfig = {
     key: "root",
     storage,
@@ -53,7 +51,7 @@ window.onerror = (error, url, line) => {
         }
     }
 
-    OLog.error("master.js window onerror event, error=" + error + " url=" + url + " line=" + line)
+    OLog.error(`master.js window onerror event, error=${error} url=${url} line=${line}`)
 }
 
 document.addEventListener("touchstart", event => {
@@ -107,7 +105,7 @@ Tracker.autorun(function() {
             added : (id) => {
                 let notification = Notifications.findOne({ _id : id })
                 if (!notification) {
-                    OLog.error("master.js autorun notification observer could not find notificationId=" + id)
+                    OLog.error(`master.js autorun notification observer could not find notificationId=${id}`)
                     return
                 }
                 if (notification.PNOTIFY_processed) {

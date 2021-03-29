@@ -12,8 +12,24 @@ if (Meteor.absoluteUrl().indexOf("sota.ddns.net") >= 0) {
     OLog.setLogLevel(5)
 }
 
+if (VXApp.isLogoutOnBrowserClose()) {
+    console.log("startup.js (vx) logout on browser close *enabled*")
+    if (!sessionStorage.getItem("vxsession")) {
+        console.log("startup.js (vx) session storage vxsession is not present system shall logout immediately")
+        VXApp.logoutImmediately()
+    }
+    window.onload = function() {
+        if (sessionStorage.getItem("vxsession") === "on") {
+            console.log("startup.js (vx) onload vxsession is on *continue*")
+            return
+        }
+        console.log("startup.js (vx) onload vxsession is not present and will be set to on")
+        sessionStorage.setItem("vxsession", "on")
+    }
+}
+
 const doRoute = () => {
-    OLog.debug(`startup.js doRoute [${Util.routePath()}] *init*`)
+    console.log(`startup.js doRoute [${Util.routePath()}] *init*`)
     UX.lockExitingComponents(true)
     const routePath = Util.routePath()
     if (routePath !== Store.getState().routePath) {
@@ -21,49 +37,48 @@ const doRoute = () => {
     }
     const valid = Routes.isValidRoute(routePath)
     if (!valid) {
-        OLog.debug(`startup.js doRoute [${Util.routePath()}] *invalid* no subscriptions shall be performed`)
+        console.log(`startup.js doRoute [${Util.routePath()}] *invalid* no subscriptions shall be performed`)
         VXApp.routeAfter()
         return
     }
     const wideRoute = VXApp.isWideRoute()
-    OLog.debug(`startup.js doRoute [${Util.routePath()}] wideRoute=${wideRoute}`)
     if (wideRoute !== Store.getState().wideRoute) {
         Store.dispatch(setWideRoute(wideRoute))
     }
     const exemptRoute = VXApp.isExemptRoute()
     if (exemptRoute) {
-        OLog.debug(`startup.js doRoute [${Util.routePath()}] *exempt* no subscriptions shall be performed`)
+        console.log(`startup.js doRoute [${Util.routePath()}] *exempt* no subscriptions shall be performed`)
         if (exemptRoute !== Store.getState().exemptRoute) {
             Store.dispatch(setExemptRoute(exemptRoute))
         }
         VXApp.routeAfter()
         return
     }
+    const authorizedRoute = VXApp.isAuthorizedRoute()
+    console.log(`startup.js doRoute [${Util.routePath()}] userId=${Meteor.userId()} authorizedRoute=${authorizedRoute}`)
+    if (authorizedRoute !== Store.getState().authorizedRoute) {
+        Store.dispatch(setAuthorizedRoute(authorizedRoute))
+    }
     if (!Meteor.userId()) {
-        OLog.debug(`startup.js doRoute [${Util.routePath()}] *not-logged-in* no subscriptions shall be performed`)
+        console.log(`startup.js doRoute [${Util.routePath()}] *not-logged-in* no subscriptions shall be performed`)
         VXApp.routeAfter()
         return
     }
     VXApp.routeBefore()
     VXApp.doGlobalSubscriptions(() => {
-        const authorizedRoute = VXApp.isAuthorizedRoute()
-        OLog.debug(`startup.js doRoute [${Util.routePath()}] user=${Util.getUserEmail()} authorizedRoute=${authorizedRoute}`)
-        if (authorizedRoute !== Store.getState().authorizedRoute) {
-            Store.dispatch(setAuthorizedRoute(authorizedRoute))
-        }
         VXApp.routeAfter()
     })
 }
 
 Meteor.startup(() => {
-    OLog.debug(`startup.js startup *genesis* welcome to ${CX.SYSTEM_NAME}`)
     // Default loading to hold off any rendering until subscriptions are loaded (see below).
     UX.setLoading(true)
     BrowserHistory = createBrowserHistory()
     BrowserHistory.listen((location, action) => {
-        OLog.debug(`startup.js browser history listen URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
+        console.log(`startup.js browser history listen URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
         doRoute()
     })
+
     ReactDOM.render(Routes.renderRoutes(), document.getElementById("react-root"))
     // Compute initial slide mode based on device characteristics:
     UX.updateSlideMode()
@@ -76,10 +91,10 @@ Meteor.startup(() => {
     UX.noRubberBand()
     // Capture and log the client version:
     Accounts.onLogin(() => {
-        OLog.debug("startup.js Accounts onLogin *fire*")
+        console.log("startup.js Accounts onLogin *fire*")
         Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, error => {
             if (error) {
-                OLog.error(`startup.js Accounts onClientLogin callback error=${error}`)
+                console.log(`startup.js Accounts onClientLogin callback error=${error}`)
                 return
             }
         })

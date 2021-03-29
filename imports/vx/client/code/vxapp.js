@@ -28,6 +28,15 @@ import {
 VXApp = _.extend(VXApp || {}, {
 
     /**
+     * Return true if logout on browser close is enabled for this application.
+     *
+     * @return {boolean} True if the system should log the user out when browser is closed.
+     */
+    isLogoutOnBrowserClose() {
+        return false
+    },
+
+    /**
      * Return unioned reducers. This function will likely be overridden at the application level.
      *
      * @return {object} Union of all reducers system-wide.
@@ -151,20 +160,21 @@ VXApp = _.extend(VXApp || {}, {
      * @return {boolean} True if the current user is authorized for the current route.
      */
     isAuthorizedRoute() {
-        if (VXApp.isAppAuthorizedRoute && VXApp.isAppAuthorizedRoute()) {
-            return true
+        const meteorUserId = window.localStorage.getItem("Meteor.userId")
+        if (VXApp.isAppAuthorizedRoute && VXApp.isAppAuthorizedRoute(meteorUserId)) {
+            return !!meteorUserId
         }
         const superAdminRoutes = ["/log", "/events" ]
         const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/",
             "/functions", "/function/", ]
         const path = Util.routePath()
         if (Util.startsWith(superAdminRoutes, path)) {
-            return Util.isUserSuperAdmin()
+            return Util.isUserSuperAdmin(meteorUserId)
         }
         if (Util.startsWith(systemAdminRoutes, path)) {
-            return Util.isUserAdmin()
+            return Util.isUserAdmin(meteorUserId)
         }
-        return true
+        return !!meteorUserId
     },
 
     /**
@@ -545,6 +555,17 @@ VXApp = _.extend(VXApp || {}, {
                 OLog.debug("vxapp.js logout was successful")
             })
         }, 1000)
+    },
+
+    /**
+     * Hard logout removes user tokens from session storage, this is for immediate
+     * logout without delay.
+     */
+    logoutImmediately() {
+        Meteor.logout()
+        window.localStorage.removeItem("Meteor.loginToken")
+        window.localStorage.removeItem("Meteor.loginTokenExpires")
+        window.localStorage.removeItem("Meteor.userId")
     },
 
     /**

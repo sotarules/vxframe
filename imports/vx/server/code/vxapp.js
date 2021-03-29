@@ -1,6 +1,15 @@
 VXApp = _.extend(VXApp || {}, {
 
     /**
+     * Return the desired login expiration time in days.
+     *
+     * @return {number} Login expiration time in days.
+     */
+    loginExpirationInDays() {
+        return 7
+    },
+
+    /**
      * Determine the default route for this user.
      *
      * @return {string} Default route.

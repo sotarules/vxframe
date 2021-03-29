@@ -38,6 +38,7 @@ Meteor.startup(() => {
     UserStatus.events.on("connectionLogout", fields => {
         VXApp.onLogout(fields.userId)
     })
+    console.log(`startup.js (vx) user sessions shall expire in ${VXApp.loginExpirationInDays()} day(s)`)
     // Must initialize Reporter on all node.js instances so users can create
     // reports on demand:
     Reporter.init()
