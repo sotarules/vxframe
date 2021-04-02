@@ -5,6 +5,7 @@ export default class ModalHeaderImage extends Component {
 
     static propTypes = {
         imageUrl : PropTypes.string.isRequired,
+        rounded : PropTypes.bool,
         heading : PropTypes.string.isRequired,
         subheading : PropTypes.string,
         className : PropTypes.string
@@ -19,7 +20,9 @@ export default class ModalHeaderImage extends Component {
                             <tbody>
                                 <tr>
                                     <td className="modal-top-left">
-                                        <img className="modal-top-image" src={this.props.imageUrl} title={this.props.heading}/>
+                                        <img className={this.roundedClassName()}
+                                            src={this.props.imageUrl}
+                                            title={this.props.heading}/>
                                     </td>
                                     <td className="modal-top-center">
                                         <div className="modal-top-name">
@@ -35,6 +38,10 @@ export default class ModalHeaderImage extends Component {
                     </div>
                 </div>
             </div>
-        );
+        )
+    }
+
+    roundedClassName() {
+        return this.props.rounded ? "top-image-rounded" : "top-image"
     }
 }

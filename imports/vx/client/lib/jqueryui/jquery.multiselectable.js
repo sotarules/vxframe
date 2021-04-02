@@ -11,7 +11,7 @@ $.fn.multiselectable = function(options) {
     }
     options = $.extend({}, $.fn.multiselectable.defaults, options)
 
-    function touchstart() {
+    function touchstart(e) {
         const item = $(this)
         const parent = item.parent()
         if (options.multi) {

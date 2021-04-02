@@ -903,6 +903,10 @@ Schema.Users = new SimpleSchema({
     status: {
         type: Schema.UserStatus,
         optional: true
+    },
+    twoFactorEnabled : {
+        type: Boolean,
+        optional: true
     }
 })
 

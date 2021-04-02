@@ -28,6 +28,71 @@ import {
 VXApp = _.extend(VXApp || {}, {
 
     /**
+     * Handle normal signin passing email, password and potentially 2FA token to Meteor login subsystem.
+     * This is a heavily-customized approach using a very poorly-documented API.
+     *
+     * @param {object} state React state of sign-in component.
+     * @param {function} callback Callback bearing either error or results.
+     */
+    handleSignin(state, callback) {
+        const { email, password, token, doNotAskAgain } = state
+        Accounts.callLoginMethod({
+            methodArguments: [{
+                user: { email },
+                twoFactorPassword: Accounts._hashPassword(password),
+                twoFactorToken: token,
+                doNotAskAgain: doNotAskAgain,
+                twoFactorHash: UX.getLocalStorageWithExpiry(CX.LOCAL_STORAGE_TWO_FACTOR_HASH_KEY)
+            }],
+            validateResult: (result) => {
+                if (!token) {
+                    return
+                }
+                if (doNotAskAgain) {
+                    OLog.warn(`vxapp.handleSignin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *setting* local storage`)
+                    UX.setLocalStorageWithExpiry(CX.LOCAL_STORAGE_TWO_FACTOR_HASH_KEY, result.twoFactorHash,
+                        CX.LOCAL_STORAGE_TWO_FACTOR_HASH_TTL)
+                }
+                else {
+                    OLog.warn(`vxapp.handleSignin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *removing* local storage`)
+                    UX.removeLocalStorageWithExpiry(CX.LOCAL_STORAGE_TWO_FACTOR_HASH_KEY)
+                }
+            },
+            userCallback: callback
+        })
+    },
+
+    /**
+     * Handle forgot password link.
+     *
+     * @param {object} form Form instance.
+     */
+    async handleForgotPassword(form) {
+        try {
+            if (!UX.checkForm(form, [ "password" ] )) {
+                return
+            }
+            const email = UX.getComponentValue("email")
+            OLog.debug(`vxapp.js handleForgotPassword email=${email}`)
+            const user = await UX.call("findUserInsensitive", email)
+            const emailEffective = (user ? user.username : email)
+            Accounts.forgotPassword( { email : emailEffective }, error => {
+                if (error) {
+                    OLog.debug("vxapp.js handleForgotPassword Accounts.forgotPassword failed " +
+                        `attempted email=${emailEffective} error=${error}`)
+                    UX.createAlertLegacy("alert-danger", "login.forgot_password_error", { error : error.reason })
+                    return
+                }
+                UX.createAlertLegacy("alert-info", "login.reset_password_sent", { email : emailEffective })
+            })
+        }
+        catch (error) {
+            UX.createAlertLegacy("alert-danger", "login.forgot_password_error", { error : error.reason })
+            OLog.error(`vxapp.js handleForgotPassword exception=${error}`)
+        }
+    },
+
+    /**
      * Return true if logout on browser close is enabled for this application.
      *
      * @return {boolean} True if the system should log the user out when browser is closed.
@@ -1764,13 +1829,13 @@ VXApp = _.extend(VXApp || {}, {
             }
             Meteor.call("initUploadStats", uploadType, file.name, file.size, (error, result) => {
                 if (!result.success) {
-                    UX.createAlertForResult(result)
+                    UX.createNotificationForResult(result)
                     VXApp.setUploadStatus(uploadType, "CLEARED")
                     return
                 }
                 Meteor.call("createImportEvent", "LIST_IMPORT_START", uploadType, (error, result) => {
                     if (!result.success) {
-                        UX.createAlertForResult(result)
+                        UX.createNotificationForResult(result)
                         VXApp.setUploadStatus(uploadType, "CLEARED")
                         return
                     }
@@ -1780,7 +1845,7 @@ VXApp = _.extend(VXApp || {}, {
         }
         catch (error) {
             OLog.error(`vxapp.js uploadFile unexpected error=${error}`)
-            UX.createAlertForResult({ success: false, icon: "BUG", key: "common.alert_unexpected_error",
+            UX.createNotificationForResult({ success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString() } })
             VXApp.setUploadStatus(uploadType, "CLEARED")
         }
@@ -1818,7 +1883,7 @@ VXApp = _.extend(VXApp || {}, {
                 if (error) {
                     OLog.error(`vxapp.js uploadTransmit domainId=${uploadStats.domain} ` +
                         `uploadType=${uploadStats.uploadType} error=${error}`)
-                    UX.createAlertForResult({ success: false, icon: "UPLOAD", key: "common.alert_upload_error",
+                    UX.createNotificationForResult({ success: false, icon: "UPLOAD", key: "common.alert_upload_error",
                         variables: { errorMessage: error.toString() } })
                     currentUpload.set(false)
                     VXApp.setUploadStatus(uploadType, "FAILED")
@@ -1865,7 +1930,7 @@ VXApp = _.extend(VXApp || {}, {
         }
         catch (error) {
             OLog.error(`vxapp.js uploadTransmit unexpected error=${error}`)
-            UX.createAlertForResult({ success: false, icon: "BUG", key: "common.alert_unexpected_error",
+            UX.createNotificationForResult({ success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString() } })
             VXApp.setUploadStatus(uploadType, "FAILED")
         }
@@ -1895,7 +1960,7 @@ VXApp = _.extend(VXApp || {}, {
                     }
                     Meteor.call("createImportEvent", "LIST_IMPORT_STOP", uploadType, (error, result) => {
                         if (!result.success) {
-                            UX.createAlertForResult(result)
+                            UX.createNotificationForResult(result)
                         }
                         VXApp.setUploadStatus(uploadType, "STOPPED")
                         callback()
@@ -1906,7 +1971,7 @@ VXApp = _.extend(VXApp || {}, {
                 // Otherwise (e.g., status is INSERTING) we have to formally request that the process be stopped:
                 Meteor.call("uploadRequestStop", uploadType, (error, result) => {
                     if (!result.success) {
-                        UX.createAlertForResult(result)
+                        UX.createNotificationForResult(result)
                     }
                     callback()
                     return
@@ -1916,7 +1981,7 @@ VXApp = _.extend(VXApp || {}, {
         }
         catch (error) {
             OLog.error(`vxapp.js uploadStop unexpected error=${error}`)
-            UX.createAlertForResult({ success : false, icon : "BUG", key : "common.alert_unexpected_error",
+            UX.createNotificationForResult({ success : false, icon : "BUG", key : "common.alert_unexpected_error",
                 variables : { error: error.toString() } })
             callback()
             return

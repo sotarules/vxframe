@@ -170,6 +170,16 @@
         rx : "$Stop<br>Import$"
     },
 
+    button_enable_2FA : {
+        en : "Enable<br>Two-Factor",
+        rx : "$Enable<br>Two-Factor$"
+    },
+
+    button_disable_2FA : {
+        en : "Disable<br>Two-Factor",
+        rx : "$Disable<br>Two-Factor$"
+    },
+
     label_logo_title : {
         en: "{{system_name}}",
         rx: "${{system_name}}$"
@@ -373,6 +383,56 @@
     label_function_type : {
         en : "Function Type",
         rx : "$Function Type$"
+    },
+
+    label_enable_two_factor_authentication : {
+        en : "Enable Two-Factor Authentication",
+        rx : "$Enable Two-Factor Authentication$"
+    },
+
+    label_two_factor_authentication_rationale : {
+        en : "Two-factor authentication increases the security of your {{system_name}} account.",
+        rx : "$Two-factor authentication increases the security of your {{system_name}} account.$"
+    },
+
+    label_two_factor_authentication_all_you_need : {
+        en : "All you need is a compatible app on your smart phone, for example:",
+        rx : "$All you need is a compatible app on your smart phone, for example:$"
+    },
+
+    label_two_factor_authentication_google_authenticator : {
+        en : "Google Authenticator",
+        rx : "$Google Authenticator$"
+    },
+
+    label_two_factor_authentication_microsoft_authenticator : {
+        en : "Microsoft Authenticator",
+        rx : "$Microsoft Authenticator$"
+    },
+
+    label_two_factor_authentication_authy : {
+        en : "Authy",
+        rx : "$Authy$"
+    },
+
+    label_two_factor_authentication_scan : {
+        en : "Scan this image with your app. You will see a 6-digit code on your app. Enter that code below to verify your phone and complete the setup.",
+        rx : "$Scan this image with your app. You will see a 6-digit code on your app. Enter that code below to verify your phone and complete the setup.$"
+    },
+
+    label_please_enter_code : {
+        en : "Two-factor authentication is required. Please enter the code from your authentication app.",
+        rx : "$Two-factor authentication is required. Please enter the code from your authentication app.$",
+    },
+
+    label_2fa_token : {
+        en : "Two-Factor Authentication Code",
+        rx : "$Two-Factor Authentication Code$"
+    },
+
+    label_do_not_ask_again : {
+        en : "Don't ask me for the code again for 30 days when I use this computer",
+        rx : "$Don't ask me for the code again for 30 days when I use this computer$"
     },
 
     empty_tenants : {
@@ -729,8 +789,8 @@ Meteor.i18nMessages.login = _.extend(Meteor.i18nMessages.login || {}, {
     },
 
     reset_password_sent : {
-        en : "Password reset instructions have been sent to {{email}}.",
-        rx : "$Password reset instructions have been sent to {{email}}.$"
+        en : "Password reset instructions have been sent to {{email}}",
+        rx : "$Password reset instructions have been sent to {{email}}$"
     },
 
     forgot_password_error : {
@@ -764,8 +824,8 @@ Meteor.i18nMessages.login = _.extend(Meteor.i18nMessages.login || {}, {
     },
 
     login_error : {
-        en : "Unable to login. {{error}}",
-        rx : "$Unable to login. {{error}}$"
+        en : "{{error}}",
+        rx : "${{error}}$"
     },
 
     invalid_email : {

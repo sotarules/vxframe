@@ -222,6 +222,11 @@ Meteor.i18nMessages.common = {
         rx : "$Invalid calendar day$"
     },
 
+    invalid_2fa_token: {
+        en : "Invalid 6-Digit Code",
+        rx : "$Invalid 6-Digit Code$"
+    },
+
     invalid_key : {
         en: "No record could be found matching the specified key",
         fx: "$No record could be found matching the specified key$"
@@ -245,6 +250,26 @@ Meteor.i18nMessages.common = {
     invalid_command_column: {
         en: "No command column was found (at least one column header must be \"command\")",
         fx: "$No command column was found (at least one column header must be \"command\")$"
+    },
+
+    invalid_user_not_found : {
+        en : "There is no account matching that email address",
+        rx : "$There is no account matching that email address$"
+    },
+
+    invalid_user_record_corrupt : {
+        en : "User record appears to be corrupted, please contact technical support",
+        rx : "$User record appears to be corrupted, please contact technical support$"
+    },
+
+    invalid_password_incorrect : {
+        en : "Incorrect password, please try again",
+        rx : "$Incorrect password, please try again$"
+    },
+
+    invalid_two_factor_token : {
+        en : "That six-digit number doesn't seem to match your authenticator app, please try again",
+        rx : "$That six-digit number doesn't seem to match your authenticator app, please try again$"
     },
 
     option_none : {
@@ -330,6 +355,21 @@ Meteor.i18nMessages.common = {
     alert_schema_validation_failed : {
         en : "{{system_name}} schema validation checking prevented this transaction.",
         rx : "${{system_name}} schema validation checking prevented this transaction.$"
+    },
+
+    alert_invalid_2fa_token : {
+        en : "The six-digit code you entered does not appear to be valid, please try again.",
+        rx : "$The six-digit code you entered does not appear to be valid, please try again.$"
+    },
+
+    alert_valid_2fa_token : {
+        en : "Code is valid. Two-factor authentication has been enabled.",
+        rx : "$Code is valid. Two-factor authentication has been enabled.$"
+    },
+
+    alert_2fa_disabled : {
+        en : "Two-factor authentication has been disabled.",
+        rx : "$Two-factor authentication has been disabled.$"
     },
 
     alert_transaction_fail_tenant_not_found : {

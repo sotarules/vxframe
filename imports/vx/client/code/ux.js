@@ -61,7 +61,7 @@ UX = {
      */
     notify(result, error, nomessage) {
         if (error) {
-            OLog.error(`ux.js createAlertForResult error=${error}`)
+            OLog.error(`ux.js notify error=${error}`)
             UX.notifyForError(error)
             return
         }
@@ -2898,5 +2898,45 @@ UX = {
             return dateString
         }
         return moment.tz(dateString, Util.getUserTimezone()).toDate()
+    },
+
+    /**
+     * Get from local storage with automatic expiration.
+     *
+     * @param {string} key Local storage key.
+     */
+    getLocalStorageWithExpiry(key) {
+        const itemString = localStorage.getItem(key)
+        if (!itemString) {
+            return null
+        }
+        const itemObject = JSON.parse(itemString)
+        const nowDate = new Date()
+        if (nowDate.getTime() > itemObject.expiry) {
+            localStorage.removeItem(key)
+            return null
+        }
+        return itemObject.value
+    },
+
+    /**
+     * Set local storage with TTL.
+     *
+     * @param {string} key Local storage key.
+     * @param {string} value Value to set.
+     * @param {number} ttl Time-to-live in milliseconds.
+     */
+    setLocalStorageWithExpiry(key, value, ttl) {
+	    const expiry = new Date().getTime() + ttl
+    	localStorage.setItem(key, JSON.stringify({ value, expiry }))
+    },
+
+    /**
+     * Remove from local storage (helper here for symmetry).
+     *
+     * @param {string} key Local storage key.
+     */
+    removeLocalStorageWithExpiry(key) {
+    	localStorage.removeItem(key)
     }
 }

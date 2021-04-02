@@ -34,6 +34,18 @@ Meteor.methods({
         return VXApp.setPassword(newPassword)
     },
 
+    generateSecret() {
+        return VXApp.generateSecret()
+    },
+
+    verifyAndEnableTwoFactor(token, secret) {
+        return VXApp.verifyAndEnableTwoFactor(token, secret)
+    },
+
+    disableTwoFactor() {
+        return VXApp.disableTwoFactor()
+    },
+
     cloneUser(userId) {
         return VXApp.cloneUser(userId)
     },

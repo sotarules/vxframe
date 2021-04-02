@@ -1,3 +1,6 @@
+import { authenticator } from "otplib"
+import crypto from "crypto"
+
 VXApp = _.extend(VXApp || {}, {
 
     /**
@@ -1560,5 +1563,109 @@ VXApp = _.extend(VXApp || {}, {
             indexVXApp = value.indexOf("VXApp", indexEndParen + replacement.length)
         }
         return value
-    }
+    },
+
+    /**
+     * Generate and return a secret for 2FA.
+     *
+     * @return {object} Standard result object bearing secret.
+     */
+    generateSecret() {
+        try {
+            const userId = Meteor.userId()
+            if (!userId) {
+                OLog.error("vxapp.js generateSecret security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            const secret = authenticator.generateSecret()
+            OLog.debug(`vxapp.js generateSecret successfully generated secret for ${Util.getUserEmail(userId)}`)
+            return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", secret }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js generateSecret unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Check a 2FA token against a secret; if valid, update the user record to enable 2FA.
+     *
+     * @param {string} token Token (six digits).
+     * @param {string} secret Secret.
+     * @return {object} Standard result object.
+     */
+    verifyAndEnableTwoFactor(token, secret) {
+        try {
+            const userId = Meteor.userId()
+            if (!userId) {
+                OLog.error("vxapp.js verifyAndEnableTwoFactor security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            const user = Util.fetchUserLimited(Meteor.userId())
+            if (!user) {
+                OLog.error(`vxapp.js verifyAndEnableTwoFactor unable to find userId=${userId}`)
+                return { success: false, icon: "BUG", key: "common.alert_transaction_fail_user_not_found", variables: { userId: userId } }
+            }
+            const valid = authenticator.check(token, secret)
+            OLog.warn(`vxapp.js verifyAndEnableTwoFactor ${Util.getUserEmail(user)} token=${token} secret=${secret} valid=${valid}`)
+            if (!valid) {
+                return { success: false, icon: "TRIANGLE", key: "common.alert_invalid_2fa_token" }
+            }
+            const modifier = {}
+            modifier.$set = {}
+            modifier.$set.twoFactorEnabled = true
+            modifier.$set["services.twoFactorSecret"] = secret
+            Meteor.users.update(userId, modifier)
+            OLog.debug(`vxapp.js verifyAndEnableTwoFactor ${Util.getUserEmail(user)} *enabled*`)
+            return { success : true, icon : "CHECK", key : "common.alert_valid_2fa_token" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js generateSecret unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Disable 2FA.
+     *
+     * @return {object} Standard result object.
+     */
+    disableTwoFactor() {
+        try {
+            const userId = Meteor.userId()
+            if (!userId) {
+                OLog.error("vxapp.js disableTwoFactor security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            const user = Util.fetchUserLimited(Meteor.userId())
+            if (!user) {
+                OLog.error(`vxapp.js disableTwoFactor unable to find userId=${userId}`)
+                return { success: false, icon: "BUG", key: "common.alert_transaction_fail_user_not_found", variables: { userId: userId } }
+            }
+            const modifier = {}
+            modifier.$unset = {}
+            modifier.$unset.twoFactorEnabled = ""
+            modifier.$unset["services.twoFactorSecret"] = ""
+            Meteor.users.update(userId, modifier)
+            OLog.debug(`vxapp.js disableTwoFactor ${Util.getUserEmail(user)} *disabled*`)
+            return { success : true, type : "INFO", icon : "RETIRE", key : "common.alert_2fa_disabled" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js disableTwoFactor unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Compute two-factor secret hash (base-64).
+     *
+     * @param {object} user User record.
+     * @return {string} Two-factor secret hash.
+     */
+    computeTwoFactorSecretHash(user) {
+        if (!(user.twoFactorEnabled && user.services.twoFactorSecret)) {
+            return
+        }
+        return crypto.createHash("sha256").update(user.services.twoFactorSecret).digest("base64")
+    },
 })

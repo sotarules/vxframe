@@ -1306,6 +1306,10 @@ legend.group-legend {
     padding-right: 0px;
 }
 
+.big-button-no-margins {
+    margin: 0;
+}
+
 .cell-vertical-top {
     vertical-align: top;
 }
@@ -1796,6 +1800,10 @@ legend.group-legend {
 
 .top-control-advanced-last {
     margin-bottom: 0px;
+}
+
+.small-text {
+    font-size: 11px;
 }
 
 .small-spinner {
@@ -2347,16 +2355,17 @@ legend.group-legend {
 }
 
 .modal-top-left {
-    padding: 2px;
-    min-height: 60px;
-    max-height: 60px;
-    min-width: 60px;
-    max-width: 60px;
-    width: 60px;
+    min-height: 70px;
+    max-height: 70px;
+    min-width: 70px;
+    max-width: 70px;
+    width: 70px;
+    margin-right: 5px;
     vertical-align: middle;
 }
 
 .modal-top-center {
+    padding-left: 10px;
     width: 100%;
     vertical-align: middle;
 }
@@ -2413,6 +2422,11 @@ legend.group-legend {
 .modal-label-introduction {
     font-size: 14px;
     margin-bottom: 10px;
+}
+
+.modal-simple-text {
+    font-size: 14px;
+    white-space: normal;
 }
 
 .modal-label-table {
@@ -3007,4 +3021,26 @@ legend.group-legend {
 .react-contexify__item:not(.react-contexify__item--disabled):hover>.react-contexify__item__content {
     background-color: #EAEAEA !important;
     color: rgb(51,51,51) !important;
+}
+
+.qr-code-box-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.qr-code-box {
+    border: 1px solid;
+    border-color: #CCCCCC;
+    .border-radius(4px);
+    padding-top: 10px;
+    padding-bottom: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.token-input-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 }

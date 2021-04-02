@@ -1,9 +1,10 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import VXForm from "/imports/vx/client/VXForm"
-import VXInput from "/imports/vx/client/VXInput"
 import VXButton from "/imports/vx/client/VXButton"
-import SigninModal from "/imports/signin/client/SigninModal"
+import SigninStandardBody from "./SigninStandardBody"
+import Signin2FABody from "./Signin2FABody"
+import SigninModal from "./SigninModal"
 
 export default class Signin extends Component {
 
@@ -11,16 +12,22 @@ export default class Signin extends Component {
         mode : PropTypes.string.isRequired
     }
 
-    state = { email : "", password : "" }
+    constructor(props) {
+        super(props)
+        this.state = { requiresTwoFactor: false, email: "", password: "", token: "", doNotAskAgain: false }
+    }
 
     render() {
         return (
             <div className="flexi-grow">
-                <div id="signin-composite" className="signin-flex-container fade-first notification-container">
-                    <div id="signin-panel" className="signin-flex-panel panel panel-default">
+                <div id="signin-container"
+                    className="signin-flex-container fade-first notification-container">
+                    <div id="signin-panel"
+                        className="signin-flex-panel panel panel-default">
                         <div className="panel-body">
                             <VXForm id="signin-form"
                                 popoverContainer="body"
+                                receiveProps={false}
                                 ref={(form) => { this.form = form }}>
                                 <div className="panel-padding">
                                     <img id="signin-logo" src={ CX.LOGO_PATH }
@@ -28,43 +35,28 @@ export default class Signin extends Component {
                                     <div className="logo-title">
                                         {Util.i18n("common.label_logo_title")}
                                     </div>
-                                    <VXInput id="email"
-                                        type="email"
-                                        autoComplete="email"
-                                        popoverPlacement="right"
-                                        required={true}
-                                        value={this.state.email}
-                                        placeholder={Util.i18n("login.email")}
-                                        rule={VX.login.email}
-                                        onChange={this.handleChangeEmail.bind(this)}
-                                        onEnter={this.handleEnter.bind(this)}/>
-                                    <VXInput id="password"
-                                        type="password"
-                                        autoComplete="password"
-                                        popoverPlacement="right"
-                                        required={true}
-                                        value={this.state.password}
-                                        placeholder={Util.i18n("login.password")}
-                                        rule={VX.login.password}
-                                        onChange={this.handleChangePassword.bind(this)}
-                                        onEnter={this.handleEnter.bind(this)}/>
+                                    {!this.state.requiresTwoFactor ? (
+                                        <SigninStandardBody onEnter={this.handleEnter.bind(this)} />
+                                    )  : (
+                                        <Signin2FABody onEnter={this.handleEnter.bind(this)} />
+                                    )}
                                     <div className="form-group">
                                         <VXButton id="signin-button"
                                             className="btn btn-primary btn-custom btn-block"
-                                            data-style="zoom-in"
                                             onClick={this.handleClickSignin.bind(this)}>
                                             {Util.i18n("login.sign_in")}
                                         </VXButton>
                                     </div>
-                                </div>
-                                <div id="forgot-password-container" className="form-group">
-                                    <a id="forgot-password" onClick={this.handleClickForgotPassword.bind(this)}>
-                                        {Util.i18n("login.forgot_password")}
-                                    </a>
+                                    <div id="forgot-password-container" className="form-group">
+                                        <a id="forgot-password" onClick={this.handleClickForgotPassword.bind(this)}>
+                                            {Util.i18n("login.forgot_password")}
+                                        </a>
+                                    </div>
                                 </div>
                             </VXForm>
                             <div className="row">
-                                <div id="alert-placeholder" className="col-md-12"></div>
+                                <div id="alert-placeholder" className="col-md-12">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -80,72 +72,55 @@ export default class Signin extends Component {
         }
     }
 
-    handleChangeEmail(event) {
-        this.setState({email : event.target.value})
-    }
-
-    handleChangePassword(event) {
-        this.setState({password : event.target.value})
-    }
-
     handleEnter() {
-        let signinButton = UX.findComponentById("signin-button")
+        const signinButton = UX.findComponentById("signin-button")
         signinButton.start()
         this.handleClickSignin(() => {
             signinButton.stop()
         })
     }
 
-    handleClickSignin(callback) {
+    handleClickSignin(laddaCallback) {
         try {
             if (!UX.checkForm(this.form)) {
-                callback()
+                laddaCallback()
                 return
             }
-            let email = UX.getComponentValue("email")
-            let password = UX.getComponentValue("password")
-            Meteor.loginWithPassword(email, password, (error) => {
-                if (error) {
-                    OLog.debug(`Signin.jsx handleClickSignin Meteor.loginWithPassword failed, email=${email} error=${error}`)
-                    UX.createAlertLegacy("alert-danger", "login.login_error", { error : error.reason })
-                    callback()
-                    return
-                }
-                OLog.debug(`Signin.jsx handleClickSignin Meteor.loginWithPassword success, email=${email}`)
-                VXApp.afterLogin()
+            const formObject = UX.makeFormObject(this.form)
+            this.setState({ ...formObject }, () => {
+                this.proceedToSignin(laddaCallback)
             })
         }
         catch (error) {
-            OLog.error("Signin.jsx handleClickSignin error=" + error)
+            UX.createAlertLegacy("alert-danger", "login.login_error", { error : error.reason })
+            OLog.error(`Signin.jsx handleClickSignin exception=${error}`)
         }
     }
 
-    handleClickForgotPassword() {
-        try {
-            if (!UX.checkForm(this.form, [ "password" ] )) {
-                return
-            }
-            let email = UX.getComponentValue("email")
-            OLog.debug("Signin.jsx handleClickForgotPassword email=" + email)
-            Meteor.call("findUserInsensitive", email, (error, user) => {
-                if (error) {
-                    OLog.debug("Signin.jsx handleClickForgotPassword findUserInsensitive failed, attempted email=" + email + " error=" + error)
-                    UX.createAlertLegacy("alert-danger", "login.forgot_password_error", { error : error.reason })
+    proceedToSignin(laddaCallback) {
+        VXApp.handleSignin(this.state, (error, result) => {
+            if (error) {
+                if (error.error === "two-factor-required") {
+                    UX.clearFade()
+                    Meteor.setTimeout(() => {
+                        laddaCallback()
+                        this.setState( { requiresTwoFactor: true } )
+                        Meteor.setTimeout(() => {
+                            UX.fireFade()
+                        }, 200)
+                    }, 350)
                     return
                 }
-                let emailEffective = (user ? user.username : email)
-                Accounts.forgotPassword( { email : emailEffective }, (error) => {
-                    if (error) {
-                        OLog.debug("Signin.jsx handleClickForgotPassword Accounts.forgotPassword failed, attempted email=" + emailEffective + " error=" + error)
-                        UX.createAlertLegacy("alert-danger", "login.forgot_password_error", { error : error.reason })
-                        return
-                    }
-                    UX.createAlertLegacy("alert-info", "login.reset_password_sent", { email : emailEffective })
-                })
-            })
-        }
-        catch (error) {
-            OLog.error("Signin.jsx handleClickForgotPassword exception=" + error)
-        }
+                laddaCallback()
+                UX.createAlertLegacy("alert-danger", "login.login_error", { error : error.reason })
+                return
+            }
+            OLog.debug(`Signin.jsx proceedToSignin email=${this.state.email} result=${OLog.debugString(result)}`)
+            VXApp.afterLogin()
+        })
+    }
+
+    handleClickForgotPassword() {
+        VXApp.handleForgotPassword(this.form)
     }
 }

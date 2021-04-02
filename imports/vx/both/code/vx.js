@@ -245,6 +245,13 @@ VX.common = {
             return { success : false, icon : "TRIANGLE", key : "common.invalid_calendar_day" }
         }
         return { success : true }
+    },
+
+    token(token) {
+        if (!CX.REGEX_TOKEN.test(token)) {
+            return { success : false, icon : "TRIANGLE", key : "common.invalid_2fa_token" }
+        }
+        return { success : true }
     }
 }
 
