@@ -12,7 +12,7 @@ export default class UploadErrorPanel extends Component {
             return null
         }
         return (
-            <div className="entity-errors-container flex-section-fixed scroll-both scroll-momentum">
+            <div className="entity-errors-container flex-section-fixed scroll-both scroll-momentum selectable">
                 {this.renderUploadErrors()}
             </div>
         )

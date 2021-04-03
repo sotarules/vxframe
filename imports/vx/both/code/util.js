@@ -1380,19 +1380,16 @@ Util = {
      * Determine whether the specified preference is set in the user profile.
      *
      * @param {string} preferenceDefinition Name of preference (see codes.preferenceDefinition).
-     * @param {string} userOrId User or ID.
+     * @param {string} userId Optional user ID.
      * @return {boolean} True if preference is present and set to true.
      */
-    isPreference(preferenceDefinition, userOrId) {
-        let user
-        if (!_.isObject(userOrId)) {
-            userOrId = userOrId || Meteor.userId()
-            user = Meteor.users.findOne(userOrId, { fields: { "profile.standardPreferences": 1 }})
-        }
+    isPreference(preferenceDefinition, userId) {
+        userId = userId || Meteor.userId()
+        const user = Meteor.users.findOne(userId, { fields: { "profile.standardPreferences": 1 }})
         if (!user || !user.profile || !user.profile.standardPreferences) {
             return false
         }
-        let preferenceObject = _.findWhere(user.profile.standardPreferences, { preferenceDefinition: preferenceDefinition })
+        const preferenceObject = _.findWhere(user.profile.standardPreferences, { preferenceDefinition: preferenceDefinition })
         if (!preferenceObject) {
             return false
         }
@@ -1547,6 +1544,21 @@ Util = {
      */
     isUserDomain(userId, domainId) {
         return Util.getCurrentDomainId(userId) === domainId
+    },
+
+    /**
+     * Determine whether a given user has two-factor authentication enabled.
+     *
+     * @param {?} userOrId User object or user ID.
+     * @return {boolean} True if user has two-factor authentication enabled.
+     */
+    isUserTwoFactorEnabled(userOrId) {
+        const user = Util.user(userOrId)
+        if (!user) {
+            OLog.error(`vxapp.js isUserTwoFactorEnabled unable to locate userOrId=${userOrId}`)
+            return
+        }
+        return !!user.twoFactorEnabled
     },
 
     /**
@@ -2373,9 +2385,9 @@ Util = {
         if (_.isObject(userOrId)) {
             return userOrId
         }
-        let user = Util.fetchUserLimited(userOrId)
+        const user = Util.fetchUserLimited(userOrId)
         if (!user) {
-            OLog.error("util.js user unable to find userOrId=" + userOrId)
+            OLog.error(`util.js user unable to find userOrId=${userOrId}`)
             return
         }
         return user

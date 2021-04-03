@@ -104,6 +104,15 @@ export default class UserEditRight extends Component {
                                             format={FX.phoneUS}
                                             dbName={"profile.phone"}/>
                                     </div>
+                                    <div className="col-xs-6 margin-top-30">
+                                        {this.isShowDisableTwoFactorButton() &&
+                                            <VXButton id="button-disable-two-factor"
+                                                className="btn btn-default btn-custom btn-block"
+                                                onClick={this.handleClickDisableTwoFactor.bind(this)}>
+                                                {Util.i18n("user_domain.label_disable_two_factor")}
+                                            </VXButton>
+                                        }
+                                    </div>
                                 </div>
                                 <div className="row">
                                     <div className="col-xs-6">
@@ -157,6 +166,10 @@ export default class UserEditRight extends Component {
         return email && enrolled
     }
 
+    isShowDisableTwoFactorButton() {
+        return Util.isUserTwoFactorEnabled(this.props.user)
+    }
+
     handleDoneEditing() {
         OLog.debug("UserEditRight.jsx handleDoneEditing")
         UX.iosPopAndGo("crossfade")
@@ -174,6 +187,17 @@ export default class UserEditRight extends Component {
             callback()
             UX.notify(result, error)
         })
+    }
+
+    async handleClickDisableTwoFactor(callback) {
+        try {
+            callback()
+            const result = await UX.call("disableTwoFactor", this.props.user._id)
+            UX.notify(result)
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
     }
 
     handleDropUserDomain(dropInfo) {

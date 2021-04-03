@@ -1398,6 +1398,11 @@ Meteor.i18nMessages.user_domain = _.extend(Meteor.i18nMessages.user_domain || {}
         rx : "$Reset Password$"
     },
 
+    label_disable_two_factor : {
+        en : "Disable Two-Factor",
+        rx : "$Disable Two-Factor$"
+    },
+
     label_work_phone : {
         en : "Work Phone",
         rx : "$Work Phone$"

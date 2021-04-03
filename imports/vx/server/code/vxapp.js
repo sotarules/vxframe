@@ -1626,17 +1626,18 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
-     * Disable 2FA.
+     * Disable 2FA on behalf of either the current user or a specified user.
      *
+     * @param {string} userId Optional user ID.
      * @return {object} Standard result object.
      */
-    disableTwoFactor() {
+    disableTwoFactor(userId) {
         try {
-            const userId = Meteor.userId()
-            if (!userId) {
-                OLog.error("vxapp.js disableTwoFactor security check failed user is not logged in")
+            if (userId && !Util.isUserAdmin(Meteor.userId())) {
+                OLog.error(`vxapp.js disableTwoFactor security check failed userId supplied but invoking user ${Util.fetchFullName(Meteor.userId())} is not an administrator`)
                 return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
             }
+            userId = userId || Meteor.userId()
             const user = Util.fetchUserLimited(Meteor.userId())
             if (!user) {
                 OLog.error(`vxapp.js disableTwoFactor unable to find userId=${userId}`)
