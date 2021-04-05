@@ -123,15 +123,22 @@ VX.common = {
         return { success : true }
     },
 
-    phone(phone, country) {
+    phone(input, country) {
         country = country || "US"
-        if (!phone) {
+        if (!input) {
             return { success : true }
         }
-        if (country === "US") {
-            if (!CX.REGEX_PHONE_US.test(phone)) {
-                return { success : false, icon : "TRIANGLE", key : "common.invalid_phone" }
-            }
+        if (country !== "US") {
+            return { success : true }
+        }
+        const inputArray = input.split("X")
+        const phone = inputArray[0]
+        const extension = inputArray.length > 1 ? inputArray[1] : null
+        if (!CX.REGEX_PHONE_US.test(phone)) {
+            return  { success : false, icon : "TRIANGLE", key : "common.invalid_phone" }
+        }
+        if (extension && !Util.isWholeNumber(extension)) {
+            return  { success : false, icon : "TRIANGLE", key : "common.invalid_phone" }
         }
         return { success : true }
     },

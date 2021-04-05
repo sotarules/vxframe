@@ -133,6 +133,23 @@ Util = {
     },
 
     /**
+     * Make an array of objects based on the codes, each of which contains a code and localized value.
+     *
+     * @param {string} code Enumeration code name (see codes.js).
+     * @returns {array} Array of properties and values.
+     */
+    makeCodeArray(code, includeBlank) {
+        const codeArray = _.map(Meteor.i18nMessages.codes[code], (value, propertyName) => {
+            let localized = Util.i18n("codes." + code + "." + propertyName)
+            return { code : propertyName, localized : localized }
+        })
+        if (includeBlank) {
+            codeArray.unshift( { code: "", localized: "" } )
+        }
+        return codeArray
+    },
+
+    /**
      * Return the value of a system configuration field.
      *
      * @param {string} fieldName Name of configuration field to fetch.

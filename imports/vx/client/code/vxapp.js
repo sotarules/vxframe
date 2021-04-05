@@ -2007,6 +2007,7 @@ VXApp = _.extend(VXApp || {}, {
         const messagesLocalized = _.map(uploadStats.messages, message => {
             return Util.i18n("common.message_import_validation", {
                 fieldIdentifier: Util.i18n(message.fieldIdKey, message.fieldIdVariables),
+                value : message.value,
                 text: Util.i18n(message.result.key, message.result.variables)
             })
         })

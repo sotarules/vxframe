@@ -53,7 +53,7 @@ export default class VXFieldBox extends Component {
             if (protocol != null) {
                 return (
                     <div className={`top-fieldbox top-fieldbox-link ${this.props.className || ""}`}>
-                        <a href={`${protocol}${this.props.value}`}
+                        <a href={this.renderHref(protocol)}
                             onClick={this.handleClick.bind(this)}>
                             {UX.parseHtml(UX.render(this, this.props.value))}
                         </a>
@@ -66,6 +66,18 @@ export default class VXFieldBox extends Component {
                 {UX.parseHtml(UX.render(this, this.props.value))}
             </div>
         )
+    }
+
+    renderHref(protocol) {
+        switch (this.props.linkType) {
+        case "email": return `${protocol}${this.props.value}`
+        case "phone": return `${protocol}${this.renderHrefPhone()}`
+        case "web" : return `${protocol}${this.props.value}`
+        }
+    }
+
+    renderHrefPhone() {
+        return this.props.value.split("X")[0]
     }
 
     handleClick(event) {

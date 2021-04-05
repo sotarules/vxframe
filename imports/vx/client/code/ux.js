@@ -178,14 +178,7 @@ UX = {
      * @returns {array} Array of properties and values.
      */
     makeCodeArray(code, includeBlank) {
-        const codeArray = _.map(Meteor.i18nMessages.codes[code], (value, propertyName) => {
-            let localized = Util.i18n("codes." + code + "." + propertyName)
-            return { code : propertyName, localized : localized }
-        })
-        if (includeBlank) {
-            codeArray.unshift( { code: "", localized: "" } )
-        }
-        return codeArray
+        return Util.makeCodeArray(code, includeBlank)
     },
 
     /**

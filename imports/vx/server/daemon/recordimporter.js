@@ -516,10 +516,11 @@ RecordImporter = {
             OLog.debug(`recordimporter.js prepareGeneric *bypassing* index=${index} invalid command=${command}`)
             return
         }
+        const value = FX.trim.strip(row[keypathIndex])
         const results = {}
         results.selector = {}
         results.selector.domain = uploadStats.domain
-        results.selector[uploadTypeObject.keypath] = row[keypathIndex]
+        results.selector[uploadTypeObject.keypath] = value
         // For command create we start off with a completely empty record except for audit/overhead fields:
         if (command === "create") {
             results.record = {}
@@ -537,7 +538,7 @@ RecordImporter = {
             results.record = coll.findOne(results.selector)
             if (!results.record) {
                 VXApp.validateRecordNotFound(index, messages, "common.field_id_path_specification",
-                    { rowIndex: rowIndex,  path: uploadTypeObject.keypath })
+                    { rowIndex: rowIndex,  path: uploadTypeObject.keypath }, value)
                 return
             }
             RecordImporter.processRow(uploadStats, importSchema, headerArray, row, index, rowIndex,
@@ -578,13 +579,19 @@ RecordImporter = {
             }
             const fieldIdVariables = { rowIndex: rowIndex,  path: path }
             const importSchemaPath = RecordImporter.importSchemaPath(path)
+            const definition = get(importSchema, importSchemaPath)
             let value = FX.trim.strip(row[columnIndex])
+            let valid = true
+            if (definition.required) {
+                valid = VXApp.validateRequired(value, index, messages, fieldIdKey, fieldIdVariables)
+                if (!valid) {
+                    allValid = false
+                    return
+                }
+            }
             if (!value) {
                 return
             }
-
-            let valid = true
-            const definition = get(importSchema, importSchemaPath)
             if (definition.guid) {
                 value = Util.getGuid()
             }
@@ -594,34 +601,32 @@ RecordImporter = {
             if (definition.format) {
                 value = definition.format.strip(value)
             }
-
+            if (definition.list) {
+                const codeArray = Util.makeCodeArray(definition.list)
+                value = VXApp.lookupCode(definition, value, codeArray, index, messages, fieldIdKey, fieldIdVariables)
+            }
+            if (definition.codeArrayFunction) {
+                const codeArray = definition.codeArrayFunction()
+                value = VXApp.lookupCode(definition, value, codeArray, index, messages, fieldIdKey, fieldIdVariables)
+            }
             if (definition.rule) {
                 valid = VXApp.validateRule(value, definition.rule, index, messages, fieldIdKey, fieldIdVariables)
             }
-            if (definition.list) {
-                const codeArray = Util.getCodes(definition.list)
-                valid = VXApp.validateCodeValue(value, codeArray, index, messages, fieldIdKey, fieldIdVariables)
-            }
-            if (definition.codeArrayFunction) {
-                const codeArray = _.pluck(definition.codeArrayFunction(), "code")
-                valid = VXApp.validateCodeValue(value, codeArray, index, messages, fieldIdKey, fieldIdVariables)
-            }
-
-            if (valid) {
-                const peerGuidPath = RecordImporter.peerGuidPath(importSchema, path)
-                if (peerGuidPath) {
-                    const existingGuid = get(results.record, peerGuidPath)
-                    if (!existingGuid) {
-                        set(results.record, peerGuidPath, Util.getGuid())
-                    }
-                }
-                const convertedValue = RecordImporter.convertValue(uploadStats, definition, value)
-                set(results.record, path, convertedValue)
-            }
-            else {
+            if (!valid) {
                 allValid = false
+                return
             }
+            const peerGuidPath = RecordImporter.peerGuidPath(importSchema, path)
+            if (peerGuidPath) {
+                const existingGuid = get(results.record, peerGuidPath)
+                if (!existingGuid) {
+                    set(results.record, peerGuidPath, Util.getGuid())
+                }
+            }
+            const convertedValue = RecordImporter.convertValue(uploadStats, definition, value)
+            set(results.record, path, convertedValue)
         })
+        RecordImporter.postProcess(importSchema, results.record)
         if (allValid) {
             insertArray.push(results)
             return
@@ -629,6 +634,42 @@ RecordImporter = {
         OLog.debug(`recordimporter.js prepareGeneric *bypassing* index=${index} allValid=${allValid} ` +
                 `messages=${OLog.debugString(messages)}`)
         return
+    },
+
+    /**
+     * Post-process the results eliminating incomplete array elements.
+     *
+     * @param {object} importSchema Import schema root.
+     * @param {object} record Record to be post-processed.
+     */
+    postProcess(importSchema, record) {
+        Object.keys(importSchema).forEach(schemaKey => {
+            const dataNode = get(record, schemaKey)
+            if (_.isArray(dataNode)) {
+                for (let dataNodeIndex = dataNode.length - 1; dataNodeIndex >= 0; dataNodeIndex--) {
+                    // Null array elements are not allowed, just remove them. This can occur if the
+                    // on input has gaps in the array indices:
+                    if (!dataNode[dataNodeIndex]) {
+                        dataNode.splice(dataNodeIndex, 1)
+                        continue
+                    }
+                    // For each array element, ensure that any fields that are required in the occurrence
+                    // are present. There is no guarantee that the spreadsheet contains enough information
+                    // to resolve foreign key references, such references cannot null:
+                    const schemaNodeParent = get(importSchema, schemaKey)
+                    for (let propertyKey of Object.keys(schemaNodeParent)) {
+                        const schemaNode = schemaNodeParent[propertyKey]
+                        if (schemaNode.requiredInOccurrence) {
+                            const value = dataNode[dataNodeIndex][propertyKey]
+                            if (!value) {
+                                dataNode.splice(dataNodeIndex, 1)
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+        })
     },
 
     /**
@@ -840,6 +881,12 @@ RecordImporter = {
             const timezone = Util.getUserTimezone(uploadStats.userId)
             value = value === "now" ? moment.tz(new Date(), timezone).format(definition.dateFormat) : value
             return Util.parsedValue(definition.bindingType, value, definition.dateFormat, timezone)
+        }
+        if (definition.bindingType === "Integer") {
+            value = FX.integer.strip(value)
+        }
+        if (definition.bindingType === "Money") {
+            value = FX.money.strip(value)
         }
         return Util.parsedValue(definition.bindingType, value)
     },

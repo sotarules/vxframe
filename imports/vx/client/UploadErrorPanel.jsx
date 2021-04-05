@@ -4,7 +4,8 @@ import PropTypes from "prop-types"
 export default class UploadErrorPanel extends Component {
 
     static propTypes = {
-        isUploadErrors : PropTypes.bool.isRequired
+        isUploadErrors : PropTypes.bool.isRequired,
+        uploadErrors : PropTypes.string
     }
 
     render() {

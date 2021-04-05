@@ -1,5 +1,3 @@
-"use strict";
-
 FX.trim = {
     strip(external) {
         if (_.isString(external)) {
@@ -25,29 +23,39 @@ FX.integer = {
 }
 
 FX.phoneUS = {
-    strip(phone, country) {
+    strip(input, country) {
+        if (!input) {
+            return null
+        }
         country = country || "US"
-        if (!phone) {
-            return null
-        }
-        let stripped = phone.trim().replace(CX.REGEX_NUMERIC_STRIP1, CX.REGEX_NUMERIC_STRIP2)
         if (country !== "US") {
-            return stripped
+            return input
         }
-        // Drop the leading "1" if specified for country US:
-        if (stripped.indexOf("1") === 0) {
-            stripped = stripped.substring(1)
+        input = input.toUpperCase()
+        const inputArray = input.split("X")
+        const phone = inputArray[0]
+        const extension = inputArray.length > 1 ? inputArray[1] : null
+        let phoneStripped = phone ?
+            phone.trim().replace(CX.REGEX_NUMERIC_STRIP1, CX.REGEX_NUMERIC_STRIP2) : null
+        let extensionStripped = extension ?
+            extension.trim().replace(CX.REGEX_NUMERIC_STRIP1, CX.REGEX_NUMERIC_STRIP2) : null
+        if (phoneStripped?.indexOf("1") === 0) {
+            phoneStripped = phoneStripped.substring(1)
         }
-        return stripped
+        return phoneStripped + (extension ? `X${extensionStripped}` : "")
     },
-    render(phone, country) {
-        if (!phone) {
+    render(input, country) {
+        if (!input) {
             return null
         }
         if (country !== "US") {
-            return phone
+            return input
         }
-        return phone.replace(CX.REGEX_PHONE_RENDER1, CX.REGEX_PHONE_RENDER2)
+        const inputArray = input.split("X")
+        const phone = inputArray[0]
+        const extension = inputArray.length > 1 ? inputArray[1] : null
+        return phone.replace(CX.REGEX_PHONE_RENDER1, CX.REGEX_PHONE_RENDER2) +
+            (extension ? ` X${extension}` : "")
     }
 }
 

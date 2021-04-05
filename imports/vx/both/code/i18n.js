@@ -242,6 +242,11 @@ Meteor.i18nMessages.common = {
         fx: "$Invalid command - must be create, update or retire$"
     },
 
+    invalid_required_field_missing : {
+        en: "Required field is missing",
+        fx: "$Required field is missing$"
+    },
+
     invalid_header_path: {
         en: "Invalid schema path in header row",
         fx: "$Invalid schema path in header row$"
@@ -743,8 +748,8 @@ Meteor.i18nMessages.common = {
     },
 
     message_import_validation : {
-        en : "{{fieldIdentifier}} - {{text}}",
-        rx : "${{fieldIdentifier}} - {{text}}$"
+        en : "{{fieldIdentifier}} - [{{value}}] - {{text}}",
+        rx : "${{fieldIdentifier}} - [{{value}}] - {{text}}$"
     },
 
     message_loading : {

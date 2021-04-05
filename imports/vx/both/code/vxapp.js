@@ -996,7 +996,25 @@ VXApp = _.extend(VXApp || {}, {
             return record[definition.returnProperty]
         }
         const result = { success : false, icon : "TRIANGLE", key : "common.invalid_key" }
-        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, value)
+        return false
+    },
+
+    /**
+     * Ensure required fields have values.
+     *
+     * @param {string} value Value to test.
+     * @param {number} index Index of row containing value.
+     * @param {array} messages Array of messages.
+     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
+     * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     */
+    validateRequired(value, index, messages, fieldIdKey, fieldIdVariables) {
+        if (!!value) {
+            return true
+        }
+        const result = { success : false, icon : "TRIANGLE", key : "common.invalid_required_field_missing" }
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, value)
         return false
     },
 
@@ -1016,27 +1034,41 @@ VXApp = _.extend(VXApp || {}, {
         if (result.success) {
             return true
         }
-        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, value)
         return false
     },
 
     /**
-     * Validation that a given value is one of an allowable list of codes.
+     * Lookup the code matching a supplied value.
      *
-     * @param {string} value Value to test.
-     * @param {array} Array of allowable codes.
+     * @param {object} definition Import schema definition.
+     * @param {string} value Value to use to lookup code.
+     * @param {array} codeArray Standard code array bearing codes and localizations.
      * @param {number} index Index of row containing value.
      * @param {array} messages Array of messages.
      * @param {string} fieldIdKey i18n bundle key of field-identifier message.
      * @param {object} fieldIdVariables Variables to insert into field-identifier message.
      */
-    validateCodeValue(value, array, index, messages, fieldIdKey, fieldIdVariables) {
-        if (array.includes(value)) {
-            return true
+    lookupCode(definition, value, codeArray, index, messages, fieldIdKey, fieldIdVariables) {
+        for (const codeElement of codeArray) {
+            if (codeElement.code.toUpperCase() === value.toUpperCase()) {
+                return codeElement.code
+            }
+            if (codeElement.localized.toUpperCase() === value.toUpperCase()) {
+                return codeElement.code
+            }
+            if (definition.partial) {
+                if (codeElement.code.toUpperCase().includes(value.toUpperCase())) {
+                    return codeElement.code
+                }
+                if (codeElement.localized.toUpperCase().includes(value.toUpperCase())) {
+                    return codeElement.code
+                }
+            }
         }
         const result = { success : false, icon : "TRIANGLE", key : "common.invalid_code_value" }
-        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
-        return false
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, value)
+        return null
     },
 
     /**
@@ -1053,7 +1085,7 @@ VXApp = _.extend(VXApp || {}, {
             return true
         }
         const result = { success : false, icon : "TRIANGLE", key : "common.invalid_command" }
-        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, command)
         return false
     },
 
@@ -1065,10 +1097,11 @@ VXApp = _.extend(VXApp || {}, {
      * @param {array} messages Array of messages.
      * @param {string} fieldIdKey i18n bundle key of field-identifier message.
      * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     * @param {string} value Key value
      */
-    validateRecordNotFound(index, messages, fieldIdKey, fieldIdVariables) {
+    validateRecordNotFound(index, messages, fieldIdKey, fieldIdVariables, value) {
         const result = { success : false, icon : "TRIANGLE", key : "common.invalid_key" }
-        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables)
+        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, value)
         return false
     },
 
@@ -1080,13 +1113,15 @@ VXApp = _.extend(VXApp || {}, {
      * @param {array} messages Array of messages.
      * @param {string} fieldIdKey i18n bundle key of field-identifier message.
      * @param {object} fieldIdVariables Variables to insert into field-identifier message.
+     * @param {string} value Value responsible for the validation error.
      */
-    validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables) {
+    validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, value) {
         const message = {}
         message.index = index
         message.fieldIdKey = fieldIdKey
         message.fieldIdVariables = fieldIdVariables
         message.result = result
+        message.value = value
         messages.push(message)
     },
 
