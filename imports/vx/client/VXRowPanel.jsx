@@ -102,6 +102,7 @@ export default class VXRowPanel extends Component {
         }
         VXApp.addRow(this.props.collection, this.props.record, this.props.rowsPath,
             this.props.rowId)
+        UX.scrollToBottom($(`#${this.props.id}-row-list`))
     }
 
     handleClickRemove(event) {

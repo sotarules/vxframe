@@ -11,7 +11,7 @@ $.fn.multiselectable = function(options) {
     }
     options = $.extend({}, $.fn.multiselectable.defaults, options)
 
-    function touchstart(e) {
+    function touchstart() {
         const item = $(this)
         const parent = item.parent()
         if (options.multi) {
@@ -52,9 +52,9 @@ $.fn.multiselectable = function(options) {
 
     function handleMulti(item, parent, ctrlKey, shiftKey, metaKey) {
         const myIndex = item.index()
-        let prev = parent.find(".multiselectable-previous")
+        let prev = parent.children(".multiselectable-previous")
         // If no previous selection found, start selecting from first selected item.
-        prev = prev.length ? prev : $(parent.find("." + options.selectedClass)[0]).addClass("multiselectable-previous")
+        prev = prev.length ? prev : $(parent.children("." + options.selectedClass)[0]).addClass("multiselectable-previous")
 
         const prevIndex = prev.index()
 
@@ -66,7 +66,7 @@ $.fn.multiselectable = function(options) {
                 }
             }
             else {
-                parent.find(".multiselectable-previous").removeClass("multiselectable-previous")
+                parent.children(".multiselectable-previous").removeClass("multiselectable-previous")
                 item.addClass(options.selectedClass).addClass("multiselectable-previous")
                 if (item.not(".child").length) {
                     item.nextUntil(":not(.child)").addClass(options.selectedClass)
@@ -75,7 +75,7 @@ $.fn.multiselectable = function(options) {
         }
 
         if (shiftKey) {
-            let last_shift_range = parent.find(".multiselectable-shift")
+            let last_shift_range = parent.children(".multiselectable-shift")
             last_shift_range.removeClass(options.selectedClass).removeClass("multiselectable-shift")
 
             let shift_range
@@ -88,7 +88,7 @@ $.fn.multiselectable = function(options) {
             shift_range.addClass(options.selectedClass).addClass("multiselectable-shift")
         }
         else {
-            parent.find(".multiselectable-shift").removeClass("multiselectable-shift")
+            parent.children(".multiselectable-shift").removeClass("multiselectable-shift")
         }
 
         if (!ctrlKey && !metaKey && !shiftKey) {
@@ -97,9 +97,9 @@ $.fn.multiselectable = function(options) {
     }
 
     function handleSingle(item, parent) {
-        parent.find(".multiselectable-previous").removeClass("multiselectable-previous")
+        parent.children(".multiselectable-previous").removeClass("multiselectable-previous")
         if (!item.hasClass(options.selectedClass)) {
-            parent.find("." + options.selectedClass).removeClass(options.selectedClass)
+            parent.children("." + options.selectedClass).removeClass(options.selectedClass)
             item.addClass(options.selectedClass).addClass("multiselectable-previous")
             if (item.not(".child").length) {
                 item.nextUntil(":not(.child)").addClass(options.selectedClass)
@@ -116,8 +116,8 @@ $.fn.multiselectable = function(options) {
     }
 
     function clickSingle(item, parent) {
-        parent.find(".multiselectable-previous").removeClass("multiselectable-previous")
-        parent.find("." + options.selectedClass).removeClass(options.selectedClass)
+        parent.children(".multiselectable-previous").removeClass("multiselectable-previous")
+        parent.children("." + options.selectedClass).removeClass(options.selectedClass)
         item.addClass(options.selectedClass).addClass("multiselectable-previous")
         if (item.not(".child").length) {
             item.nextUntil(":not(.child)").addClass(options.selectedClass)
@@ -141,8 +141,7 @@ $.fn.multiselectable = function(options) {
         if (isFocusInSameList(event)) {
             return
         }
-
-        clearAll(event)
+        clearAll($(event.currentTarget))
     }
 
     function isFocusInSamePanel(event) {
@@ -161,11 +160,13 @@ $.fn.multiselectable = function(options) {
         return sameList
     }
 
-    function clearAll(event) {
-        const $list = $(event.currentTarget)
-        $list.find(".list-group-item").removeClass(options.selectedClass)
-        $list.find(".list-group-item").removeClass("multiselectable-previous")
-        $list.find(".list-group-item").removeClass("multiselectable-shift")
+    function clearAll($list) {
+        $list.children(".list-group-item").removeClass(options.selectedClass)
+        $list.children(".list-group-item").removeClass("multiselectable-previous")
+        $list.children(".list-group-item").removeClass("multiselectable-shift")
+        $list.parents(".list-group-item").removeClass(options.selectedClass)
+        $list.parents(".list-group-item").removeClass("multiselectable-previous")
+        $list.parents(".list-group-item").removeClass("multiselectable-shift")
     }
 
     return this.each(function() {

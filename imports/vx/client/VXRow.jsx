@@ -18,7 +18,7 @@ export default class VXRow extends Component {
 
     render() {
         return (
-            <div tabIndex={this.props.selectable ? "0" : null}
+            <div tabIndex={this.tabIndex()}
                 id={this.props.id}
                 className={"list-group-item flexi-fixed entity-control-container " +
                     `${this.paddingClassName()} ${this.viewEditClassName()} ${this.props.itemClassName || ""}`}
@@ -27,6 +27,10 @@ export default class VXRow extends Component {
                 {this.renderControls()}
             </div>
         )
+    }
+
+    tabIndex() {
+        return (this.props.selectable || this.props.editable) ? "0" : null
     }
 
     renderControls() {

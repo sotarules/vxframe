@@ -2931,5 +2931,16 @@ UX = {
      */
     removeLocalStorageWithExpiry(key) {
     	localStorage.removeItem(key)
+    },
+
+    /**
+     * Scroll to the bottom of the specified element.
+     *
+     * @param {object} $element jQuery element to scroll.
+     */
+    scrollToBottom($element) {
+        Meteor.setTimeout(() => {
+            $element.scrollTop($element[0].scrollHeight)
+        }, 100)
     }
 }

@@ -1,7 +1,7 @@
 import {Component} from "react"
 import VXInput from "/imports/vx/client/VXInput"
 import PropTypes from "prop-types"
-import VXCheck from "../../vx/client/VXCheck"
+import VXCheck from "/imports/vx/client/VXCheck"
 
 export default class Signin2FABody extends Component {
 
