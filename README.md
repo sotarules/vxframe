@@ -121,5 +121,5 @@ These NPMs are developer dependencies, particularly for dealing with JSLint in y
 
 | Package  | Description |
 | --- | --- |
-| babel-eslint eslint eslint-config-airbnb  eslint-import-resolver-meteor eslint-plugin-import eslint-plugin-import eslint-plugin-jsx-a11y eslint-plugin-meteor eslint-plugin-react | These packages help maximize your productivity by enabling JavaScript linting support. I use Sublime Text 3 which has plug-ins that work with these packages to give you the supreme experience, including syntax highlighting, syntax error recognition and missing variable flagging. If you don't have this you're really missing out. It is tricky to get set up, but worth it. |
+| babel-eslint eslint eslint-config-airbnb  eslint-import-resolver-meteor eslint-plugin-import eslint-plugin-import eslint-plugin-jsx-a11y eslint-plugin-meteor eslint-plugin-react | These packages help maximize your productivity by enabling JavaScript linting support.
 
