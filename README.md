@@ -16,14 +16,22 @@ goals are to reduce development cost and to make the development process fun.
 * React-based input controls snap together like Lego blocks
 * Declarative data binding to MongoDB 
 * Declarative rule-based validation and formatting 
-* Supports both client-side and server-side validation 
+* Client-side and server-side validation 
 * Dynamic or deferred database updates (Save/Cancel)
 * Flexible database schema (Collection2)
-* Parameterized event notifications via email (Mailgun) or SMS (Twilio)
-* Logging to database (both client and server)
+* Generalized events system for monitoring and analytics
+* Generalized notification system for events (push, SMS, email)
+* Generalized logging subsystem logs to MongoDB instead of files
 * Multitenant design partitions application into tenants and domains
-* User accounts supporting enrollment requests, password reset requests
-* User profile including photo images stored on S3, Rackspace or other 
+* Accounts system supports enrollment, password reset
+* Two-factor authentication (Google Authenticator, Microsoft Authenticatior, Authy)
+* Image upload and cropping of images stored on S3, Rackspace or other
+* Comprehensive support for drag-and-drop
+* Framework for Undo/Redo
+* Framework for CSV import
+* Framework for email reporting
+* Framework for user-written JavaScript functions
+* Support for context menus and "hover" controls
 * Build and push scripts to facilitate frequent code changes
 * Infrastructure for managing health of external systems
 * Scalable via Nginx clustering and MongoDB replication
@@ -40,25 +48,35 @@ Although Atmosphere is considered "legacy" now, it is still a very convenient wa
 | aldeed:collection2  | Must-have package allows you to define a MongoDB schema. Creating a production system without this is suicide. |
 | dsyko:holder  | Holder.js package allows the VXImage component to render a "stand-in" image when the real image has not yet been specified.  |
 | ecmascript  | Must-have compiler plugin that supports ES2015+ in all .js files. You want this, trust me. |
+| meteor-node-csv | Import subsystem for CSV. |
 | dynamic-import  | Runtime support for Meteor 1.5 dynamic import syntax |
 | email   | Very convenient way of sending emails (in VXFrame the basic email package is used together with Mailgun).  |
+| ejson | Extended library for safely serializing JSON |
+| fetch | New-and-improved way of making HTTP calls. |
+| jkuester:http | Make HTTP calls to remote services using fetch API. |
 | es5-shim  | Shim and polyfills to improve ECMAScript 5 support.  |
 | http | Must-have package to make HTTP calls to remote servers. Enough said.  |
 | joshowens:timezone-picker  | VXFrame uses this package not for the picker but to do automatic timezone detection. |
-| kidovate:pnotify   | Beautiful and modern desktop and in-browser notifications.  VXFrame absolutely relies on this.  |
-| lepozepo:accounting  | Accounting.js -  number, money and currency formatting - fully localizable, zero dependencies. |
+| kidovate:pnotify   | Beautiful and modern desktop and in-browser notifications. VXFrame absolutely relies on this.  |
+| lepozepo:accounting  | Accounting.js - number, money and currency formatting - fully localizable, zero dependencies. |
 | less  | This is necessary because Bootstrap is the front-end of VXFrame. |
 | lookback:emails | Provide the infrastructure for HTML email reports, part of the VXFrame Profile subsystem. |
+| matb33:collection-hooks | Collection hooks to support rule-based back-end behaviors. |
 | meteorhacks:picker  | Server Side Router for Meteor. |
+| mikowals:batch-insert | Super-fast batch insert for large-scale CSV import. |
+| miazzo:user-status | User login/logout tracking. |
+| mobile-experience | Packages for a great mobile experience. |
 | momentjs:moment  | Absolutely must-have package, Moment.js allows you to parse, validate, manipulate, and display dates |
 | mrt:jquery-ui-sortable | Reorder elements in a list or grid using the mouse, this supports VXFrame drag/drop processing. |
 | mrt:moment-timezone  | Must-have package that fully supports user timezones (sister of Moment.js). |
+| ostrio:files | Full support for upload to S3 and rackspace including progress bars and cancellability. |
 | pcel:loading  | A beautiful loading splash screen (please-wait + spinkit bundle), VXFrame uses this package to display animation whenever the user chooses a new route (i.e., subsystem) via the off-canvas navigation fly-out.  |
 | random   | Random number generator and utilities  |
 | react-meteor-data  | React higher-order component for reactively tracking Meteor data  |
 | reactive-var  | Reactive variables are very handy, particularly in Meteor/React high-level containers.  |
 | static-html  | Define static page content in .html files  |
 | tsega:bootstrap3-datetimepicker  | Bootstrap 3 DateTime picker.  After evaluating several comparable widgets, I chose this one. It works great and really looks Bootstrap-like.  |
+| underscore | Swiss army knife of utility functions - a must have. |
 
 ## NPM Dependencies
 
@@ -66,23 +84,33 @@ Best practices for Meteor suggest that whenever possible you use raw NPM package
 
 | Package  | Description |
 | --- | --- |
+| @babel/runtime | Allows browser compatibility while coding with cutting edge JavaScript features. |
+| ace-builds | Support for the ACE editor - allows user editing of JavaScript rules. |
+| async | Support for dealing with queues. |
+| aws-sdk | Permits uploading of images to Amazon S3. |
 | bcrypt | Superb library to hash passwords, used by Meteor accounts subsystem. |
 | core-js |  Polyfills for ECMAScript 5, ECMAScript 6: promises, symbols and collections. |
+| cropperjs | Support for resizing and cropping uploaded images. |
+| fast-safe-stringify | Does exactly what the package title implies. |
 | fibers | Support for Fibers and Futures, gives JavaScript the ability to block on the server side, making code look almost normal. Must-have for Meteor applications. |
 | html-react-parser | Makes it possible to include HTML tags in dynamically-created strings and have them parsed as honest-to-god React components.  Very useful, particularly for i18n bundles that contain HTML elements for fancy formatting. |
 | ladda | Allows buttons to have an operations-in-progress spinner that looks very similar to the one used in iOS.  Gives unambiguous feedback on touch devices where it can sometimes be unclear whether a button has been pressed.  VXFrame uses Ladda-style buttons across the board for consistency. |
+| lodash | Swiss army knife of functions - must have. |
+| meteor-node-stubs | Compatibility layer for Meteor access to Node.js resources. |
 | node-sass | Supports lookback:emails package, allowing the system to render and send HTML email reports which are initially rendered on the server side.  Very cool technology.  The report templates have CSS layout rules expressed in SASS; thus VXFrame uses both LESS (Bootstrap front end) and SASS (reports back end).  Call it job security. |
-| aws-sdk | Permits uploading of images to Amazon S3. |
+| otplib | Support for QR codes - part of the 2FA support sibsystem. |
 | prop-types | React property types metadata, key to allowing components to declare "schemas" which clearly define their property input expections. This allows you to implement design-by-contract-style pre-conditions, incredibly helpful. I've lived without it (painfully) under Blaze, and I'm never going back. |
 | react | React is perhaps the best way to develop modern responsive web applications, at least at the time of this writing. |
-| react-bootstrap | React component wrappers for Bootstrap widgets. Used by VXFrame to deal with overlays such as Bootstrap popovers.  |
+| react-ace | Support for ACE editor - allows user editing of JavaScript rules. |
 | react-contextify | Gives you no-bullshit context menus in React. |
 | react-dom | Important part of React. |
+| react-fast-compare | Allows quick deep comparison of JavaScript objects. |
 | react-fastclick | Gets rid of annoying 350ms delay on touch devices, definitely a must-have package. |
 | react-helmet | Gives you convenient access to HTML header elements with simple React components. |
 | react-redux | Official React bindings for Redux. |
 | react-router-dom | Perhaps best router for React very clean and lets you have ultra-granular routes. |
 | react-transition-group | State-of-the-art package for implementing animations on React. It took a lot of time to master this package, but now it handles VXFrame slide and cross-fade animations. Hats off to the developers, they clearly worked their butts off on this package, and I can see that this generalized approach can handle most animation requirements. |
+| readable-stream | Does just what the package title implies. |
 | redux | Over-engineered and overly-complex browser state management, loved by propeller-heads and barely tolerated by regular developers, works hand-in-glove with Meteor tracker to control local state. |
 | redux-actions | Flux Standard Action utilities for Redux. |
 | redux-persist | Saves and automatically restores Redux in Windows local storage. |
@@ -94,21 +122,4 @@ These NPMs are developer dependencies, particularly for dealing with JSLint in y
 | Package  | Description |
 | --- | --- |
 | babel-eslint eslint eslint-config-airbnb  eslint-import-resolver-meteor eslint-plugin-import eslint-plugin-import eslint-plugin-jsx-a11y eslint-plugin-meteor eslint-plugin-react | These packages help maximize your productivity by enabling JavaScript linting support. I use Sublime Text 3 which has plug-ins that work with these packages to give you the supreme experience, including syntax highlighting, syntax error recognition and missing variable flagging. If you don't have this you're really missing out. It is tricky to get set up, but worth it. |
-
-## Sublime Text 3 Plug-ins
-
-If you're going to work with VMFrame, I strongly recommend you use Sublime Text 3. Coming from the Java community, I was a fan of Eclipse for years, but Sublime Text 3 is far superior, particularly if you take the time to get the JSLint plug-ins working. It has increased my productivity quite a bit.
-
-| Plug-in  | Description |
-| --- | --- |
-| Babel | Syntax definitions for ES6 JavaScript with React JSX extensions |
-| ClearConsole | A hacky way to clear the console in Sublime |
-| JavaScriptNext | ES6 Syntax (no further description provided) |
-| JsPrettier | JsPrettier is a Sublime Text Plug-in for Prettier, the opinionated code formatter |
-| LESS | LESS Syntax highlighting for Sublime Text |
-| Oceanic Next Color Scheme | Best color scheme I've found for JavaScript development |
-| SublimeGit | GIT integration for Sublime Text 3 |
-| SublimeLinter | The code linting framework for Sublime Text 3 |
-| SublimeLinter-eslint | The inter plugin for SublimeLinter that provides an interface to ESLint |
-| Whitespace | Remove Trailing Whitespace for Sublime Text |
 
