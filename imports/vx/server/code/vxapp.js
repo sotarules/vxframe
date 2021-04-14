@@ -1,4 +1,4 @@
-import { authenticator } from "otplib"
+import {authenticator} from "otplib"
 import crypto from "crypto"
 
 VXApp = _.extend(VXApp || {}, {
@@ -1669,4 +1669,48 @@ VXApp = _.extend(VXApp || {}, {
         }
         return crypto.createHash("sha256").update(user.services.twoFactorSecret).digest("base64")
     },
+
+    /**
+     * Convert a given image at the end of a URL to data URL format.
+     *
+     * @param {string} url Web URL pointing to image.
+     * @return {string} Data URL.
+     */
+    async toDataUrl(url) {
+        try {
+            if (!_.isString(url)) {
+                OLog.error(`vxapp.js toDataUrl parameter check failed url=${url}`)
+                return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
+            }
+            if (!Meteor.userId()) {
+                OLog.error("vxapp.js toDataUrl security check failed user is not logged in")
+                return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
+            }
+            const response = await fetch(url)
+            const arrayBuffer = await response.arrayBuffer()
+            const dataUrl = `data:image/jpeg;base64,${VXApp.arrayBufferToBase64(arrayBuffer)}`
+            return { success: true, icon: "CHECK", key: "common.alert_transaction_success", dataUrl: dataUrl }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js toDataUrl unexpected error=${error}`)
+            return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
+                variables: { error: error.toString() } }
+        }
+    },
+
+    /**
+     * Convert the supplied buffer into Base64 form.
+     *
+     * @param {object} buffer Array buffer.
+     * @return {sting} Base64-encoded string.
+     */
+    arrayBufferToBase64(buffer) {
+        let binary = ""
+        const bytes = new Uint8Array(buffer)
+        const len = bytes.byteLength
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[ i ])
+        }
+        return new Buffer(binary, "binary").toString("base64")
+    }
 })

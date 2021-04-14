@@ -154,6 +154,10 @@ Meteor.methods({
         return RecordImporter.uploadRequestStop(uploadType)
     },
 
+    toDataUrl(url) {
+        return VXApp.toDataUrl(url)
+    },
+
     performanceSetCapture(capture) {
         return Performance.setCapture(capture)
     },

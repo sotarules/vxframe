@@ -435,6 +435,16 @@
         rx : "$Don't ask me for the code again for 30 days when I use this computer$"
     },
 
+    label_crop_image : {
+        en : "Crop Image",
+        rx : "$Crop Image$"
+    },
+
+    label_crop_image_to_square : {
+        en : "Crop your image to a square for best results",
+        rx : "$Crop your image to a square for best results$"
+    },
+
     empty_tenants : {
         en : "There are no tenants to display",
         rx : "$There are no tenants to display$"

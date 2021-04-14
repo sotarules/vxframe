@@ -965,6 +965,22 @@ UX = {
     },
 
     /**
+     * Determine whether a given route path is the referrer, that is to say,
+     * it is most recently-added route on the stack.
+     *
+     * @param {string} routePath Route path to find.
+     * @return {boolean} True if the specified route is the referrer.
+     */
+    iosIsRouteReferrer(routePath) {
+        const stack = UX.getIosStack()
+        if (stack.length === 0) {
+            return false
+        }
+        const lastPath = stack[stack.length - 1].path
+        return lastPath.startsWith(routePath)
+    },
+
+    /**
      * Prevent iOS "rubber-banding" on scroll.
      */
     noRubberBand() {
@@ -1829,13 +1845,13 @@ UX = {
      * @param {function} callback After image update callback.
      */
     updateImage(component, callback) {
-        let content = component.getValue()
-        let formProps = UX.getFormProps(component)
+        const content = component.getValue()
+        const formProps = UX.getFormProps(component)
         // If this is an HTTP URL something is wrong, it means that Jasny File Input has not replaced the standard URL
         // with a Data URL.  This may be caused by the event listener being called twice after the Data URL has already
         // been replaced with the permanent URL.
         if (Util.isHttpUrl(content)) {
-            OLog.debug("ux.js updateImage HTTP URL content detected, no further action will be taken, content=" + content)
+            OLog.debug(`ux.js updateImage HTTP URL content detected, no further action will be taken, content=${content}`)
             callback(null, { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" })
             return
         }
@@ -1854,8 +1870,8 @@ UX = {
         // If this is a data URL, the user has changed the image, time to update the storage system:
         if (Util.isDataUrl(content)) {
             let filename = Util.makeImageFilename(component.props.imageType, content)
-            $set[dbName] = CX.CLOUDFILES_PREFIX + "/" + filename
-            OLog.debug("ux.js updateImage data URL detected, user has changed image, calling putImage, $set[dbName]=" + $set[dbName])
+            $set[dbName] = `${CX.CLOUDFILES_PREFIX}/${filename}`
+            OLog.debug(`ux.js updateImage data URL detected, user has changed image, calling putImage, $set[dbName]=${$set[dbName]}`)
             Meteor.call("putImage", filename, content, (error, result) => {
                 if (!error && result && result.success) {
                     UX.updateImageUrl(formProps.collection, formProps._id, $set)

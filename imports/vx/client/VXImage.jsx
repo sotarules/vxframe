@@ -1,5 +1,6 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
+import VXImageModal from "./VXImageModal"
 
 export default class VXImage extends Component {
 
@@ -43,27 +44,27 @@ export default class VXImage extends Component {
 
     reset() {
         this.setState(this.originalState, () => {
-            let selector = "#" + this.props.id
-            $(selector).fileinput("reset")
+            $(this.selector()).fileinput("reset")
         })
     }
 
     componentDidMount() {
         UX.register(this)
-        let selector = "#" + this.props.id
-        $(selector).fileinput()
+        $(this.selector()).fileinput()
         Holder.run()
-        $(selector).on("change.bs.fileinput clear.bs.fileinput", () => {
-            let $img = $(selector + " > .fileinput-preview > img")
-            let content = $img.exists() ? $img.attr("src") : null
+        $(this.selector()).on("change.bs.fileinput clear.bs.fileinput", () => {
+            const $img = $(`${this.selector()} > .fileinput-preview > img`)
+            const content = $img.exists() ? $img.attr("src") : null
             this.setState( { value: Util.getNullAsEmpty(content) } )
-            let form = UX.findForm(this.props.id)
-            if (form.props.dynamic) {
-                UX.updateImage(this, (error, result) => {
-                    UX.notify(result, error, true)
-                })
+            if (content) {
+                this.showCropModal()
+                return
             }
         })
+    }
+
+    selector() {
+        return `#${this.props.id}`
     }
 
     componentWillUnmount() {
@@ -72,13 +73,13 @@ export default class VXImage extends Component {
 
     UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug("VXImage.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
+            //OLog.debug(`VXImage.jsx UNSAFE_componentWillReceiveProps componentId=${this.props.id} value=${newProps.value} *update*`)
             this.setValue(newProps.value)
         }
     }
 
     componentWillUnmount() {
-        let selector = "#" + this.props.id
+        let selector = `#${this.props.id}`
         $(selector).off("change.bs.fileinput clear.bs.fileinput")
     }
 
@@ -92,11 +93,15 @@ export default class VXImage extends Component {
 
     render() {
         return (
-            <div id={this.props.id} className={this.imagePickerClasses()} data-provides="fileinput">
+            <div id={this.props.id}
+                className={this.imagePickerClasses()}
+                data-provides="fileinput">
                 <div className="fileinput-new thumbnail" style={this.styles().thumbnail}>
-                    <img id="img-holder" data-src={"holder.js/" + this.sizeData[this.props.size].holder} alt="..."/>
+                    <img id="img-holder" data-src={`holder.js/${this.sizeData[this.props.size].holder}`} alt="..."/>
                 </div>
-                <div className="fileinput-preview fileinput-exists thumbnail" style={this.styles().preview}>
+                <div className="fileinput-preview fileinput-exists thumbnail"
+                    style={this.styles().preview}
+                    onDoubleClick={this.handleDoubleClickCrop.bind(this)}>
                     <img src={this.state.value}/>
                 </div>
                 <div className="btn-small-icon-container">
@@ -111,7 +116,7 @@ export default class VXImage extends Component {
                     <a id="button-remove"
                         className="btn btn-default btn-xs btn-small-icon-choose fileinput-exists pull-right"
                         data-dismiss="fileinput"
-                        onClick={this.handleClickRemove()}>
+                        onClick={this.handleClickRemove.bind(this)}>
                         <span className="fa fa-minus fa-sm"></span>
                     </a>
                 </div>
@@ -124,10 +129,54 @@ export default class VXImage extends Component {
     }
 
     imagePickerClasses() {
-        return "fileinput " + (this.state.value ? "fileinput-exists" : "fileinput-new")
+        return `fileinput ${this.state.value ? "fileinput-exists" : "fileinput-new"}`
+    }
+
+    handleDoubleClickCrop() {
+        this.showCropModal()
+    }
+
+    async showCropModal() {
+        try {
+            let content
+            if (Util.isHttpUrl(this.state.value)) {
+                const results = await UX.call("toDataUrl", this.state.value)
+                if (!results.success) {
+                    UX.notify(results)
+                    return
+                }
+                content = results.dataUrl
+            }
+            else {
+                content = this.state.value
+            }
+            UX.showModal(<VXImageModal
+                component={this}
+                content={content}
+                onCrop={this.handleCrop.bind(this)}/>)
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
+    }
+
+    handleCrop(content, callback) {
+        this.setValue(content)
+        $(`${this.selector()} > .fileinput-preview > img`).attr("src", content)
+        const form = UX.findForm(this.props.id)
+        if (form.props.dynamic) {
+            UX.updateImage(this, (error, result) => {
+                UX.notify(result, error, true)
+                callback(true)
+                return
+            })
+            return
+        }
+        callback(true)
     }
 
     handleClickRemove() {
         UX.fixHolder()
+        this.handleCrop(null, () => {})
     }
 }
