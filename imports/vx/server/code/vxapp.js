@@ -1711,6 +1711,6 @@ VXApp = _.extend(VXApp || {}, {
         for (let i = 0; i < len; i++) {
             binary += String.fromCharCode(bytes[ i ])
         }
-        return new Buffer(binary, "binary").toString("base64")
+        return Buffer.from(binary, "binary").toString("base64")
     }
 })
