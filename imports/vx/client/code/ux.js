@@ -2765,19 +2765,22 @@ UX = {
      * @param {date} date Date to format.
      * @param {string} format Moment-style format (e.g., MM/DD/YYYY)
      * @param {?} userOrId User object or user ID.
+     * @param {string} timezone Timezone.
      * @return {string} Formatted date.
      */
-    formatDate(date, format, userOrId) {
+    formatDate(date, format, userOrId, timezone) {
         if (!date) {
             return null
         }
-        userOrId = userOrId || Meteor.userId()
-        const user = Util.user(userOrId)
-        if (!user) {
-            OLog.error(`ux.js formatDate unable to locate userOrId=${userOrId}`)
-            return
+        if (!timezone) {
+            userOrId = userOrId || Meteor.userId()
+            const user = Util.user(userOrId)
+            if (!user) {
+                OLog.error(`ux.js formatDate unable to locate userOrId=${userOrId}`)
+                return
+            }
+            timezone = Util.getUserTimezone(user._id)
         }
-        const timezone = Util.getUserTimezone(user._id)
         return Util.formatDate(date, timezone, format)
     },
 

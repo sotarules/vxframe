@@ -1112,6 +1112,7 @@
             this._addClass( "ui-sortable" );
 
             //Get the items
+            // 4/21/2021 - DL - Testing whether we can live without this:
             this.refresh();
 
             //Let's determine the parent's offset
@@ -1120,7 +1121,8 @@
             //Initialize mouse events for interaction
             this._mouseInit();
 
-            this._setHandleClassName();
+            // 4/21/2021 - DL - No need to do this twice "massive slowdown"
+            //this._setHandleClassName();
 
             //We're ready to go
             this.ready = true;
