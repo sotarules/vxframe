@@ -2338,12 +2338,32 @@ UX = {
     },
 
     /**
-     * Display a modal dialog in the center of the screen.
+     * Show a modal by mounting and rendering it into a specified anchor element.
      *
-     * @param {string} selector of modal to display.
+     * @param {object} element React element representing modal to be shown.
+     * @param {object} anchorSelector Optional anchor jQuery selector.
      */
-    modal(selector) {
-        $(selector).modal("show")
+    showModal(element, anchorSelector) {
+        if (!React.isValidElement(element)) {
+            OLog.error("ux.js showModal supplied element is not a React element")
+            return
+        }
+        UX.mountModal(element, anchorSelector)
+    },
+
+    /**
+     * Dismiss a modal.
+     *
+     * @param {string} componentId Modal ID or child component ID to be dismissed.
+     */
+    dismissModal(componentId) {
+        const component = UX.findModal(componentId)
+        if (!component) {
+            OLog.error(`ux.js dismissModal unable to find componentId=${componentId}`)
+            return
+        }
+        OLog.warn(`ux.js dismissModal dismissing modal componentId=${component.props.id}`)
+        $(`#${component.props.id}`).modal("hide")
     },
 
     /**
@@ -2372,7 +2392,9 @@ UX = {
      */
     mountModal(element, anchorSelector) {
         anchorSelector = anchorSelector || "#vx-anchor"
-        return ReactDOM.render(element, $(anchorSelector)[0])
+        const clonedElement = React.cloneElement(element, { anchorSelector })
+        OLog.warn(`ux.js mountModal id=${clonedElement.props.id} anchorSelector=${anchorSelector}`)
+        return ReactDOM.render(clonedElement, $(anchorSelector)[0])
     },
 
     /**
@@ -2381,47 +2403,9 @@ UX = {
      * @param {object} anchorSelector Anchor jQuery selector.
      */
     unmountModal(anchorSelector) {
-        let success = ReactDOM.unmountComponentAtNode($(anchorSelector)[0])
-        if (success) {
-            OLog.debug("ux.js unmountModal ReactDOM.unmountComponentAtNode success=" + success)
-        }
-        else {
-            OLog.error("ux.js unmountModal ReactDOM.unmountComponentAtNode success=" + success)
-        }
-    },
-
-    /**
-     * Show a modal by mounting it into the vx-anchor element.
-     *
-     * @param {object} element React element representing modal.
-     * @param {object} anchorSelector Anchor jQuery selector.
-     */
-    showModal(element, anchorSelector) {
-        if (!React.isValidElement(element)) {
-            OLog.error("ux.js showModal supplied parameter is not a React element")
-            return
-        }
-        UX.mountModal(element, anchorSelector)
-    },
-
-    /**
-     * Dismiss a modal.
-     *
-     * @param {string} componentId Modal ID or child component ID.
-     * @param {object} anchorSelector Anchor jQuery selector.
-     */
-    dismissModal(componentId, anchorSelector) {
-        let component = UX.findModal(componentId)
-        if (!component) {
-            OLog.error("ux.js dismissModal unable to find componentId=" + componentId)
-            return
-        }
         anchorSelector = anchorSelector || "#vx-anchor"
-        OLog.debug("ux.js dismissModal dismissing modal componentId=" + component.props.id)
-        $("#" + component.props.id).one("hidden.bs.modal", () => {
-            UX.unmountModal(anchorSelector)
-        })
-        $("#" + component.props.id).modal("hide")
+        const success = ReactDOM.unmountComponentAtNode($(anchorSelector)[0])
+        OLog.warn(`ux.js unmountModal ReactDOM.unmountComponentAtNode success=${success}`)
     },
 
     /**

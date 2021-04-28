@@ -7,13 +7,11 @@ export default class ModalFooterConfirm extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         onClickConfirm : PropTypes.func.isRequired,
-        onClickCancel : PropTypes.func,
-        anchorSelector : PropTypes.string
+        onClickCancel : PropTypes.func
     }
 
     static defaultProps = {
-        id : "modal-footer-confirm",
-        anchorSelector : "#vx-anchor"
+        id : "modal-footer-confirm"
     }
 
     constructor(props) {
@@ -45,7 +43,7 @@ export default class ModalFooterConfirm extends Component {
 
     handleClickCancel(callback) {
         callback()
-        UX.dismissModal(this.props.id, this.props.anchorSelector)
+        UX.dismissModal(this.props.id)
         if (this.props.onClickCancel) {
             this.props.onClickCancel()
         }
@@ -55,7 +53,7 @@ export default class ModalFooterConfirm extends Component {
         this.props.onClickConfirm(success => {
             callback()
             if (success) {
-                UX.dismissModal(this.props.id, this.props.anchorSelector)
+                UX.dismissModal(this.props.id)
             }
         }, event)
     }

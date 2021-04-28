@@ -6,12 +6,14 @@ export default class VXModal extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         backdrop : PropTypes.string,
-        width : PropTypes.string
+        width : PropTypes.string,
+        anchorSelector : PropTypes.string
     }
 
     static defaultProps = {
         backdrop : "true",
         width : "600px",
+        anchorSelector : "#vx-anchor"
     }
 
     render() {
@@ -35,7 +37,14 @@ export default class VXModal extends Component {
     }
 
     componentDidMount() {
-        OLog.debug(`VXModal.jsx componentDidMount displaying modal id=${this.props.id}`)
-        UX.modal("#" + this.props.id)
+        const selector = `#${this.props.id}`
+        OLog.warn(`VXModal.jsx componentDidMount *show* modal id=${this.props.id} ` +
+            `anchorSelector=${this.props.anchorSelector}`)
+        $(selector).modal("show")
+        $(selector).one("hide.bs.modal", () => {
+            $(selector).one("hidden.bs.modal", () => {
+                UX.unmountModal(this.props.anchorSelector)
+            })
+        })
     }
 }
