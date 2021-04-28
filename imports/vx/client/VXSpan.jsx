@@ -68,9 +68,9 @@ export default class VXSpan extends Component {
         const SpanElement = this.props.elementType
         return (
             <SpanElement id={this.props.id}
-                tabIndex={this.props.editable ? "0" : null}
+                tabIndex={this.props.editable && this.state.editing ? "0" : null}
                 className={this.className()}
-                onClick={this.handleClick.bind(this)}
+                onDoubleClick={this.handleDoubleClick.bind(this)}
                 onMouseDown={this.handleMouseDown.bind(this)}
                 onKeyDown={this.handleKeyDown.bind(this)}
                 onBlur={this.handleBlur.bind(this)}
@@ -93,6 +93,18 @@ export default class VXSpan extends Component {
         this.setState({value: Util.getNullAsEmpty(Util.toString(UX.render(this, value)))})
     }
 
+    startEditing(selectText) {
+        const $element = $(this.inputElement)
+        this.setState({ editing : true }, () => {
+            UX.startEditing($element, selectText)
+        })
+    }
+
+    stopEditing(blur) {
+        const $element = $(this.inputElement)
+        UX.stopEditing($element, blur)
+    }
+
     handleMouseDown(event) {
         if (!this.props.editable) {
             return
@@ -103,14 +115,10 @@ export default class VXSpan extends Component {
         }
     }
 
-    handleClick(event) {
-        if (!this.props.editable) {
-            return
+    handleDoubleClick() {
+        if (this.props.editable) {
+            this.startEditing()
         }
-        let $element = $(event.target)
-        this.setState({ editing : true }, () => {
-            UX.startEditing($element)
-        })
     }
 
     handleKeyDown(event) {
@@ -120,12 +128,12 @@ export default class VXSpan extends Component {
         if (event.keyCode === 27) {
             const $element = $(event.target)
             $element.text(this.originalState.value)
-            UX.stopEditing(true)
+            this.stopEditing(true)
             this.escape = true
             return false
         }
         if (event.keyCode === 13) {
-            UX.stopEditing(true)
+            this.stopEditing(true)
             return false
         }
         return true
@@ -139,10 +147,10 @@ export default class VXSpan extends Component {
             this.escape = false
             return
         }
-        let $element = $(event.target)
-        let value = $.trim($element.text())
+        const $element = $(event.target)
+        const value = $.trim($element.text())
         event.persist()
-        UX.stopEditing()
+        this.stopEditing()
         this.setState({value: value, editing : false}, () => {
             UX.validateComponent(this)
             if (this.props.onUpdate) {

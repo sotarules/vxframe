@@ -355,32 +355,36 @@ UX = {
     /**
      * Start editing the current element via contenteditable.
      *
-     * @param {object} $cell JQuery element to edit.
+     * @param {object} $element JQuery element to edit.
+     * @param {boolean} selectText True to select  text in contenteditable.
      */
-    startEditing($cell) {
-        $cell.attr("contenteditable", true)
-        $cell.addClass("selectable")
-        $cell.trigger("focus")
+    startEditing($element, selectText) {
+        $element.attr("contenteditable", true)
+        $element.addClass("selectable")
+        $element.trigger("focus")
+        if (selectText) {
+            $element.selectText()
+        }
     },
 
     /**
      * Stop editing the currently-editing element.
      *
+     * @param {object} $element jQuery element that is contenteditable.
      * @param {boolean} blur True to blur.
      */
-    stopEditing(blur) {
-        const $activeElement = $(document.activeElement)
+    stopEditing($element, blur) {
         if (blur) {
-            $activeElement.blur()
+            $element.blur()
         }
-        const contenteditable = $activeElement.attr("contenteditable")
+        const contenteditable = $element.attr("contenteditable")
         if (contenteditable) {
-            $activeElement.attr("contenteditable", false)
+            $element.attr("contenteditable", false)
         }
         window.getSelection().removeAllRanges()
-        const selectable = $activeElement.hasClass("selectable")
+        const selectable = $element.hasClass("selectable")
         if (selectable) {
-            $activeElement.removeClass("selectable")
+            $element.removeClass("selectable")
         }
     },
 

@@ -17,7 +17,6 @@ export default class VXRowList extends Component {
         emptyMessage : PropTypes.string,
         controls : PropTypes.array,
         rowFilter : PropTypes.func,
-        onSelectRow : PropTypes.func,
         onUpdateRow : PropTypes.func,
         rightPanel : PropTypes.bool,
         selectable : PropTypes.bool,

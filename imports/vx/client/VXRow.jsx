@@ -9,7 +9,10 @@ export default class VXRow extends Component {
         editable : PropTypes.bool,
         itemClassName : PropTypes.string,
         standardPadding : PropTypes.bool,
-        controls : PropTypes.array
+        controls : PropTypes.array,
+        onSelect : PropTypes.func,
+        onClick : PropTypes.func,
+        onDoubleClick : PropTypes.func
     }
 
     static defaultProps = {
@@ -22,7 +25,10 @@ export default class VXRow extends Component {
                 id={this.props.id}
                 className={"list-group-item flexi-fixed entity-control-container " +
                     `${this.paddingClassName()} ${this.viewEditClassName()} ${this.props.itemClassName || ""}`}
-                data-item-id={this.props.id}>
+                data-item-id={this.props.id}
+                onFocus={this.handleFocus.bind(this)}
+                onClick={this.handleClick.bind(this)}
+                onDoubleClick={this.handleDoubleClick.bind(this)}>
                 {this.props.children}
                 {this.renderControls()}
             </div>
@@ -65,6 +71,24 @@ export default class VXRow extends Component {
 
     viewEditClassName() {
         return this.props.editable ? "row-panel-list-group-item-edit" : "row-panel-list-group-item-view"
+    }
+
+    handleFocus(event) {
+        if (this.props.onSelect) {
+            this.props.onSelect(event, this)
+        }
+    }
+
+    handleClick(event) {
+        if (this.props.onClick) {
+            this.props.onClick(event, this)
+        }
+    }
+
+    handleDoubleClick(event) {
+        if (this.props.onDoubleClick) {
+            this.props.onDoubleClick(event, this)
+        }
     }
 
     handleClickControlSet(event) {
