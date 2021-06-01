@@ -17,6 +17,7 @@ export default class VXRowList extends Component {
         emptyMessage : PropTypes.string,
         controls : PropTypes.array,
         rowFilter : PropTypes.func,
+        onSelectRow : PropTypes.func,
         onUpdateRow : PropTypes.func,
         rightPanel : PropTypes.bool,
         selectable : PropTypes.bool,
@@ -94,7 +95,7 @@ export default class VXRowList extends Component {
     renderRows(filteredRows) {
         return filteredRows.map(row => {
             const Component = this.props.component
-            const id = get(row, this.props.rowId)
+            const id = `${this.props.id}-row-${get(row, this.props.rowId)}`
             return (
                 <Component {...this.props}
                     id={id}

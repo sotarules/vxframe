@@ -18,8 +18,9 @@ export default class ModalHeaderSimple extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className={"modal-header flexi-fixed" + (this.props.centerTitle ? " modal-title-container" : "")}>
-                <div  id={`${this.props.id}-title`}
+                className={`modal-header flexi-fixed ${this.props.centerTitle ? "modal-title-container" : ""}`}
+                ref={element => { this.element = element } }>
+                <div id={`${this.props.id}-title`}
                     className="modal-title">
                     {this.props.iconClass &&
                         <span className={this.props.iconClass}></span>
@@ -37,6 +38,7 @@ export default class ModalHeaderSimple extends Component {
     }
 
     handleClickClose() {
-        UX.dismissModal(this.props.id)
+        const modalId = UX.findModalId(this.element)
+        UX.dismissModal(modalId)
     }
 }

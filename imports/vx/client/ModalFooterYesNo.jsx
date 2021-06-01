@@ -1,6 +1,6 @@
-import { Component } from "react";
-import PropTypes from "prop-types";
-import VXButton from "/imports/vx/client/VXButton";
+import { Component } from "react"
+import PropTypes from "prop-types"
+import VXButton from "./VXButton"
 
 export default class ModalFooterYesNo extends Component {
 
@@ -15,22 +15,24 @@ export default class ModalFooterYesNo extends Component {
 
     render() {
         return (
-            <div id="modal-footer-yes-no" className="modal-footer">
+            <div id="modal-footer-yes-no"
+                className="modal-footer"
+                ref={element => { this.element = element } }>
                 <div className="row">
-                   <div className="col-sm-6 modal-button">
+                    <div className="col-sm-6 modal-button">
                         <VXButton id="button-cancel-no"
                             className="btn btn-block btn-default"
                             onClick={this.handleClickNo.bind(this)}>
                             {Util.i18n("common.button_no")}
                         </VXButton>
-                   </div>
-                   <div className="col-sm-6 modal-button">
+                    </div>
+                    <div className="col-sm-6 modal-button">
                         <VXButton id="button-cancel-yes"
                             className="btn btn-block btn-primary"
                             onClick={this.handleClickYes.bind(this)}>
                             {Util.i18n("common.button_yes")}
                         </VXButton>
-                   </div>
+                    </div>
                 </div>
             </div>
         )
@@ -38,7 +40,8 @@ export default class ModalFooterYesNo extends Component {
 
     handleClickNo(laddaCallback) {
         laddaCallback()
-        UX.dismissModal(this.props.id)
+        const modalId = UX.findModalId(this.element)
+        UX.dismissModal(modalId)
     }
 
     handleClickYes(laddaCallback) {
@@ -46,7 +49,8 @@ export default class ModalFooterYesNo extends Component {
         this.props.onClickYes((success) => {
             laddaCallback()
             if (success) {
-                UX.dismissModal(this.props.id)
+                const modalId = UX.findModalId(this.element)
+                UX.dismissModal(modalId)
             }
         })
     }

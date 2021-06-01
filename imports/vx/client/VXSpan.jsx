@@ -71,7 +71,6 @@ export default class VXSpan extends Component {
                 tabIndex={this.props.editable && this.state.editing ? "0" : null}
                 className={this.className()}
                 onDoubleClick={this.handleDoubleClick.bind(this)}
-                onMouseDown={this.handleMouseDown.bind(this)}
                 onKeyDown={this.handleKeyDown.bind(this)}
                 onBlur={this.handleBlur.bind(this)}
                 ref={inputElement => {this.inputElement = inputElement }}>
@@ -103,16 +102,6 @@ export default class VXSpan extends Component {
     stopEditing(blur) {
         const $element = $(this.inputElement)
         UX.stopEditing($element, blur)
-    }
-
-    handleMouseDown(event) {
-        if (!this.props.editable) {
-            return
-        }
-        // Do not focus the control if the user is right clicking (e.g., show context menu)
-        if (event.button === 2) {
-            event.preventDefault()
-        }
     }
 
     handleDoubleClick() {

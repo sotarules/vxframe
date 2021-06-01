@@ -476,6 +476,7 @@ UX = {
             handle : ".entity-handle",
             appendTo : document.body,
             placeholder : placeholderClassName,
+            zIndex : 2000,
             opacity : ".7",
             connectWith : `.${dropClassName}`,
             scroll : false,
@@ -732,14 +733,35 @@ UX = {
      * @return {array} Array of selected child IDs.
      */
     selectedRowIds(listId) {
-        const selectedRowIds = []
+        return UX.selectedIds(listId, "data-item-id")
+    },
+
+    /**
+     * Return the database IDs of selected rows that are children of the supplied id.
+     *
+     * @param {string} listId List ID.
+     * @return {array} Array of selected database IDs.
+     */
+    selectedDbIds(listId) {
+        return UX.selectedIds(listId, "data-db-id")
+    },
+
+    /**
+     * Return the IDs of selected rows that are children of the supplied id.
+     *
+     * @param {string} listId List ID.
+     * @param {string} attributeName Name of data attribute with ID.
+     * @return {array} Array of selected child IDs.
+     */
+    selectedIds(listId, attributeName) {
+        const selectedIds = []
         $(`#${listId}`).children(".selected").each((index, child) => {
-            const id = $(child).attr("data-item-id")
+            const id = $(child).attr(attributeName)
             if (id) {
-                selectedRowIds.push(id)
+                selectedIds.push(id)
             }
         })
-        return selectedRowIds
+        return selectedIds
     },
 
     /**
@@ -1607,8 +1629,19 @@ UX = {
      * @return {object} Modal component.
      */
     findModal(id) {
-        let $modal = $("#" + id).closest(".modal")
+        const $modal = $(`#${id}`).closest(".modal")
         return UX.findComponentById($modal.attr("id"))
+    },
+
+    /**
+     * Find the ID of the modal ID which is parent of the supplied DOM element.
+     *
+     * @param {object} element DOM element.
+     * @return {string} Modal ID.
+     */
+    findModalId(element) {
+        const $modal = $(element).closest(".modal")
+        return $modal.attr("id")
     },
 
     /**
@@ -2354,28 +2387,23 @@ UX = {
     /**
      * Dismiss a modal.
      *
-     * @param {string} componentId Modal ID or child component ID to be dismissed.
+     * @param {string} modalId Modal ID to be dismissed.
      */
-    dismissModal(componentId) {
-        const component = UX.findModal(componentId)
-        if (!component) {
-            OLog.error(`ux.js dismissModal unable to find componentId=${componentId}`)
-            return
-        }
-        OLog.warn(`ux.js dismissModal dismissing modal componentId=${component.props.id}`)
-        $(`#${component.props.id}`).modal("hide")
+    dismissModal(modalId) {
+        OLog.warn(`ux.js dismissModal dismissing modal modalId=${modalId}`)
+        $(`#${modalId}`).modal("hide")
     },
 
     /**
-     * Clear any active modal.
+     * Clear any active modals.
      */
     clearModal() {
         if ($("body").hasClass("modal-open")) {
             // Ensure animation has time to finish:
             Meteor.setTimeout(() => {
                 $(".modal").each(() => {
-                    let componentId = $(this).attr("id")
-                    UX.dismissModal(componentId)
+                    const modalId = $(this).attr("id")
+                    UX.dismissModal(modalId)
                 })
                 $("body").removeClass("modal-open")
                 $(".modal-backdrop").remove()
@@ -2392,9 +2420,14 @@ UX = {
      */
     mountModal(element, anchorSelector) {
         anchorSelector = anchorSelector || "#vx-anchor"
-        const clonedElement = React.cloneElement(element, { anchorSelector })
+        const anchorId = anchorSelector.substr(1)
+        const modalCount = $(anchorSelector).children().length + 1
+        const modalContainerId = `${anchorId}-${modalCount}`
+        const id = `${element.props.id}-${modalCount}`
+        $(anchorSelector).append(`<div id="${modalContainerId}"></div>`)
+        const clonedElement = React.cloneElement(element, { id, anchorSelector })
         OLog.warn(`ux.js mountModal id=${clonedElement.props.id} anchorSelector=${anchorSelector}`)
-        return ReactDOM.render(clonedElement, $(anchorSelector)[0])
+        return ReactDOM.render(clonedElement, $(`#${modalContainerId}`)[0])
     },
 
     /**
@@ -2404,8 +2437,12 @@ UX = {
      */
     unmountModal(anchorSelector) {
         anchorSelector = anchorSelector || "#vx-anchor"
-        const success = ReactDOM.unmountComponentAtNode($(anchorSelector)[0])
-        OLog.warn(`ux.js unmountModal ReactDOM.unmountComponentAtNode success=${success}`)
+        const anchorId = anchorSelector.substr(1)
+        const modalCount = $(anchorSelector).children().length
+        const modalContainerId = `${anchorId}-${modalCount}`
+        const success = ReactDOM.unmountComponentAtNode($(`#${modalContainerId}`)[0])
+        $(`#${modalContainerId}`).remove()
+        OLog.warn(`ux.js unmountModal modalContainerId=${modalContainerId} ReactDOM.unmountComponentAtNode success=${success}`)
     },
 
     /**

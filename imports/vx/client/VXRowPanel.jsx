@@ -3,6 +3,7 @@ import PropTypes from "prop-types"
 import {get} from "lodash"
 import VXTinyButton from "./VXTinyButton"
 import VXRowList from "./VXRowList"
+import ContextMenuCell from "./ContextMenuCell"
 
 export default class VXRowPanel extends Component {
 
@@ -21,6 +22,7 @@ export default class VXRowPanel extends Component {
         record : PropTypes.object,
         rowsPath : PropTypes.string.isRequired,
         rowId : PropTypes.string.isRequired,
+        rows : PropTypes.array,
         component : PropTypes.elementType.isRequired,
         emptyMessage : PropTypes.string.isRequired,
         draggable : PropTypes.bool,
@@ -30,11 +32,16 @@ export default class VXRowPanel extends Component {
         dropClassName : PropTypes.string,
         placeholderClassName : PropTypes.string,
         rowFilter : PropTypes.func,
+        contextMenuId : PropTypes.string,
+        contextMenuComponent : PropTypes.elementType,
+        contextMenuData : PropTypes.object,
         onDrop : PropTypes.func,
         onClickAdd : PropTypes.func,
         onClickRemove : PropTypes.func,
+        onSelectRow : PropTypes.func,
         onUpdateRow : PropTypes.func,
-        onClickPanelHeadingControl : PropTypes.func
+        onClickPanelHeadingControl : PropTypes.func,
+        onDoubleClickContextMenuCell : PropTypes.func
     }
 
     static defaultProps = {
@@ -66,26 +73,65 @@ export default class VXRowPanel extends Component {
                         </div>
                     }
                 </div>
-                <VXRowList {...this.props}
-                    id={`${this.props.id}-row-list`}
-                    editable={this.props.editable}
-                    borders={this.props.borders}
-                    bodyClassName={this.props.bodyClassName}
-                    rows={get(this.props.record, this.props.rowsPath)}
-                    rowId="id"
-                    component={this.props.component}
-                    emptyMessage={this.props.emptyMessage}
-                    draggable={this.props.draggable}
-                    droppable={this.props.droppable}
-                    selectable={this.props.selectable}
-                    multi={this.props.multi}
-                    dropClassName={this.props.dropClassName}
-                    placeholderClassName={this.props.placeholderClassName}
-                    rowFilter={this.props.rowFilter}
-                    onDrop={this.props.onDrop}
-                    onUpdateRow={this.handleUpdateRow.bind(this)}/>
+                {this.renderRowBody()}
             </div>
         )
+    }
+
+    renderRowBody() {
+        return this.props.contextMenuId ? this.renderContextMenuRowList() : this.renderRowList()
+    }
+
+    renderContextMenuRowList() {
+        return (
+            <>
+                <ContextMenuCell id={`${this.props.id}-context-menu-cell`}
+                    key={`${this.props.id}-context-menu-cell`}
+                    contextMenuId={this.props.contextMenuId}
+                    data={this.props.contextMenuData}
+                    className="flexi-grow"
+                    onDoubleClick={this.handleDoubleClickContextMenuCell.bind(this)}>
+                    {this.renderRowList()}
+                </ContextMenuCell>
+                {this.renderContextMenu()}
+            </>
+        )
+    }
+
+    renderContextMenu() {
+        const Component = this.props.contextMenuComponent
+        return (
+            <Component {...this.props}
+                id={this.props.contextMenuId}/>
+        )
+    }
+
+    renderRowList() {
+        return (
+            <VXRowList {...this.props}
+                id={`${this.props.id}-row-list`}
+                editable={this.props.editable}
+                borders={this.props.borders}
+                bodyClassName={this.props.bodyClassName}
+                rows={this.rows()}
+                rowId="id"
+                component={this.props.component}
+                emptyMessage={this.props.emptyMessage}
+                draggable={this.props.draggable}
+                droppable={this.props.droppable}
+                selectable={this.props.selectable}
+                multi={this.props.multi}
+                dropClassName={this.props.dropClassName}
+                placeholderClassName={this.props.placeholderClassName}
+                rowFilter={this.props.rowFilter}
+                onDrop={this.props.onDrop}
+                onSelectRow={this.handleSelectRow.bind(this)}
+                onUpdateRow={this.handleUpdateRow.bind(this)}/>
+        )
+    }
+
+    rows() {
+        return this.props.rows ? this.props.rows : get(this.props.record, this.props.rowsPath)
     }
 
     handleClickPanelHeadingControl(event) {
@@ -115,6 +161,12 @@ export default class VXRowPanel extends Component {
             this.props.rowsPath, this.props.rowId, UX.selectedRowIds(`${this.props.id}-row-list`))
     }
 
+    handleSelectRow(component, value) {
+        if (this.props.onSelectRow) {
+            this.props.onSelectRow(component, value)
+        }
+    }
+
     handleUpdateRow(component, value) {
         if (this.props.onUpdateRow) {
             this.props.onUpdateRow(component, value, this.props.collection, this.props.record,
@@ -124,4 +176,11 @@ export default class VXRowPanel extends Component {
         VXApp.updateRow(this.props.collection, this.props.record,
             this.props.rowsPath, this.props.rowId, component, value)
     }
+
+    handleDoubleClickContextMenuCell(event) {
+        if (this.props.onDoubleClickContextMenuCell) {
+            this.props.onDoubleClickContextMenuCell(event, this)
+        }
+    }
 }
+

@@ -1303,17 +1303,11 @@ VXApp = _.extend(VXApp || {}, {
      * @param {object} record Record to be updated.
      * @param {string} rowsPath JSON path to array of rows to be updated.
      * @param {string} rowId Name of a property that uniquely identifies row.
-     * @param {string} selectedRowIds IDs of rows to be removed.
+     * @param {array} selectedRowIds IDs of rows to be removed.
      */
     removeRow(collection, record, rowsPath, rowId, selectedRowIds) {
         try {
-            const rows = get(record, rowsPath)
-            if (!(rows && rows.length > 0)) {
-                return
-            }
-            if (selectedRowIds.length === 0) {
-                selectedRowIds.push(rows[rows.length - 1][rowId])
-            }
+            selectedRowIds = VXApp.selectedRowIds(record, rowsPath, rowId, selectedRowIds)
             const mongoPath = Util.toMongoPath(rowsPath)
             const modifier = {}
             modifier.$pull = {}
@@ -1330,6 +1324,26 @@ VXApp = _.extend(VXApp || {}, {
     },
 
     /**
+     * Return the selected row IDs. If none are supplied, return the last row ID in the row array.
+     *
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath JSON path to array of rows to be updated.
+     * @param {string} rowId Name of a property that uniquely identifies row.
+     * @param {array} selectedRowIds IDs of rows to be removed.
+     * @return {array} Selected row IDs possibly defaulted.
+     */
+    selectedRowIds(record, rowsPath, rowId, selectedRowIds) {
+        const rows = get(record, rowsPath)
+        if (!(rows && rows.length > 0)) {
+            return
+        }
+        if (selectedRowIds.length === 0) {
+            selectedRowIds.push(rows[rows.length - 1][rowId])
+        }
+        return selectedRowIds
+    },
+
+    /**
      * Update handler for VXRowPanel and VXRowList.
      *
      * @param {object} collection MongoDB collection to update.
@@ -1341,9 +1355,11 @@ VXApp = _.extend(VXApp || {}, {
      */
     updateRow(collection, record, rowsPath, rowId, component, value) {
         try {
-            // The IDs of all components must start with the row ID
-            const componentRowId = component.props.id.split("-")[0]
+            const $item = $(`#${component.props.id}`).closest(".list-group-item")
+            const componentRowId = $item.attr("data-item-id")
             if (!componentRowId) {
+                OLog.error(`vxapp.js updateRow recordId=${record._id} componentId=${component.props.id} ` +
+                    `rowsPath=${rowsPath} componentRowId=${componentRowId}`)
                 return
             }
             const rows = get(record, rowsPath)
@@ -1421,13 +1437,18 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} checkboxdbName Name of the checkbox property that controls whether the element exists.
      * @param {object} component Component that has been updated.
      * @param {?} value Value that has been updated.
+     * @param {string} componentRowId Optional component row ID.
      */
-    updateCodeArray(codeArray, collection, record, rowsPath, rowId, checkboxdbName, component, value) {
+    updateCodeArray(codeArray, collection, record, rowsPath, rowId, checkboxdbName, component, value, componentRowId) {
         try {
-            // The IDs of all components must start with the row ID
-            const componentRowId = component.props.id.split("-")[0]
             if (!componentRowId) {
-                return
+                const $item = $(`#${component.props.id}`).closest(".list-group-item")
+                componentRowId = $item.attr("data-item-id")
+                if (!componentRowId) {
+                    OLog.error(`vxapp.js updateCodeArray recordId=${record._id} componentId=${component.props.id} ` +
+                        `rowsPath=${rowsPath} componentRowId=${componentRowId}`)
+                    return
+                }
             }
             const rebuiltArray = []
             codeArray.forEach(code => {
@@ -2030,7 +2051,9 @@ VXApp = _.extend(VXApp || {}, {
         data.itemId = $item.attr("id")
         data.index = $item.index()
         data.selectedRowIds = UX.selectedRowIds(data.listId)
+        data.selectedDbIds = UX.selectedDbIds(data.listId)
         data["data-item-id"] =  $item.attr("data-item-id")
+        data["data-db-id"] =  $item.attr("data-db-id")
         return data
     }
 })

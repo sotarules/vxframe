@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import VXButton from "/imports/vx/client/VXButton"
+import VXButton from "./VXButton"
 
 export default class ModalFooterConfirm extends Component {
 
@@ -20,7 +20,9 @@ export default class ModalFooterConfirm extends Component {
 
     render() {
         return (
-            <div id={this.props.id} className="modal-footer">
+            <div id={this.props.id}
+                className="modal-footer"
+                ref={element => { this.element = element } }>
                 <div className="row">
                     <div className="col-xs-6 modal-button">
                         <VXButton id="modal-button-cancel"
@@ -43,7 +45,8 @@ export default class ModalFooterConfirm extends Component {
 
     handleClickCancel(callback) {
         callback()
-        UX.dismissModal(this.props.id)
+        const modalId = UX.findModalId(this.element)
+        UX.dismissModal(modalId)
         if (this.props.onClickCancel) {
             this.props.onClickCancel()
         }
@@ -53,7 +56,8 @@ export default class ModalFooterConfirm extends Component {
         this.props.onClickConfirm(success => {
             callback()
             if (success) {
-                UX.dismissModal(this.props.id)
+                const modalId = UX.findModalId(this.element)
+                UX.dismissModal(modalId)
             }
         }, event)
     }

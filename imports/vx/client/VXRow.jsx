@@ -5,12 +5,14 @@ export default class VXRow extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
+        itemId : PropTypes.string,
+        dbId : PropTypes.string,
         selectable : PropTypes.bool,
         editable : PropTypes.bool,
         itemClassName : PropTypes.string,
         standardPadding : PropTypes.bool,
         controls : PropTypes.array,
-        onSelect : PropTypes.func,
+        onSelectRow : PropTypes.func,
         onClick : PropTypes.func,
         onDoubleClick : PropTypes.func
     }
@@ -25,7 +27,8 @@ export default class VXRow extends Component {
                 id={this.props.id}
                 className={"list-group-item flexi-fixed entity-control-container " +
                     `${this.paddingClassName()} ${this.viewEditClassName()} ${this.props.itemClassName || ""}`}
-                data-item-id={this.props.id}
+                data-item-id={this.props.itemId}
+                data-db-id={this.props.dbId}
                 onFocus={this.handleFocus.bind(this)}
                 onClick={this.handleClick.bind(this)}
                 onDoubleClick={this.handleDoubleClick.bind(this)}>
@@ -74,8 +77,8 @@ export default class VXRow extends Component {
     }
 
     handleFocus(event) {
-        if (this.props.onSelect) {
-            this.props.onSelect(event, this)
+        if (this.props.onSelectRow) {
+            this.props.onSelectRow(event, this)
         }
     }
 

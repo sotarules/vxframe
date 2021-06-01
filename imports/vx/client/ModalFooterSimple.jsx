@@ -18,7 +18,9 @@ export default class ModalFooterSimple extends Component {
 
     render() {
         return (
-            <div id={this.props.id} className="modal-footer">
+            <div id={this.props.id}
+                className="modal-footer"
+                ref={element => { this.element = element } }>
                 <VXButton id="modal-button"
                     className={this.props.buttonClassName}
                     minimumDuration={this.props.minimumDuration}
@@ -30,14 +32,15 @@ export default class ModalFooterSimple extends Component {
     }
 
     handleClickButton(laddaCallback) {
+        const modalId = UX.findModalId(this.element)
         if (!this.props.onClickButton) {
-            UX.dismissModal(this.props.id)
+            UX.dismissModal(modalId)
             return
         }
         this.props.onClickButton((success) => {
             laddaCallback()
             if (success) {
-                UX.dismissModal(this.props.id)
+                UX.dismissModal(modalId)
             }
         })
     }

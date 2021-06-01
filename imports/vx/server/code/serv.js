@@ -2,35 +2,33 @@ Serv = {
 
     /**
      * Perform MongoDB query via aggregation pipeline.  In debug mode, this function will perform an explain plan
-     * operation followed by the actual query. The coding used is inspired Meteor Hacks aggregate package.
+     * call followed by the actual query. The coding used is inspired Meteor Hacks aggregate package.
      *
      * @param {object} collection MongoDB collection.
      * @param {array} pipeline Aggregation pipeline.
-     * @return {array} Results array.
+     * @return {array} Results array potentially grouped.
      */
-    aggregate(collection, pipeline) {
-        const logUserId = Util.getSystemUserId()
-        OLog.debug(`serv.js aggregate collection=${collection._name} pipeline=${OLog.debugString(pipeline)} ` +
-            `logLevel=${OLog.logLevel}`, logUserId)
+    async aggregate(collection, pipeline) {
+        const coll = collection.rawCollection()
         if (OLog.logLevel >= OLog.logLevelMap.DEBUG) {
-            const explainResults = Meteor.wrapAsync(collection.rawCollection().aggregate.bind(collection.rawCollection()))(pipeline, { explain: true })
-            if (explainResults) {
-                explainResults.forEach(explainResult => {
-                    explainResult.stages.forEach(stage => {
-                        if (stage.$cursor && stage.$cursor.queryPlanner && stage.$cursor.queryPlanner.winningPlan) {
-                            OLog.debug(`serv.js aggregate winningPlan=${OLog.debugString(stage.$cursor.queryPlanner.winningPlan)}`, logUserId)
-                        }
-                    })
-                })
-            }
+            const explainResults = await Meteor.wrapAsync(coll.aggregate.bind(coll))(pipeline, { explain: true }).toArray()
+            explainResults.forEach(function(explainResult) {
+                if (explainResult.ok) {
+                    if (explainResult.stages) {
+                        explainResult.stages.forEach((stage, index) => {
+                            if (stage.$cursor && stage.$cursor.queryPlanner && stage.$cursor.queryPlanner.winningPlan) {
+                                OLog.debug(`serv.js aggregate stage ${index} explain ` +
+                                    `winningPlan=${OLog.debugString(stage.$cursor.queryPlanner.winningPlan)}`)
+                            }
+                        })
+                    }
+                }
+                else {
+                    OLog.error(`serv.js aggregate explain plan error explainResult=${OLog.debugString(explainResult)}`)
+                }
+            })
         }
-        const startMoment = moment()
-        const results = Meteor.wrapAsync(collection.rawCollection().aggregate.bind(collection.rawCollection()))(pipeline)
-        const endMoment = moment()
-        const duration = endMoment.diff(startMoment)
-        OLog.debug(`serv.js aggregate collection=${collection._name} duration=${duration} results ` +
-            `length=${results.length} pipeline=${OLog.debugString(pipeline)}`, logUserId)
-        return results
+        return await Meteor.wrapAsync(coll.aggregate.bind(coll))(pipeline).toArray()
     },
 
     isAssertionTrue(assertion, operation) {
