@@ -2136,7 +2136,8 @@ UX = {
      * @param {string} animation Optional animation name.
      */
     iosInvoke(majorLabel, minorLabel, path, panel, animation) {
-        UX.stopEditing(true)
+        const $activeElement = $(document.activeElement)
+        UX.stopEditing($activeElement, true)
         Meteor.setTimeout(() => {
             animation = animation || "crossfade"
             let iosState = { ...Store.getState().iosState }
