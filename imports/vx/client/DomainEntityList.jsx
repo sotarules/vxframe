@@ -53,8 +53,8 @@ export default class DomainEntityList extends Component {
     renderDomainItems() {
         return this.props.domains.map(domain => (
             <EntityItem id={`${this.props.id}-${domain._id}`}
-                key={domain._id}
-                _id={domain._id}
+                key={`${this.props.id}-${domain._id}`}
+                itemId={domain._id}
                 collection={Domains}
                 iconUrl={Util.fetchDomainIconUrl(domain)}
                 decorationIconClassName={this.props.currentDomainId === domain._id ? "entity-decoration-icon-small fa fa-asterisk" : null}

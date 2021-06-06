@@ -5,18 +5,12 @@ import VXButton from "./VXButton"
 export default class ModalFooterYesNo extends Component {
 
     static propTypes = {
-        id : PropTypes.string.isRequired,
         onClickYes : PropTypes.func.isRequired
-    }
-
-    static defaultProps = {
-        id : "modal-footer-yes-no"
     }
 
     render() {
         return (
-            <div id="modal-footer-yes-no"
-                className="modal-footer"
+            <div className="modal-footer"
                 ref={element => { this.element = element } }>
                 <div className="row">
                     <div className="col-sm-6 modal-button">

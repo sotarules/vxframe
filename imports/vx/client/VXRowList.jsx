@@ -19,6 +19,7 @@ export default class VXRowList extends Component {
         rowFilter : PropTypes.func,
         onSelectRow : PropTypes.func,
         onUpdateRow : PropTypes.func,
+        onDrop : PropTypes.func,
         rightPanel : PropTypes.bool,
         selectable : PropTypes.bool,
         draggable : PropTypes.bool,
@@ -44,11 +45,13 @@ export default class VXRowList extends Component {
     }
 
     componentDidUpdate() {
-        // This is necessary if the drop target makes a transition between empty and non-empty:
         this.initSelectionAndDragAndDrop()
     }
 
     initSelectionAndDragAndDrop() {
+        if ($(`#${this.props.id}`).hasClass("ui-sortable")) {
+            return
+        }
         $(`#${this.props.id}`).multiselectable({ multi: this.props.multi, items: ".list-group-item" })
         if (this.props.draggable) {
             UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)
@@ -80,6 +83,7 @@ export default class VXRowList extends Component {
                 className={this.emptyListClassName()}
                 droppable={this.props.droppable}
                 dropClassName={this.props.dropClassName}
+                onDrop={this.props.onDrop}
                 emptyListSize="large"
                 emptyMessage={this.props.emptyMessage}/>
         )
@@ -95,7 +99,7 @@ export default class VXRowList extends Component {
     renderRows(filteredRows) {
         return filteredRows.map(row => {
             const Component = this.props.component
-            const id = `${this.props.id}-row-${get(row, this.props.rowId)}`
+            const id = `${this.props.id}-${get(row, this.props.rowId)}`
             return (
                 <Component {...this.props}
                     id={id}

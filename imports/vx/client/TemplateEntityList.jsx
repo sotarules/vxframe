@@ -42,9 +42,9 @@ export default class TemplateEntityList extends Component {
 
     renderEntityItems() {
         return this.props.templates.map(template => (
-            <EntityItem id={`template-entity-list-${template._id}`}
-                key={template._id}
-                _id={template._id}
+            <EntityItem id={`${this.props.id}-${template._id}`}
+                key={`${this.props.id}-${template._id}`}
+                itemId={template._id}
                 iconUrl={CX.CLOUDFILES_PREFIX + "/img/system/template5.png"}
                 decorationIconClassName={VXApp.getSubsystemStatusDecorationIconClassName("TEMPLATE", template, "small")}
                 decorationColor={VXApp.getSubsystemStatusDecorationColor("TEMPLATE", template)}

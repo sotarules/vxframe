@@ -25,10 +25,10 @@ export default class VXRow extends Component {
         return (
             <div tabIndex={this.tabIndex()}
                 id={this.props.id}
-                className={"list-group-item flexi-fixed entity-control-container " +
-                    `${this.paddingClassName()} ${this.viewEditClassName()} ${this.props.itemClassName || ""}`}
                 data-item-id={this.props.itemId}
                 data-db-id={this.props.dbId}
+                className={"list-group-item flexi-fixed entity-control-container " +
+                    `${this.paddingClassName()} ${this.viewEditClassName()} ${this.props.itemClassName || ""}`}
                 onFocus={this.handleFocus.bind(this)}
                 onClick={this.handleClick.bind(this)}
                 onDoubleClick={this.handleDoubleClick.bind(this)}>
@@ -57,8 +57,8 @@ export default class VXRow extends Component {
         return this.props.controls.map((control, index) => {
             return (
                 <a className={`entity-control-element fa fa-xs ${control.className}`}
-                    id={`${this.props.id}-${index}`}
-                    key={`${this.props.id}-${index}`}
+                    id={`${this.props.id}-control-${index}`}
+                    key={`${this.props.id}-control-${index}`}
                     data-toggle="tooltip"
                     data-container="body"
                     title={control.tooltip}

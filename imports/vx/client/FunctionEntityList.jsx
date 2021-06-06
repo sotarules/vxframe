@@ -35,9 +35,9 @@ export default class FunctionEntityList extends Component {
 
     renderEntityItems() {
         return this.props.functions.map(funktion => (
-            <EntityItem id={`function-entity-list-${funktion._id}`}
-                key={funktion._id}
-                _id={funktion._id}
+            <EntityItem id={`${this.props.id}-${funktion._id}`}
+                key={`${this.props.id}-${funktion._id}`}
+                itemId={funktion._id}
                 iconUrl={CX.CLOUDFILES_PREFIX + "/img/system/function.png"}
                 name={funktion.name}
                 description={funktion.description}

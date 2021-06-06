@@ -152,13 +152,23 @@ export default class VXRowPanel extends Component {
     }
 
     handleClickRemove(event) {
+        let selectedRowIds = UX.selectedRowIds(`${this.props.id}-row-list`)
+        if (selectedRowIds.length === 0) {
+            const rows = this.rows()
+            if (rows && rows.length > 0) {
+                selectedRowIds = [ rows[rows.length - 1][this.props.rowId] ]
+            }
+        }
+        if (selectedRowIds.length === 0) {
+            return
+        }
         if (this.props.onClickRemove) {
             this.props.onClickRemove(event, this, this.props.collection, this.props.record,
-                this.props.rowsPath, this.props.rowId, UX.selectedRowIds(`${this.props.id}-row-list`))
+                this.props.rowsPath, this.props.rowId, selectedRowIds)
             return
         }
         VXApp.removeRow(this.props.collection, this.props.record,
-            this.props.rowsPath, this.props.rowId, UX.selectedRowIds(`${this.props.id}-row-list`))
+            this.props.rowsPath, this.props.rowId, selectedRowIds)
     }
 
     handleSelectRow(component, value) {

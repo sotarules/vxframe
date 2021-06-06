@@ -8,7 +8,7 @@ export default class EntityItem extends Component {
 
     static propTypes = {
         id: PropTypes.string.isRequired,
-        _id : PropTypes.string.isRequired,
+        itemId : PropTypes.string,
         name : PropTypes.string,
         nameClassName : PropTypes.string,
         description : PropTypes.string,
@@ -41,10 +41,10 @@ export default class EntityItem extends Component {
     render() {
         return (
             <li id={this.props.id}
+                data-item-id={this.props.itemId}
                 tabIndex={this.props.selectable ? "0" : null}
                 className="list-group-item chevron-list-group-item entity-control-container"
                 onFocus={this.handleFocus.bind(this)}
-                data-item-id={this.props._id}
                 ref={node => {this.node = node}}>
                 <div className="entity-container-small">
                     <table className="entity-table">

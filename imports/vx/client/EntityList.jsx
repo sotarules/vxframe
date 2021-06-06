@@ -11,6 +11,7 @@ export default class EntityList extends Component {
         chevrons : PropTypes.bool,
         controls : PropTypes.array,
         rightPanel : PropTypes.bool,
+        rows : PropTypes.array,
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
         multi : PropTypes.bool,
@@ -31,11 +32,13 @@ export default class EntityList extends Component {
     }
 
     componentDidUpdate() {
-        // This is necessary if the drop target makes a transition between empty and non-empty:
         this.initSelectionAndDragAndDrop()
     }
 
     initSelectionAndDragAndDrop() {
+        if ($(`#${this.props.id}`).hasClass("ui-sortable")) {
+            return
+        }
         $(`#${this.props.id}`).multiselectable({ multi: this.props.multi })
         if (this.props.draggable) {
             UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)

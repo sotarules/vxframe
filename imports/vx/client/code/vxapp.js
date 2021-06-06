@@ -1307,7 +1307,6 @@ VXApp = _.extend(VXApp || {}, {
      */
     removeRow(collection, record, rowsPath, rowId, selectedRowIds) {
         try {
-            selectedRowIds = VXApp.selectedRowIds(record, rowsPath, rowId, selectedRowIds)
             const mongoPath = Util.toMongoPath(rowsPath)
             const modifier = {}
             modifier.$pull = {}
