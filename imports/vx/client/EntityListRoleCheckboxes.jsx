@@ -51,7 +51,7 @@ export default class EntityListRoleCheckboxes extends Component {
     }
 
     handleUpdate(component, value) {
-        OLog.debug("EntityListRoleCheckboxes.jsx handleUpdate componentId=" + component.props.id + " value=" + value + " _id=" + this.props._id)
+        OLog.debug(`EntityListRoleCheckboxes.jsx handleUpdate componentId=${component.props.id} value=${value} _id=${this.props._id}`)
         if (this.props.updateHandler) {
             this.props.updateHandler(component, value, component.props.userRole, this.props._id)
         }

@@ -5,13 +5,8 @@ import VXButton from "./VXButton"
 export default class ModalFooterConfirm extends Component {
 
     static propTypes = {
-        id : PropTypes.string.isRequired,
         onClickConfirm : PropTypes.func.isRequired,
         onClickCancel : PropTypes.func
-    }
-
-    static defaultProps = {
-        id : "modal-footer-confirm"
     }
 
     constructor(props) {
@@ -20,8 +15,7 @@ export default class ModalFooterConfirm extends Component {
 
     render() {
         return (
-            <div id={this.props.id}
-                className="modal-footer"
+            <div className="modal-footer"
                 ref={element => { this.element = element } }>
                 <div className="row">
                     <div className="col-xs-6 modal-button">

@@ -55,7 +55,7 @@ export default class TemplateViewLeft extends Component {
 
     handleSelectEntity(event, component) {
         const publishAuthoringTemplate = {}
-        publishAuthoringTemplate.criteria = { _id : component.props._id }
+        publishAuthoringTemplate.criteria = { _id : component.props.itemId }
         Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_templates", "RIGHT")

@@ -55,7 +55,7 @@ export default class FunctionViewLeft extends Component {
 
     handleSelectEntity(event, component) {
         const publishAuthoringFunction = {}
-        publishAuthoringFunction.criteria = { _id : component.props._id }
+        publishAuthoringFunction.criteria = { _id : component.props.itemId }
         Store.dispatch(setPublishAuthoringFunction(publishAuthoringFunction))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_functions", "RIGHT")

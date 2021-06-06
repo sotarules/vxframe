@@ -52,7 +52,7 @@ export default class DomainViewLeft extends Component {
 
     handleSelectDomain(event, component) {
         let publishCurrentDomain = {}
-        publishCurrentDomain.criteria = { _id : component.props._id }
+        publishCurrentDomain.criteria = { _id : component.props.itemId }
         OLog.debug("DomainViewLeft.jsx handleSelect will select new domain publishCurrentDomain=" + OLog.debugString(publishCurrentDomain))
         Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
         if (UX.isSlideMode()) {

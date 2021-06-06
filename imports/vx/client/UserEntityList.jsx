@@ -44,8 +44,8 @@ export default class UserEntityList extends Component {
     renderUserItems() {
         return this.props.users.map(user => (
             <EntityItem id={`${this.props.id}-${user._id}`}
-                key={user._id}
-                _id={user._id}
+                key={`${this.props.id}-${user._id}`}
+                itemId={user._id}
                 collection={Meteor.users}
                 iconUrl={Util.fetchUserPhotoUrl(user)}
                 name={Util.fetchFullName(user)}

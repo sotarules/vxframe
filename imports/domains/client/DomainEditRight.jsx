@@ -147,7 +147,7 @@ export default class DomainEditRight extends Component {
     }
 
     handleClickDelete(event, component) {
-        OLog.debug(`DomainEditRight.jsx handleClickDelete delete domainId=${this.props.domain._id} userId=${component.props._id}`)
-        VXApp.deleteUserDomain(component.props._id, this.props.domain._id)
+        OLog.debug(`DomainEditRight.jsx handleClickDelete delete domainId=${this.props.domain._id} userId=${component.props.itemId}`)
+        VXApp.deleteUserDomain(component.props.itemId, this.props.domain._id)
     }
 }

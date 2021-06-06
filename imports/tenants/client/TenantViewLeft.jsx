@@ -55,7 +55,7 @@ export default class TenantViewLeft extends Component {
 
     handleSelectTenant(event, component) {
         let publishCurrentTenant = {}
-        publishCurrentTenant.criteria = { _id : component.props._id }
+        publishCurrentTenant.criteria = { _id : component.props.itemId }
         OLog.debug("TenantViewLeft.jsx handleSelect will select new tenant publishCurrentTenant=" + OLog.debugString(publishCurrentTenant))
         Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
         if (UX.isSlideMode()) {

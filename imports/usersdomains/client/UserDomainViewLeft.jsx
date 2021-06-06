@@ -45,7 +45,7 @@ export default class UserDomainViewLeft extends Component {
                         value="DOMAINS"
                         onClick={this.handleClickDomains.bind(this)}/>
                 </RadioButtonGroup>
-                <UserEntityList id="domain-user-view-left-list"
+                <UserEntityList id="user-domain-view-left-list"
                     users={this.props.users}
                     selectable={true}
                     chevrons={true}
@@ -67,7 +67,7 @@ export default class UserDomainViewLeft extends Component {
 
     handleSelectUser(event, component) {
         const publishAuthoringUser = {}
-        publishAuthoringUser.criteria = { _id : component.props._id }
+        publishAuthoringUser.criteria = { _id : component.props.itemId }
         Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_users", "RIGHT");

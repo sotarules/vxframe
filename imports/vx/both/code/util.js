@@ -1,4 +1,5 @@
 import { get } from "lodash"
+import reactFastDeepEqual from "fast-deep-equal/es6/react"
 
 Util = {
 
@@ -2464,16 +2465,14 @@ Util = {
     },
 
     /**
-     * Deep compare objects.
+     * Deep compare objects typically React properties.
      *
      * @param {object} objectOne Input object.
      * @param {object} objectTwo Input object.
-     * @return {boolean} True if objects are deeply equivalent.
+     * @return {boolean} True if objects are deeply equal.
      */
-    deepCompare(objectOne, objectTwo) {
-        const objectOneString = EJSON.stringify(objectOne)
-        const objectTwoString = EJSON.stringify(objectTwo)
-        return objectOneString === objectTwoString
+    isDeepEqual(objectOne, objectTwo) {
+        return reactFastDeepEqual(objectOne, objectTwo)
     },
 
     /**

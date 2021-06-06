@@ -1733,8 +1733,8 @@ UX = {
             })
             return
         }
-        let modifier = UX.makeModifier(form)
-        OLog.debug("ux.js saveForm update " + form.props.collection._name + " _id=" + form.props._id + " modifier=" + OLog.debugString(modifier))
+        const modifier = UX.makeModifier(form)
+        OLog.debug(`ux.js saveForm update ${form.props.collection._name} _id=${form.props._id} modifier=${OLog.debugString(modifier)}`)
         form.props.collection.update(form.props._id, modifier, (error, result) => {
             let suppressCallback = false
             if (error) {
