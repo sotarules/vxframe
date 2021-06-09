@@ -1,7 +1,7 @@
 import {authenticator} from "otplib"
 import crypto from "crypto"
 
-VXApp = _.extend(VXApp || {}, {
+VXApp = { ...VXApp, ...{
 
     /**
      * Return the desired login expiration time in days.
@@ -34,12 +34,12 @@ VXApp = _.extend(VXApp || {}, {
      */
     onClientLogin(userId, clientVersion) {
         try {
-            OLog.debug("vxapp.js onClientLogin user " + Util.getUserEmail(userId) + " client version " + clientVersion)
+            OLog.debug(`vxapp.js onClientLogin user ${Util.getUserEmail(userId)} client version ${clientVersion}`)
             Meteor.users.update(userId, { $set: { "profile.clientVersion": Meteor.appVersion.version } })
             return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error("vxapp.js onClientLogin error=" + error)
+            OLog.error(`vxapp.js onClientLogin error=${error}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error", variables: { error: error.toString() } }
         }
     },
@@ -55,23 +55,18 @@ VXApp = _.extend(VXApp || {}, {
     clearPNotify(notificationId, sent) {
         try {
             if (!_.isString(notificationId)) {
-                OLog.error("vxapp.js clearPNotify parameter check failed notificationId=" + notificationId)
+                OLog.error(`vxapp.js clearPNotify parameter check failed notificationId=${notificationId}`)
                 return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
             }
-            let notification = Notifications.findOne(notificationId)
+            const notification = Notifications.findOne(notificationId)
             if (!notification) {
-                OLog.error("vxapp.js clearPNotify unable to find notificationId=" + notificationId)
+                OLog.error(`vxapp.js clearPNotify unable to find notificationId=${notificationId}`)
                 return { success: false, icon: "BUG", key: "common.alert_transaction_fail_notification_not_found", variables: { notificationId: notificationId } }
-            }
-            if (notification.recipientId !== Meteor.userId()) {
-                OLog.error(`vxapp.js clearPNotify notificationId=${notificationId} recipientId=${notification.recipientId} ` +
-                    `Meteor.userId()=${Meteor.userId()} *mismatch* security violation`)
-                return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
             }
             return VXApp.updateNotification(notificationId, "PNOTIFY", sent ? ["processed", "sent"] : ["processed"])
         }
         catch (error) {
-            OLog.error("vxapp.js clearPNotify unexpected error=" + error)
+            OLog.error(`vxapp.js clearPNotify unexpected error=${error}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error", variables: { error: error.toString() } }
         }
     },
@@ -86,17 +81,17 @@ VXApp = _.extend(VXApp || {}, {
      */
     updateNotification(notificationId, mode, notificationEvents, extra) {
         try {
-            let modifier = {}
+            const modifier = {}
             modifier.$set = extra || {}
             notificationEvents.forEach(notificationEvent => {
-                modifier.$set[mode + "_" + notificationEvent] = moment().toDate()
+                modifier.$set[`${mode}_${notificationEvent}`] = moment().toDate()
             })
             // OLog.debug("vxapp.js updateNotification notificationId=" + notificationId + " modifier=" + OLog.debugString(modifier))
             Notifications.update(notificationId, modifier)
             return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error("vxapp.js updateNotification unexpected error=" + error)
+            OLog.error(`vxapp.js updateNotification unexpected error=${error}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error", variables: { error: error.toString() } }
         }
     },
@@ -235,7 +230,7 @@ VXApp = _.extend(VXApp || {}, {
     cloneUser(userId) {
         try {
             if (!(_.isString(userId))) {
-                OLog.error("vxapp.js cloneUser parameter check failed userId=" + userId)
+                OLog.error(`vxapp.js cloneUser parameter check failed userId=${userId}`)
                 return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
             }
             if (!Meteor.userId()) {
@@ -244,7 +239,7 @@ VXApp = _.extend(VXApp || {}, {
             }
             let user = Meteor.users.findOne(userId)
             if (!user) {
-                OLog.error("vxapp.js cloneUser unable to find cloned userId=" + userId)
+                OLog.error(`vxapp.js cloneUser unable to find cloned userId=${userId}`)
                 return
             }
             if (!Util.isUserAdmin()) {
@@ -253,7 +248,7 @@ VXApp = _.extend(VXApp || {}, {
             }
             let tenantId = Util.getCurrentTenantId(Meteor.userId())
             if (!_.contains(Util.getTenantIds(userId), tenantId)) {
-                OLog.error("vxapp.js cloneUser security check failed cloned user " + Util.getUserEmail(userId) + " is not a member of " + Util.fetchTenantName(tenantId))
+                OLog.error(`vxapp.js cloneUser security check failed cloned user ${Util.getUserEmail(userId)} is not a member of ${Util.fetchTenantName(tenantId)}`)
                 return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
             }
             // Remove Mongo ID to prevent duplicate keys (the entire record is cloned):
@@ -267,12 +262,12 @@ VXApp = _.extend(VXApp || {}, {
             delete user.profile.userCreated
             user.username = Util.getGuid()
             user.createdAt = new Date()
-            OLog.debug("vxapp.js cloneUser inserting cloned user record=" + OLog.debugString(user))
-            let userIdNew = Meteor.users.insert(user)
+            OLog.debug(`vxapp.js cloneUser inserting cloned user record=${OLog.debugString(user)}`)
+            const userIdNew = Meteor.users.insert(user)
             return { success : true, icon : "CLONE", key : "common.alert_record_cloned_success", variables: { name: Util.fetchFullName(userId) }, userId: userIdNew }
         }
         catch (error) {
-            OLog.error("vxapp.js cloneUser unexpected error=" + error)
+            OLog.error(`vxapp.js cloneUser unexpected error=${error}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -865,8 +860,11 @@ VXApp = _.extend(VXApp || {}, {
      * @param {string} userId User ID who is inserting the record.
      * @param {object} doc Document after insert.
      * @param {object} fieldNames Field names that were updated.
+     * @param {object} modifier Modifier used to perform update.
+     * @param {object} options Options used to perform update.
+     * @param {object} previous Document before update.
      */
-    handleUpdate(collection, userId, doc, fieldNames) {
+    handleUpdate(collection, userId, doc, fieldNames, modifier, options, previous) {
         // No userId is supplied when Domains is updated by the system, no undo/redo is necessary.
         if (!userId) {
             return
@@ -874,7 +872,7 @@ VXApp = _.extend(VXApp || {}, {
         try {
             let transactions = VXApp.findTransactions(collection, userId, doc)
             if (!transactions) {
-                transactions = VXApp.makeTransactions(collection, Util.getCurrentDomainId(userId), userId, doc)
+                transactions = VXApp.makeTransactions(collection, Util.getCurrentDomainId(userId), userId, previous)
             }
             const undoStackSize = Util.getConfigValue("undoStackSize") || 100
             const selector = VXApp.makeTransactionsSelector(collection, userId, doc)
@@ -934,8 +932,8 @@ VXApp = _.extend(VXApp || {}, {
      * @param {object} collection Collection.
      * @param {string} domainId User ID.
      * @param {string} userId User ID.
-     * @param {object} doc Record being inserted or updated.
-     * @param {object} Transactions object created.
+     * @param {object} doc New document (for insert) or previous document (for update).
+     * @return {object} Transactions object that was created.
      */
     makeTransactions(collection, domainId, userId, doc) {
         const transactions = {}
@@ -1451,7 +1449,7 @@ VXApp = _.extend(VXApp || {}, {
      */
     eval(functionString, data) {
         try {
-            let func = eval(`(${functionString})`)
+            const func = eval(`(${functionString})`)
             return func.call(data, data)
         }
         catch (error) {
@@ -1713,4 +1711,4 @@ VXApp = _.extend(VXApp || {}, {
         }
         return new Buffer(binary, "binary").toString("base64")
     }
-})
+}}

@@ -15,6 +15,7 @@ export default class VXDate extends Component {
         timezone : PropTypes.string,
         adjustFunction : PropTypes.string,
         adjustParameter : PropTypes.string,
+        startOfDay : PropTypes.bool,
         rule : PropTypes.func,
         format : PropTypes.string,
         popoverPlacement : PropTypes.string,
@@ -35,13 +36,13 @@ export default class VXDate extends Component {
         popoverPlacement : "bottom",
         format : "MM/DD/YYYY hh:mm:ss A",
         showButton : true,
-        timezone : Util.getUserTimezone(Meteor.userId())
     }
 
     constructor(props) {
         super(props)
         this.state = { value : Util.getNullAsEmpty(props.value), error : false, popoverText : null }
         this.originalState = Object.assign({}, this.state)
+        this.timezone = props.timezone || Util.getUserTimezone(Meteor.userId())
     }
 
     reset() {
@@ -71,20 +72,19 @@ export default class VXDate extends Component {
             focusOnShow: false
         })
         if (this.props.value) {
-            const dateString = moment.tz(this.props.value, this.props.timezone).format(this.props.format)
+            const dateString = moment.tz(this.props.value, this.timezone).format(this.props.format)
             $(selector).data("DateTimePicker").date(dateString)
         }
         $(selector).on("dp.change", function(event) {
-            let date
-            let dateMoment = moment.tz(event.date, this.props.timezone)
+            let dateMoment = !this.props.startOfDay ?
+                moment.tz(event.date, this.timezone) :
+                moment.tz(event.date, this.timezone).startOf("day")
+            let date = ""
             if (event.date) {
                 if (this.props.adjustFunction) {
                     dateMoment = dateMoment[this.props.adjustFunction](this.props.adjustParameter)
                 }
                 date = dateMoment.toDate()
-            }
-            else {
-                date = ""
             }
             this.setState({ value : date })
             UX.validateComponent(this)
@@ -117,7 +117,7 @@ export default class VXDate extends Component {
     setValue(value) {
         this.setState({value: value}, () => {
             let selector = this.getSelector()
-            let dateString = value ? moment.tz(value, this.props.timezone).format(this.props.format) : null
+            let dateString = value ? moment.tz(value, this.timezone).format(this.props.format) : null
             //OLog.debug(`VXDate.jsx setValue componentId=${this.props.id} value=${value} dateString=${dateString}`)
             $(selector).data("DateTimePicker")?.date(dateString)
         })

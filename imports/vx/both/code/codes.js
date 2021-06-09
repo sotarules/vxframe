@@ -1,8 +1,3 @@
-/*
- * Codes and enumerations.
- */
-"use strict";
-
 Meteor.i18nMessages.codes = {
 
     locale : {
