@@ -9,9 +9,15 @@ export default class Settings extends Component {
     static propTypes = {
         user : PropTypes.object.isRequired,
         config : PropTypes.object.isRequired,
+        tenant : PropTypes.object.isRequired,
+        domain : PropTypes.object.isRequired,
         logLevels : PropTypes.array.isRequired,
         campaignUnits : PropTypes.array.isRequired,
-        admins : PropTypes.array.isRequired
+        admins : PropTypes.array.isRequired,
+        states : PropTypes.array.isRequired,
+        countries : PropTypes.array.isRequired,
+        timezones : PropTypes.array.isRequired,
+        seletUsers : PropTypes.array.isRequired
     }
 
     render() {

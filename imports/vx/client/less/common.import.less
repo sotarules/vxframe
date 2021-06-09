@@ -414,6 +414,11 @@ input[type="radio"] {
     background-color: @brand-primary;
 }
 
+// Fixes year/month selector of bootstrap datetimepicker:
+.bootstrap-datetimepicker-widget {
+    white-space: normal !important
+}
+
 .tooltip-inner {
     width: 350px;
 }
@@ -629,6 +634,7 @@ body {
 
 .popover {
     font-family: @font-family-base;
+    width: 150px;
 }
 
 .position-relative {
@@ -2408,6 +2414,10 @@ legend.group-legend {
     padding-bottom: 15px;
     padding-left: 20px;
     padding-right: 20px;
+}
+
+.modal-header-basic {
+    border-bottom: 1px solid #e5e5e5;
 }
 
 .modal-subtitle {

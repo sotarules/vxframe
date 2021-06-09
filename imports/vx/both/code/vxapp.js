@@ -1,8 +1,6 @@
-"use strict"
-
 import {get} from "lodash"
 
-VXApp = _.extend(VXApp || {}, {
+VXApp = { ...VXApp, ...{
 
     /**
      * Get key information from the current user as necessary to establish subscriptions.
@@ -11,21 +9,18 @@ VXApp = _.extend(VXApp || {}, {
      * @return {object} Result object.
      */
     getSubscriptionParameters(userId) {
-
         try {
             userId = userId || Meteor.userId()
             if (!userId) {
                 OLog.debug("vxapp.js getSubscriptionParameters security check failed user is not logged in")
                 return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
             }
-
             if (Meteor.isClient) {
                 if (Util.getCurrentDomainId(userId) === "UNKNOWN") {
                     return { success : false, icon : "TRIANGLE", key : "common.alert_subscriptions_not_ready" }
                 }
             }
-
-            let subscriptionParameters = {}
+            const subscriptionParameters = {}
             subscriptionParameters.tenantId = Util.getCurrentTenantId(userId)
             subscriptionParameters.domainId = Util.getCurrentDomainId(userId)
             subscriptionParameters.userId = userId
@@ -37,7 +32,6 @@ VXApp = _.extend(VXApp || {}, {
             subscriptionParameters.preferenceLogsDefeatTenantFilters = Util.isPreference("LOGS_DEFEAT_TENANT_FILTERS", userId)
             subscriptionParameters.preferenceAllMembersAndDomains = Util.isPreference("ALL_MEMBERS_AND_DOMAINS", userId)
             subscriptionParameters.preferenceDomainSubscription = Util.isPreference("DOMAIN_SUBSCRIPTION", userId)
-
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", subscriptionParameters : subscriptionParameters }
         }
         catch (error) {
@@ -1133,5 +1127,5 @@ VXApp = _.extend(VXApp || {}, {
     cloneName(originalName) {
         return Util.i18n("common.template_clone_name", { originalName })
     }
-})
+}}
 

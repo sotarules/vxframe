@@ -1,5 +1,3 @@
-"use strict";
-
 Performance = {
 
     capture : false,
@@ -10,7 +8,7 @@ Performance = {
 
     setCapture : function(capture) {
         Performance.capture = capture
-        console.log("performance.js capture " + (capture ? "*on*" : "*off*") )
+        console.log(`performance.js capture ${capture ? "*on*" : "*off*"}` )
     },
 
     mark : function(processKey, eventName) {

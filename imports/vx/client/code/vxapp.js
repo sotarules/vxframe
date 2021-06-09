@@ -25,7 +25,7 @@ import {
 } from "/imports/vx/client/code/actions"
 
 
-VXApp = _.extend(VXApp || {}, {
+VXApp = { ...VXApp, ...{
 
     /**
      * Handle normal signin passing email, password and potentially 2FA token to Meteor login subsystem.
@@ -1146,7 +1146,7 @@ VXApp = _.extend(VXApp || {}, {
             return { code: domain._id, localized: domain.name }
         })
         codeArray.sort((recordA, recordB) => {
-            return recordA.localized.localeCompare(recordB.localized)
+            return Util.safeCompare(recordA.localized, recordB.localized)
         })
         return codeArray
     },
@@ -1164,7 +1164,7 @@ VXApp = _.extend(VXApp || {}, {
             return { code: funktion._id, localized: funktion.description || "" }
         })
         codeArray.sort((recordA, recordB) => {
-            return recordA.localized.localeCompare(recordB.localized)
+            return Util.safeCompare(recordA.localized, recordB.localized)
         })
         return codeArray
     },
@@ -1513,9 +1513,10 @@ VXApp = _.extend(VXApp || {}, {
      */
     handleDropMultiPrime(parameters) {
         try {
-            const singleList =
+            const singleUpdate =
                 parameters.sourceCollection === parameters.targetCollection &&
-                parameters.sourceRecord._id === parameters.targetRecord._id &&
+                parameters.sourceRecord._id === parameters.targetRecord._id
+            const singleList = singleUpdate &&
                 parameters.sourceRowsPath === parameters.targetRowsPath
             const dropInfo = parameters.dropInfo
             const sourceRows = get(parameters.sourceRecord, parameters.sourceRowsPath, [])
@@ -1567,66 +1568,27 @@ VXApp = _.extend(VXApp || {}, {
                     }
                 }
             }
-            if (!singleList) {
-                const mongoPath = Util.toMongoPath(parameters.sourceRowsPath)
+            if (singleUpdate) {
                 const modifier = {}
                 modifier.$set = {}
-                modifier.$set[mongoPath] = sourceRows
-                OLog.debug(`vxapp.js handleDropMultiPrime *source* recordId=${parameters.sourceRecord._id} ` +
-                    `rowsPath=${parameters.sourceRowsPath} rowId=${parameters.rowId} ` +
+                if (!singleList) {
+                    const sourceMongoPath = Util.toMongoPath(parameters.sourceRowsPath)
+                    modifier.$set[sourceMongoPath] = sourceRows
+                }
+                const targetMongoPath = Util.toMongoPath(parameters.targetRowsPath)
+                modifier.$set[targetMongoPath] = targetRows
+                OLog.debug(`vxapp.js handleDropMultiPrime recordId=${parameters.targetRecord._id} ` +
+                    `rowsPath=${parameters.targetRowsPath} rowId=${parameters.rowId} ` +
                     `modifier=${OLog.debugString(modifier)}`)
-                parameters.sourceCollection.update(parameters.sourceRecord._id, modifier)
+                parameters.targetCollection.update(parameters.targetRecord._id, modifier)
             }
-            const mongoPath = Util.toMongoPath(parameters.targetRowsPath)
-            const modifier = {}
-            modifier.$set = {}
-            modifier.$set[mongoPath] = targetRows
-            OLog.debug(`vxapp.js handleDropMultiPrime *target* recordId=${parameters.targetRecord._id} ` +
-                `rowsPath=${parameters.targetRowsPath} rowId=${parameters.rowId} ` +
-                `modifier=${OLog.debugString(modifier)}`)
-            parameters.targetCollection.update(parameters.targetRecord._id, modifier)
+            else {
+                throw new Error("vxapp.js handleDropMultiPrime only single update is currently supported")
+            }
         }
         catch (error) {
             UX.notifyForError(error)
         }
-    },
-
-    /**
-     * Append a new coverage to the coverages array and sort it. Return the sorted array.
-     *
-     * @param {array} covereages Array of coverages.
-     * @param {object} coverage New coverage to be added.
-     */
-    appendAndSortCoverages(coverages, coverage) {
-        coverages = coverages || []
-        const carrierSequence = {}
-        let sequence = 1
-        coverages.forEach(coverageObject => {
-            if (Util.isNullish(carrierSequence[coverageObject.carrierId])) {
-                carrierSequence[coverageObject.carrierId] = sequence
-                sequence++
-            }
-        })
-        const coverageTypes = Util.getCodes("coverageType")
-        coverages.push(coverage)
-        coverages.sort((coverageA, coverageB) => {
-            const coverageSequenceA = carrierSequence[coverageA.carrierId]
-            const coverageSequenceB = carrierSequence[coverageB.carrierId]
-            if (coverageSequenceA && !coverageSequenceB) return -1
-            if (!coverageSequenceA && coverageSequenceB) return +1
-            if (coverageSequenceA < coverageSequenceB) return -1
-            if (coverageSequenceA > coverageSequenceB) return +1
-            const coverageIndexA = coverageTypes.indexOf(coverageA.coverageType)
-            const coverageIndexB = coverageTypes.indexOf(coverageB.coverageType)
-            if (coverageIndexA < coverageIndexB) return -1
-            if (coverageIndexA > coverageIndexB) return +1
-            if (coverageA.dateCreated && coverageB.dateCreated) {
-                if (coverageA.dateCreated < coverageB.dateCreated) return -1
-                if (coverageA.dateCreated > coverageB.dateCreated) return +1
-            }
-            return 0
-        })
-        return coverages
     },
 
     /**
@@ -2055,4 +2017,4 @@ VXApp = _.extend(VXApp || {}, {
         data["data-db-id"] =  $item.attr("data-db-id")
         return data
     }
-})
+}}

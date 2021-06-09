@@ -595,7 +595,7 @@ Util = {
             }
         })
         userArray.sort((userA, userB) => {
-            return userA.fullName.localeCompare(userB.fullName)
+            return Util.safeCompare(userA.fullName, userB.fullName)
         })
         return userArray
     },
@@ -2639,5 +2639,25 @@ Util = {
     dateLocal(date, timezone) {
         const dateString = moment.utc(date).format("YYYY-MM-DD")
         return moment.tz(dateString, timezone)
+    },
+
+    /**
+     * Compare two strings and return a value suitable for sort comparison,
+     * but using special care to deal with null values.
+     *
+     * @param {string} stringA String A.
+     * @param {string} stringB String B.
+     * @return {number} Either -1, 0, 1.
+     */
+    safeCompare(stringA, stringB) {
+        if (stringA && stringB) {
+            return stringA.localeCompare(stringB)
+        }
+        if (!stringA && !stringB) {
+            return 0
+        }
+        if (stringA) return +1
+        if (stringB) return -1
+        return 0
     }
 }

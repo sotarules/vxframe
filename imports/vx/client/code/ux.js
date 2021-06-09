@@ -217,7 +217,7 @@ UX = {
             }
         })
         codeArray.sort((userA, userB) => {
-            return userA.localized.localeCompare(userB.localized)
+            return Util.safeCompare(userA.localized, userB.localized)
         })
         return codeArray
     },
@@ -1686,7 +1686,7 @@ UX = {
         })
         codeArray.sort((eventTypeA, eventTypeB) => {
             if (eventTypeA.code && eventTypeA.code) {
-                return eventTypeA.code.localeCompare(eventTypeB.code)
+                return Util.safeCompare(eventTypeA.code, eventTypeB.code)
             }
             return 0;
         })
