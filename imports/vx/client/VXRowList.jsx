@@ -9,7 +9,9 @@ export default class VXRowList extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         editable : PropTypes.bool.isRequired,
+        contentEditable : PropTypes.bool.isRequired,
         borders : PropTypes.bool,
+        whiteRows : PropTypes.bool,
         bodyClassName : PropTypes.string,
         rows : PropTypes.array,
         rowId : PropTypes.string.isRequired,
@@ -34,7 +36,9 @@ export default class VXRowList extends Component {
 
     static defaultProps = {
         editable : false,
+        contentEditable : false,
         borders : true,
+        whiteRows : false,
         rightPanel : true,
         zeroHeightHack : true,
         placeholderClassName : "entity-drag-placeholder-conditional"
@@ -116,7 +120,7 @@ export default class VXRowList extends Component {
             (this.props.draggable ? " vx-draggable" : "") +
             (this.props.droppable ? " vx-droppable " + this.props.dropClassName : "") +
             (this.props.bodyClassName ? " " + this.props.bodyClassName : "") +
-            (this.props.editable ? " row-panel-background-edit" : " row-panel-background-view") +
+            (this.props.editable || this.props.whiteRows ? " row-panel-background-edit" : " row-panel-background-view") +
             (this.props.borders ? " row-panel-borders" : "")
     }
 

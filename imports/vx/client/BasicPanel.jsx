@@ -8,6 +8,10 @@ export default class BasicPanel extends Component {
         id : PropTypes.string.isRequired
     }
 
+    static defaultProps = {
+        id : "vx-basic-panel"
+    }
+
     render() {
         return (
             <div id={this.props.id} className="animation-panel not-selectable flexi-grow">

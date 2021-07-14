@@ -16,7 +16,7 @@ export default class BigButton extends Component {
     render() {
         return (
             <VXButton id={this.props.id}
-                className={`btn big-button ladda-button ${this.props.className || ""}`}
+                className={`btn big-button ${this.props.className || ""}`}
                 iconClass={this.props.iconClass}
                 iconStacked={this.props.iconStacked}
                 onClick={this.props.onClickButton}>

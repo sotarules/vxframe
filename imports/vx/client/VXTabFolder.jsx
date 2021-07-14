@@ -69,15 +69,17 @@ export default class VXTabFolder extends Component {
         for (let childIndex = 0; childIndex < children.length; childIndex++) {
             const child = children[childIndex]
             active = child.props.id === activeTabId
-            if (child.props.group && (!groupPrevious || groupPrevious === child.props.group)) {
-                group.push({childIndex, active})
-            }
-            else {
+            if (!child.props.group || groupPrevious !== child.props.group) {
                 if (group.length > 0) {
                     tabSets.push({firstName: this.firstName(children, group), active: this.isGroupActive(group), group})
                     group = []
                 }
+            }
+            if (!child.props.group) {
                 tabSets.push({firstName: child.props.name, active, group: [{childIndex, active}]})
+            }
+            else {
+                group.push({childIndex, active})
             }
             groupPrevious = child.props.group
         }

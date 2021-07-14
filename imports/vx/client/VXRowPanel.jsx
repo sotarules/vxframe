@@ -10,6 +10,7 @@ export default class VXRowPanel extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         editable : PropTypes.bool.isRequired,
+        contentEditable : PropTypes.bool.isRequired,
         borders : PropTypes.bool.isRequired,
         title : PropTypes.string.isRequired,
         panelClassName : PropTypes.string,
@@ -46,6 +47,7 @@ export default class VXRowPanel extends Component {
 
     static defaultProps = {
         editable : false,
+        contentEditable : false,
         selectable : false,
         borders : false
     }
@@ -111,6 +113,7 @@ export default class VXRowPanel extends Component {
             <VXRowList {...this.props}
                 id={`${this.props.id}-row-list`}
                 editable={this.props.editable}
+                contentEditable={this.props.contentEditable}
                 borders={this.props.borders}
                 bodyClassName={this.props.bodyClassName}
                 rows={this.rows()}

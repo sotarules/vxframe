@@ -2476,6 +2476,26 @@ Util = {
     },
 
     /**
+     * Compare two dates for equality including null states.
+     *
+     * @param {object} dateOne Date one.
+     * @param {object} dateTwo Date two.
+     * @return {boolean} True if two values are equal including null.
+     */
+    isDatesEqual(dateOne, dateTwo) {
+        if (Util.isNullish(dateOne) && Util.isNullish(dateTwo)) {
+            return true
+        }
+        if (Util.isNullish(dateOne) && !Util.isNullish(dateTwo)) {
+            return false
+        }
+        if (!Util.isNullish(dateOne) && Util.isNullish(dateTwo)) {
+            return false
+        }
+        return dateOne.getTime() === dateTwo.getTime()
+    },
+
+    /**
      * Return Meteor collection matching supplied name.
      *
      * @param {string} collectionName Collection name (typically lowercase like "domains")

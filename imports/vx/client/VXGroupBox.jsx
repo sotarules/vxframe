@@ -11,8 +11,8 @@ export default class VXGroupBox extends Component {
 
     render() {
         return (
-            <fieldset className={`group-fieldset ${this.props.className} || ""}`}>
-                <legend className={`group-legend ${this.props.className} || ""}`}>
+            <fieldset className={`group-fieldset ${this.props.className || ""}`}>
+                <legend className={`group-legend ${this.props.className || ""}`}>
                     {this.props.legend}
                 </legend>
                 {this.props.children}

@@ -9,6 +9,7 @@ export default class VXRow extends Component {
         dbId : PropTypes.string,
         selectable : PropTypes.bool,
         editable : PropTypes.bool,
+        whiteRows : PropTypes.bool,
         itemClassName : PropTypes.string,
         standardPadding : PropTypes.bool,
         controls : PropTypes.array,
@@ -18,6 +19,7 @@ export default class VXRow extends Component {
     }
 
     static defaultProps = {
+        whiteRows : false,
         standardPadding : true
     }
 
@@ -73,7 +75,8 @@ export default class VXRow extends Component {
     }
 
     viewEditClassName() {
-        return this.props.editable ? "row-panel-list-group-item-edit" : "row-panel-list-group-item-view"
+        return this.props.editable || this.props.whiteRows ?
+            "row-panel-list-group-item-edit" : "row-panel-list-group-item-view"
     }
 
     handleFocus(event) {

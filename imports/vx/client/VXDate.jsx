@@ -79,17 +79,20 @@ export default class VXDate extends Component {
             let dateMoment = !this.props.startOfDay ?
                 moment.tz(event.date, this.timezone) :
                 moment.tz(event.date, this.timezone).startOf("day")
-            let date = ""
+            let newDate = ""
             if (event.date) {
                 if (this.props.adjustFunction) {
                     dateMoment = dateMoment[this.props.adjustFunction](this.props.adjustParameter)
                 }
-                date = dateMoment.toDate()
+                newDate = dateMoment.toDate()
             }
-            this.setState({ value : date })
+            const oldDate = this.getValue()
+            this.setState({ value : newDate })
             UX.validateComponent(this)
             if (this.props.onChange) {
-                this.props.onChange(event, this.getValue(), this)
+                if (!Util.isDatesEqual(newDate, oldDate)) {
+                    this.props.onChange(event, newDate, this)
+                }
             }
         }.bind(this))
     }
