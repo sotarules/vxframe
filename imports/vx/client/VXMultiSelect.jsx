@@ -70,7 +70,7 @@ export default class VXMultiSelect extends Component {
                     </label>
                 }
                 <ul id={this.props.id}
-                    className="form-control list-group multiselect-list scroll-y scroll-momentum scroll-fix flex-section-grow"
+                    className="form-control list-group multiselect-list scroll-y scroll-momentum flex-section-grow"
                     ref={inputElement => { this.inputElement = inputElement } }>
                     {this.renderCheckboxes()}
                 </ul>

@@ -1109,11 +1109,18 @@
 
         _create: function() {
             this.containerCache = {};
-            this._addClass( "ui-sortable" );
 
-            //Get the items
-            // 4/21/2021 - DL - Testing whether we can live without this:
-            this.refresh();
+            // 7/15/2021 - DL - This class doesn't seem to matter and it causes unnecessary re-flow
+            // this._addClass( "ui-sortable" );
+
+            // 7/15/2021 - DL - this.refresh() is tantamount to:
+            // this._refreshItems( event );
+            // his._setHandleClassName();
+            // this.refreshPositions();
+            // The system appears work without this since mouse handles are not strictly needed
+            // and _refreshItems and refreshPositions are called in mouse move.  This is great because
+            // it seems to defer drag/drop initialization until it is really necessary.
+            //this.refresh();
 
             //Let's determine the parent's offset
             this.offset = this.element.offset();
@@ -1121,7 +1128,7 @@
             //Initialize mouse events for interaction
             this._mouseInit();
 
-            // 4/21/2021 - DL - No need to do this twice "massive slowdown"
+            // 7/15/2021 - DL - No need to do this at all due to admittedly-massive slowdown
             //this._setHandleClassName();
 
             //We're ready to go

@@ -171,13 +171,13 @@
     },
 
     button_enable_2FA : {
-        en : "Enable<br>Two-Factor",
-        rx : "$Enable<br>Two-Factor$"
+        en : "Enable 2FA",
+        rx : "$Enable 2FA$"
     },
 
     button_disable_2FA : {
-        en : "Disable<br>Two-Factor",
-        rx : "$Disable<br>Two-Factor$"
+        en : "Disable 2FA",
+        rx : "$Disable 2FA$"
     },
 
     label_logo_title : {

@@ -21,9 +21,8 @@ export default class EmptyEntityList extends Component {
     }
 
     componentDidMount() {
-        if (this.props.droppable) {
-            UX.makeDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)
-        }
+        UX.makeDraggableDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this,
+            false, this.props.droppable)
     }
 
     render() {

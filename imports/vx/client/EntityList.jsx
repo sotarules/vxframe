@@ -27,6 +27,11 @@ export default class EntityList extends Component {
         borders : false
     }
 
+    constructor(props) {
+        super(props)
+        this.mustInitializeSortable = true
+    }
+
     componentDidMount() {
         this.initSelectionAndDragAndDrop()
     }
@@ -36,15 +41,11 @@ export default class EntityList extends Component {
     }
 
     initSelectionAndDragAndDrop() {
-        if ($(`#${this.props.id}`).hasClass("ui-sortable")) {
-            return
-        }
-        $(`#${this.props.id}`).multiselectable({ multi: this.props.multi })
-        if (this.props.draggable) {
-            UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)
-        }
-        if (this.props.droppable) {
-            UX.makeDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)
+        if (this.mustInitializeSortable) {
+            $(`#${this.props.id}`).multiselectable({ multi: this.props.multi })
+            UX.makeDraggableDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this,
+                this.props.draggable, this.props.droppable)
+            this.mustInitializeSortable = false
         }
     }
 
@@ -69,7 +70,7 @@ export default class EntityList extends Component {
     }
 
     listClassName() {
-        return "list-group scroll-y scroll-momentum scroll-fix flexi-grow zero-height-hack sortable" +
+        return "list-group scroll-y scroll-momentum flexi-grow zero-height-hack sortable" +
             (this.props.rightPanel ? " dropzone-container-large" : "") +
             (this.props.draggable ? " vx-draggable" : "") +
             (this.props.droppable ? " vx-droppable " + this.props.dropClassName : "") +

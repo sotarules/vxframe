@@ -602,11 +602,67 @@ fieldset[disabled] .form-control {
 
 .note-editable {
     background-color: #FFFFFF;
-    .box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075));
+    .box-shadow(none);
 }
 
 .note-editor .note-statusbar .note-resizebar {
     border-top: 1px solid #CCCCCC;
+}
+
+.note-editor {
+    .flexi-grow;
+    margin-bottom: 0;
+}
+
+.note-editor .note-editable {
+    line-height: 1.4;
+    .flexi-grow;
+}
+
+.note-editor .note-editing-area {
+    .flexi-grow;
+}
+
+.note-editor.note-frame.panel {
+    border: 1px solid #CCCCCC;
+    .flexi-grow;
+}
+
+.note-editor .panel-heading {
+    .flexi-fixed;
+}
+
+.note-editor .note-toolbar {
+    border-bottom-color: #CCCCCC;
+    .flexi-fixed;
+    flex-direction:row;
+}
+
+.note-editor .note-handle {
+    .flexi-fixed;
+}
+
+.note-editor.note-frame .note-editing-area .note-editable {
+    .scroll-y;
+    .scroll-momentum;
+    .zero-height-hack;
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+.note-editor.note-frame .note-editing-area .note-editable[contenteditable="false"] {
+    background-color: #F5F5F5;
+}
+
+.note-editor .panel-body hr {
+    border-top: 1px solid #c0c0c0;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin: 0;
+}
+
+.note-editor .panel-body li {
+    line-height: 1.5;
 }
 
 // ---- Eliminate annoying outline on popup menus ----

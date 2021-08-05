@@ -462,83 +462,79 @@ UX = {
     },
 
     /**
-     * Make a component draggable via jQuery UI sortable.
+     * Initialize component drag/drop. This function has been optimized to initialize
+     * both drag/drop in a single call because sortable initialization is slow with large lists.
      *
      * @param {string} id HTML element ID to made draggable.
      * @param {string} dropClassName Drop class name (used with connectWith).
      * @param {string} placeholderClassName Placeholder class name.
      * @param {object} component Component that is drag source.
+     * @param {boolean} draggable True to make component draggable.
+     * @param {boolean} droppable True to make component droppable.
      */
-    makeDraggable(id, dropClassName, placeholderClassName, component) {
-        const $entitySource = $(`#${id}`)
-        $entitySource.sortable({
-            cursor : "move",
-            handle : ".entity-handle",
-            appendTo : document.body,
-            placeholder : placeholderClassName,
-            zIndex : 2000,
-            opacity : ".7",
-            connectWith : `.${dropClassName}`,
-            scroll : false,
-            helper(event, $element) {
-                return UX.makeHelper(event, $element)
-            },
-            hideDragged(event, ui) {
-                if (!component.props.dragClone && component.props.droppable) {
-                    UX.hideSelected(event, ui, $entitySource)
-                }
-            },
-            change(event, ui) {
-                UX.initPlaceholder(ui, dropClassName)
-            },
-            stop() {
-                $entitySource.sortable("cancel")
-            }
-        })
-    },
-
-    /**
-     * Make a component droppable via jQuery UI sortable.
-     *
-     * @param {string} id HTML element ID to made droppable.
-     * @param {string} dropClassName Drop class name (used with connectWith).
-     * @param {string} placeholderClassName Placeholder class name.
-     * @param {object} component Component to receive drop notification via onDrop.
-     */
-    makeDroppable(id,  dropClassName, placeholderClassName, component) {
-        const $entityTarget = $(`#${id}`)
-        $entityTarget.sortable({
+    makeDraggableDroppable(id, dropClassName, placeholderClassName, component, draggable, droppable) {
+        if (!(draggable || droppable)) {
+            return
+        }
+        const $list = $(`#${id}`)
+        let parameters = {
             handle : ".entity-handle",
             placeholder : placeholderClassName,
             change : (event, ui) => {
                 UX.initPlaceholder(ui, dropClassName)
-            },
-            update : function(event, ui) {
-                const thisId = this.id
-                const parentId = ui.item.parent().attr("id")
-                const ignore = thisId !== parentId
-                OLog.debug(`ux.js makeDroppable update thisId=${thisId} parentId=${parentId} ignore=${ignore}`)
-                if (ignore) {
-                    return
-                }
-                OLog.debug(`ux.js makeDroppable onDrop *fire* id=${component.props.id}`)
-                if (component.props.onDrop) {
-                    const dropInfo = UX.makeDropInfo(event, ui, component, $entityTarget)
-                    component.props.onDrop(dropInfo)
-                }
-            },
-            stop() {
-                UX.hideTargetItems()
-                $entityTarget.sortable("cancel")
-                Meteor.setTimeout(() => {
-                    UX.showTargetItems()
-                    $entityTarget.scrollTop(UXState.originalTargetState.scrollTop)
-                })
-            },
-            showDragged(event, ui) {
-                UX.showSelected(event, ui, $entityTarget)
             }
-        })
+        }
+        if (draggable) {
+            parameters = { ...parameters, ...{
+                cursor : "move",
+                appendTo : document.body,
+                zIndex : 2000,
+                opacity : ".7",
+                connectWith : `.${dropClassName}`,
+                scroll : false,
+                helper(event, $element) {
+                    return UX.makeHelper(event, $element)
+                },
+                stop() {
+                    $list.sortable("cancel")
+                },
+                hideDragged(event, ui) {
+                    if (!component.props.dragClone && component.props.droppable) {
+                        UX.hideSelected(event, ui, $list)
+                    }
+                },
+            }}
+        }
+        if (droppable) {
+            parameters = { ...parameters, ...{
+                update : function(event, ui) {
+                    const thisId = this.id
+                    const parentId = ui.item.parent().attr("id")
+                    const ignore = thisId !== parentId
+                    OLog.debug(`ux.js makeDraggableDroppable update thisId=${thisId} parentId=${parentId} ignore=${ignore}`)
+                    if (ignore) {
+                        return
+                    }
+                    OLog.debug(`ux.js makeDraggableDroppable onDrop *fire* id=${component.props.id}`)
+                    if (component.props.onDrop) {
+                        const dropInfo = UX.makeDropInfo(event, ui, component, $list)
+                        component.props.onDrop(dropInfo)
+                    }
+                },
+                stop() {
+                    UX.hideTargetItems()
+                    $list.sortable("cancel")
+                    Meteor.setTimeout(() => {
+                        UX.showTargetItems()
+                        $list.scrollTop(UXState.originalTargetState.scrollTop)
+                    })
+                },
+                showDragged(event, ui) {
+                    UX.showSelected(event, ui, $list)
+                }
+            }}
+        }
+        $list.sortable(parameters)
     },
 
     /**

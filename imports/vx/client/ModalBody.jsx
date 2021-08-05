@@ -18,6 +18,6 @@ export default class ModalBody extends Component {
     }
 
     className() {
-        return `modal-body scroll-y scroll-momentum scroll-fix ${this.props.className || ""}`
+        return `modal-body scroll-y scroll-momentum ${this.props.className || ""}`
     }
 }

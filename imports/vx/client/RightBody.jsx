@@ -13,7 +13,7 @@ export default class RightBody extends Component {
 
     render() {
         return (
-            <div id="right-body" className={`scroll-y scroll-momentum scroll-fix flexi-grow zero-height-hack ${this.props.className || ""}`}>
+            <div id="right-body" className={`scroll-y scroll-momentum flexi-grow zero-height-hack ${this.props.className || ""}`}>
                 {this.props.children}
             </div>
         )

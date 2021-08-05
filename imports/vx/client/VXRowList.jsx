@@ -44,6 +44,12 @@ export default class VXRowList extends Component {
         placeholderClassName : "entity-drag-placeholder-conditional"
     }
 
+    constructor(props) {
+        super(props)
+        this.mode = null
+        this.mustInitializeSortable = false
+    }
+
     componentDidMount() {
         this.initSelectionAndDragAndDrop()
     }
@@ -53,15 +59,11 @@ export default class VXRowList extends Component {
     }
 
     initSelectionAndDragAndDrop() {
-        if ($(`#${this.props.id}`).hasClass("ui-sortable")) {
-            return
-        }
-        $(`#${this.props.id}`).multiselectable({ multi: this.props.multi, items: ".list-group-item" })
-        if (this.props.draggable) {
-            UX.makeDraggable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this)
-        }
-        if (this.props.droppable) {
-            UX.makeDroppable(this.props.id,  this.props.dropClassName, this.props.placeholderClassName, this)
+        if (this.mustInitializeSortable) {
+            $(`#${this.props.id}`).multiselectable({ multi: this.props.multi, items: ".list-group-item" })
+            UX.makeDraggableDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this,
+                this.props.draggable, this.props.droppable)
+            this.mustInitializeSortable = false
         }
     }
 
@@ -70,6 +72,10 @@ export default class VXRowList extends Component {
     render() {
         const filteredRows = this.filteredRows()
         if (filteredRows.length > 0) {
+            if (this.mode !== "NORMAL") {
+                this.mustInitializeSortable = true
+                this.mode = "NORMAL"
+            }
             return (
                 <VXForm id={this.props.id}
                     ref={form => {this.form = form}}
@@ -81,6 +87,10 @@ export default class VXRowList extends Component {
                     <div></div>
                 </VXForm>
             )
+        }
+        if (this.mode !== "EMPTY") {
+            this.mustInitializeSortable = false
+            this.mode = "EMPTY"
         }
         return (
             <EmptyEntityList id={this.props.id}
@@ -114,7 +124,7 @@ export default class VXRowList extends Component {
     }
 
     listClassName() {
-        return "list-group scroll-y scroll-momentum scroll-fix flexi-grow " +
+        return "list-group scroll-y scroll-momentum flexi-grow " +
             (this.props.zeroHeightHack ? " zero-height-hack" : "") +
             (this.props.rightPanel ? " dropzone-container-large" : "") +
             (this.props.draggable ? " vx-draggable" : "") +
