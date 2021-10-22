@@ -1,5 +1,6 @@
 import AWS from "aws-sdk"
 import { UserStatus } from "meteor/mizzao:user-status"
+
 const port = process.env.PORT
 const environment = process.env.NODE_ENV
 const nobatch = process.env.NO_BATCH

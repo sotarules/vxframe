@@ -70,7 +70,7 @@ export default class EntityList extends Component {
     }
 
     listClassName() {
-        return "list-group scroll-y scroll-momentum flexi-grow zero-height-hack sortable" +
+        return "vx-list list-group scroll-y scroll-momentum flexi-grow zero-height-hack sortable" +
             (this.props.rightPanel ? " dropzone-container-large" : "") +
             (this.props.draggable ? " vx-draggable" : "") +
             (this.props.droppable ? " vx-droppable " + this.props.dropClassName : "") +

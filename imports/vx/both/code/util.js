@@ -92,6 +92,24 @@ Util = {
     },
 
     /**
+     * Get the localization of a given code name using a standard array.
+     *
+     * @param {string} codeArray Standard code array.
+     * @param {string} codeName Code name.
+     * @return {string} Localized value of code.
+     */
+    getCodeLocalizedFromArray(codeArray, codeName) {
+        if (!(codeArray && codeName)) {
+            return
+        }
+        const codeArrayObject = _.findWhere(codeArray, { code: codeName })
+        if (!codeArrayObject) {
+            return
+        }
+        return codeArrayObject.localized
+    },
+
+    /**
      * Return a property from a specified code object.
      *
      * @param {string} codeSet Name of code set (e.g., timeUnit)
@@ -616,7 +634,7 @@ Util = {
         fieldList.fields[fieldName] = 1
         let domain = Domains.findOne({ _id: domainId }, fieldList)
         if (!domain) {
-            OLog.error("util.js fetchDomainField unable to find domainId=" + domainId)
+            OLog.error(`util.js fetchDomainField unable to find domainId=${domainId}`)
             return
         }
         return domain[fieldName]

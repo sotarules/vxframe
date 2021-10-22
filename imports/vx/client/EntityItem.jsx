@@ -45,7 +45,7 @@ export default class EntityItem extends Component {
                 data-item-id={this.props.itemId}
                 data-db-id={this.props.dbId}
                 tabIndex={this.props.selectable ? "0" : null}
-                className="list-group-item chevron-list-group-item entity-control-container"
+                className="vx-list-item list-group-item chevron-list-group-item entity-control-container"
                 onFocus={this.handleFocus.bind(this)}
                 ref={node => {this.node = node}}>
                 <div className="entity-container-small">

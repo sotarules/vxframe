@@ -10,6 +10,7 @@ export default class VXSpan extends Component {
         className : PropTypes.string,
         required : PropTypes.bool,
         editable : PropTypes.bool,
+        selectText : PropTypes.bool,
         style : PropTypes.object,
         value : PropTypes.oneOfType([ PropTypes.string, PropTypes.number ]),
         supplementalValues : PropTypes.array,
@@ -33,6 +34,7 @@ export default class VXSpan extends Component {
     static defaultProps = {
         elementType : "span",
         editable : true,
+        selectText : false,
         popoverPlacement : "bottom",
         format : FX.trim,
         missingReset : true
@@ -106,7 +108,7 @@ export default class VXSpan extends Component {
 
     handleDoubleClick() {
         if (this.props.editable) {
-            this.startEditing()
+            this.startEditing(this.props.selectText)
         }
     }
 

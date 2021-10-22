@@ -11,6 +11,8 @@ export default class VXRowList extends Component {
         editable : PropTypes.bool.isRequired,
         contentEditable : PropTypes.bool.isRequired,
         borders : PropTypes.bool,
+        emptyListMargins : PropTypes.bool,
+        emptyListWhiteBackground : PropTypes.bool,
         whiteRows : PropTypes.bool,
         bodyClassName : PropTypes.string,
         rows : PropTypes.array,
@@ -29,6 +31,7 @@ export default class VXRowList extends Component {
         multi : PropTypes.bool,
         dragClone : PropTypes.bool,
         dropClone : PropTypes.bool,
+        scrollable : PropTypes.bool,
         zeroHeightHack : PropTypes.bool,
         dropClassName : PropTypes.string,
         placeholderClassName : PropTypes.string
@@ -38,8 +41,10 @@ export default class VXRowList extends Component {
         editable : false,
         contentEditable : false,
         borders : true,
+        emptyListMargins: true,
         whiteRows : false,
         rightPanel : true,
+        scrollable : true,
         zeroHeightHack : true,
         placeholderClassName : "entity-drag-placeholder-conditional"
     }
@@ -60,7 +65,7 @@ export default class VXRowList extends Component {
 
     initSelectionAndDragAndDrop() {
         if (this.mustInitializeSortable) {
-            $(`#${this.props.id}`).multiselectable({ multi: this.props.multi, items: ".list-group-item" })
+            $(`#${this.props.id}`).multiselectable({ multi: this.props.multi, items: ".vx-list-item" })
             UX.makeDraggableDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this,
                 this.props.draggable, this.props.droppable)
             this.mustInitializeSortable = false
@@ -92,12 +97,18 @@ export default class VXRowList extends Component {
             this.mustInitializeSortable = false
             this.mode = "EMPTY"
         }
+        if (!this.props.emptyMessage) {
+            return null
+        }
         return (
             <EmptyEntityList id={this.props.id}
                 className={this.emptyListClassName()}
                 droppable={this.props.droppable}
+                scrollable={this.props.scrollable}
                 dropClassName={this.props.dropClassName}
                 onDrop={this.props.onDrop}
+                emptyListMargins={this.props.emptyListMargins}
+                emptyListWhiteBackground={this.props.emptyListWhiteBackground}
                 emptyListSize="large"
                 emptyMessage={this.props.emptyMessage}/>
         )
@@ -124,14 +135,18 @@ export default class VXRowList extends Component {
     }
 
     listClassName() {
-        return "list-group scroll-y scroll-momentum flexi-grow " +
-            (this.props.zeroHeightHack ? " zero-height-hack" : "") +
+        return "vx-list list-group flexi-grow " +
+            (this.props.scrollable ? this.scrollClasses() : "" ) +
             (this.props.rightPanel ? " dropzone-container-large" : "") +
             (this.props.draggable ? " vx-draggable" : "") +
             (this.props.droppable ? " vx-droppable " + this.props.dropClassName : "") +
             (this.props.bodyClassName ? " " + this.props.bodyClassName : "") +
             (this.props.editable || this.props.whiteRows ? " row-panel-background-edit" : " row-panel-background-view") +
             (this.props.borders ? " row-panel-borders" : "")
+    }
+
+    scrollClasses() {
+        return " scroll-y scroll-momentum " + (this.props.zeroHeightHack ? " zero-height-hack" : "")
     }
 
     emptyListClassName() {

@@ -301,10 +301,16 @@
     border: 1px solid #dddddd;
 }
 
+.row-panel-no-borders.panel {
+    border: none;
+}
+
 .row-panel-button-container {
     margin-left: auto;
     margin-top: 10px;
     margin-bottom: 10px;
+    .flexi-fixed;
+    .flex-align-center;
 }
 
 .row-panel-button-margin {
@@ -643,6 +649,7 @@ fieldset[disabled] .form-control {
 }
 
 .note-editor.note-frame .note-editing-area .note-editable {
+    display: inline-block;
     .scroll-y;
     .scroll-momentum;
     .zero-height-hack;
@@ -1489,12 +1496,26 @@ legend.group-legend {
     border-top-width: 1px;
 }
 
+.panel-heading .control-label {
+    margin-top: 0;
+}
+
 .empty-list {
     text-align: center;
     max-width: 100%;
     padding-left: 15px;
     padding-right: 15px;
+    margin: 20px;
+    margin-bottom: 20px !important;
+}
+
+.empty-list.empty-list-white-background {
     background-color: #FFFFFF;
+}
+
+.empty-list.empty-list-no-margins {
+    margin: 0;
+    margin-bottom: 0 !important;
 }
 
 .empty-rhs {

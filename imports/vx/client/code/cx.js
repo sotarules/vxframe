@@ -53,7 +53,8 @@ CX.NOTIFICATION_ICON_MAP = {
     "CARD" : "fa fa-credit-card",
     "INSURED" : "fa fa-handshake-o",
     "PLAY" : "fa fa-play",
-    "PAUSE" : "fa fa-pause"
+    "PAUSE" : "fa fa-pause",
+    "REFRESH" : "fa fa-refresh"
 }
 
 CX.NOTIFICATION_BOOTSTRAP_CLASS_MAP = {

@@ -11,10 +11,14 @@ export default class VXRowPanel extends Component {
         id : PropTypes.string.isRequired,
         editable : PropTypes.bool.isRequired,
         contentEditable : PropTypes.bool.isRequired,
+        panelBorders : PropTypes.bool.isRequired,
+        emptyListMargins : PropTypes.bool.isRequired,
+        emptyListWhiteBackground : PropTypes.bool.isRequired,
         borders : PropTypes.bool.isRequired,
-        title : PropTypes.string.isRequired,
+        title : PropTypes.string,
         panelClassName : PropTypes.string,
         headingClassName : PropTypes.string,
+        headingComponent : PropTypes.elementType,
         panelHeadingControl : PropTypes.bool,
         panelHeadingControlClass : PropTypes.string,
         titleClassName : PropTypes.string,
@@ -30,6 +34,8 @@ export default class VXRowPanel extends Component {
         droppable : PropTypes.bool,
         selectable : PropTypes.bool,
         multi : PropTypes.bool,
+        scrollable : PropTypes.bool,
+        zeroHeightHack : PropTypes.bool,
         dropClassName : PropTypes.string,
         placeholderClassName : PropTypes.string,
         rowFilter : PropTypes.func,
@@ -49,19 +55,26 @@ export default class VXRowPanel extends Component {
         editable : false,
         contentEditable : false,
         selectable : false,
-        borders : false
+        panelBorders : true,
+        emptyListMargins : true,
+        emptyListWhiteBackground : true,
+        borders : false,
+        scrollable : true,
+        zeroHeightHack : true
     }
 
     render() {
         return (
             <div id={this.props.id}
-                className={`panel panel-default flexi-grow ${this.props.panelClassName || ""}`}>
+                className={`panel ${this.panelBordersClassName()} panel-default flexi-grow ${this.props.panelClassName || ""}`}>
                 <div className={`panel-heading flexi-fixed flex-direction-row ${this.props.headingClassName || ""}`}>
-                    <div className={`row-panel-title ${this.props.titleClassName || ""}`}>
-                        {this.props.title}
-                        <a className={`row-panel-header-control ${this.props.panelHeadingControlClass || "" }`}
-                            onClick={this.handleClickPanelHeadingControl.bind(this)}/>
-                    </div>
+                    {this.props.headingComponent ? this.renderHeadingComponent() : (
+                        <div className={`row-panel-title ${this.props.titleClassName || ""}`}>
+                            {this.props.title}
+                            <a className={`row-panel-header-control ${this.props.panelHeadingControlClass || "" }`}
+                                onClick={this.handleClickPanelHeadingControl.bind(this)}/>
+                        </div>
+                    )}
                     {this.props.editable &&
                         <div className="row-panel-button-container flex-direction-row">
                             <VXTinyButton id={`${this.props.id}-button-plus`}
@@ -77,6 +90,16 @@ export default class VXRowPanel extends Component {
                 </div>
                 {this.renderRowBody()}
             </div>
+        )
+    }
+
+    renderHeadingComponent() {
+        const Component = this.props.headingComponent
+        const id = `${this.props.id}-heading-component`
+        return (
+            <Component {...this.props}
+                id={id}
+                key={id}/>
         )
     }
 
@@ -115,14 +138,18 @@ export default class VXRowPanel extends Component {
                 editable={this.props.editable}
                 contentEditable={this.props.contentEditable}
                 borders={this.props.borders}
+                emptyListMargins={this.props.emptyListMargins}
+                emptyListWhiteBackground={this.props.emptyListWhiteBackground}
                 bodyClassName={this.props.bodyClassName}
                 rows={this.rows()}
-                rowId="id"
+                rowId={this.props.rowId}
                 component={this.props.component}
                 emptyMessage={this.props.emptyMessage}
                 draggable={this.props.draggable}
                 droppable={this.props.droppable}
                 selectable={this.props.selectable}
+                scrollable={this.props.scrollable}
+                zeroHeightHack={this.props.zeroHeightHack}
                 multi={this.props.multi}
                 dropClassName={this.props.dropClassName}
                 placeholderClassName={this.props.placeholderClassName}
@@ -131,6 +158,10 @@ export default class VXRowPanel extends Component {
                 onSelectRow={this.handleSelectRow.bind(this)}
                 onUpdateRow={this.handleUpdateRow.bind(this)}/>
         )
+    }
+
+    panelBordersClassName() {
+        return !this.props.panelBorders ? "row-panel-no-borders" : ""
     }
 
     rows() {
@@ -155,16 +186,7 @@ export default class VXRowPanel extends Component {
     }
 
     handleClickRemove(event) {
-        let selectedRowIds = UX.selectedRowIds(`${this.props.id}-row-list`)
-        if (selectedRowIds.length === 0) {
-            const rows = this.rows()
-            if (rows && rows.length > 0) {
-                selectedRowIds = [ rows[rows.length - 1][this.props.rowId] ]
-            }
-        }
-        if (selectedRowIds.length === 0) {
-            return
-        }
+        const selectedRowIds = UX.selectedRowIdsOrLast(`${this.props.id}-row-list`, this.rows(), this.props.rowId)
         if (this.props.onClickRemove) {
             this.props.onClickRemove(event, this, this.props.collection, this.props.record,
                 this.props.rowsPath, this.props.rowId, selectedRowIds)

@@ -10,6 +10,9 @@ export default class EmptyEntityList extends Component {
         className : PropTypes.string,
         emptyMessage : PropTypes.string,
         emptyListSize : PropTypes.oneOf(["small", "large"]).isRequired,
+        emptyListMargins : PropTypes.bool.isRequired,
+        emptyListWhiteBackground : PropTypes.bool.isRequired,
+        scrollable : PropTypes.bool,
         droppable : PropTypes.bool,
         dropClone : PropTypes.bool,
         dropClassName : PropTypes.string,
@@ -17,6 +20,9 @@ export default class EmptyEntityList extends Component {
     }
 
     static defaultProps = {
+        scrollable : true,
+        emptyListMargins : true,
+        emptyListWhiteBackground : true,
         placeholderClassName : "entity-drag-placeholder-conditional",
     }
 
@@ -40,7 +46,21 @@ export default class EmptyEntityList extends Component {
     }
 
     dropZoneClassNames() {
-        return `empty-list list-group flexi-grow flex-section-center ${this.props.className || ""}` +
+        return `empty-list list-group  ${this.marginsClassName()} ${this.backgroundClassName()} ` +
+            `flexi-grow flex-section-center ${this.props.className || ""}` +
+            (this.props.scrollable ? this.scrollClasses() : "" ) +
             (this.props.droppable ? " vx-droppable " + this.props.dropClassName : "")
+    }
+
+    scrollClasses() {
+        return " scroll-y scroll-momentum " + (this.props.zeroHeightHack ? " zero-height-hack" : "")
+    }
+
+    marginsClassName() {
+        return !this.props.emptyListMargins ? "empty-list-no-margins" : ""
+    }
+
+    backgroundClassName() {
+        return this.props.emptyListWhiteBackground ? "empty-list-white-background" : ""
     }
 }

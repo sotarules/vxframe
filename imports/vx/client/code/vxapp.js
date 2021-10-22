@@ -1354,7 +1354,7 @@ VXApp = { ...VXApp, ...{
      */
     updateRow(collection, record, rowsPath, rowId, component, value) {
         try {
-            const $item = $(`#${component.props.id}`).closest(".list-group-item")
+            const $item = $(`#${component.props.id}`).closest(".vx-list-item")
             const componentRowId = $item.attr("data-item-id")
             if (!componentRowId) {
                 OLog.error(`vxapp.js updateRow recordId=${record._id} componentId=${component.props.id} ` +
@@ -1441,7 +1441,7 @@ VXApp = { ...VXApp, ...{
     updateCodeArray(codeArray, collection, record, rowsPath, rowId, checkboxdbName, component, value, componentRowId) {
         try {
             if (!componentRowId) {
-                const $item = $(`#${component.props.id}`).closest(".list-group-item")
+                const $item = $(`#${component.props.id}`).closest(".vx-list-item")
                 componentRowId = $item.attr("data-item-id")
                 if (!componentRowId) {
                     OLog.error(`vxapp.js updateCodeArray recordId=${record._id} componentId=${component.props.id} ` +
@@ -2004,8 +2004,8 @@ VXApp = { ...VXApp, ...{
      */
     makeContextCellData(event) {
         const $cell = $(event.target).closest(".context-menu-cell")
-        const $list = $(event.target).closest(".list-group", $cell[0])
-        const $item = $(event.target).closest(".list-group-item", $cell[0])
+        const $list = $(event.target).closest(".vx-list", $cell[0])
+        const $item = $(event.target).closest(".vx-list-item", $cell[0])
         const data = {}
         data.cellId = $cell.attr("id")
         data.listId = $list.attr("id")

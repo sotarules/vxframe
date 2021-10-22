@@ -79,7 +79,7 @@ export default class VXDate extends Component {
             let dateMoment = !this.props.startOfDay ?
                 moment.tz(event.date, this.timezone) :
                 moment.tz(event.date, this.timezone).startOf("day")
-            let newDate = ""
+            let newDate = null
             if (event.date) {
                 if (this.props.adjustFunction) {
                     dateMoment = dateMoment[this.props.adjustFunction](this.props.adjustParameter)

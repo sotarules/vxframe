@@ -29,7 +29,7 @@ export default class VXRow extends Component {
                 id={this.props.id}
                 data-item-id={this.props.itemId}
                 data-db-id={this.props.dbId}
-                className={"list-group-item flexi-fixed entity-control-container " +
+                className={"vx-list-item list-group-item flexi-fixed entity-control-container " +
                     `${this.paddingClassName()} ${this.viewEditClassName()} ${this.props.itemClassName || ""}`}
                 onFocus={this.handleFocus.bind(this)}
                 onClick={this.handleClick.bind(this)}

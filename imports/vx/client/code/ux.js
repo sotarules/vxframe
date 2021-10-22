@@ -546,11 +546,11 @@ UX = {
      */
     makeHelper(event, $element) {
         UXState.originalIds = UX.captureOriginalIds($element)
-        UXState.originalTargetState = UX.captureTargetState($element.parents(".list-group"))
-        const helperHeight = _.reduce($element.parents(".list-group").children(".selected"), (memo, child) => {
+        UXState.originalTargetState = UX.captureTargetState($element.parents(".vx-list"))
+        const helperHeight = _.reduce($element.parents(".vx-list").children(".selected"), (memo, child) => {
             return memo + $(child).outerHeight(true)
         }, 0) + 1
-        const $listClone = $element.parents(".list-group").clone()
+        const $listClone = $element.parents(".vx-list").clone()
         _.each($listClone.children(), child => {
             $(child).attr("id", `helper-${$(child).attr("id")}`)
         })
@@ -619,7 +619,7 @@ UX = {
      */
     captureOriginalIds($element) {
         const originalIds = []
-        const $list = $element.parents(".list-group")
+        const $list = $element.parents(".vx-list")
         $list.children().each((index, child) => {
             const id = $(child).attr("data-item-id")
             if (id) {
@@ -672,7 +672,7 @@ UX = {
      */
     captureTargetState($entityTarget) {
         const scrollTop = $entityTarget.scrollTop()
-        const elementObjects = $entityTarget.children(".list-group-item").toArray().map(element => {
+        const elementObjects = $entityTarget.children(".vx-list-item").toArray().map(element => {
             const id = $(element).attr("id")
             const display = $(element).css("display") || ""
             return { id, display }
@@ -730,6 +730,24 @@ UX = {
      */
     selectedRowIds(listId) {
         return UX.selectedIds(listId, "data-item-id")
+    },
+
+    /**
+     * Return the IDs of the selected rows, or the ID of the last row.
+     *
+     * @param {string} listId List ID.
+     * @param {array} rows Rows
+     * @param {string} rowId Row ID.
+     * @return {array} Array of selected child IDs or null.
+     */
+    selectedRowIdsOrLast(listId, rows, rowId) {
+        let selectedRowIds = UX.selectedRowIds(listId)
+        if (selectedRowIds.length === 0) {
+            if (rows && rows.length > 0) {
+                selectedRowIds = [ rows[rows.length - 1][rowId] ]
+            }
+        }
+        return selectedRowIds.length !== 0 ? selectedRowIds : null
     },
 
     /**
@@ -1819,24 +1837,20 @@ UX = {
      */
     updateDatabase(component) {
         if (component.props.updateHandler) {
-            OLog.debug("ux.js updateDatabase invoking *component* custom update handler " +
-                Util.functionName(component.props.updateHandler))
             let value = component.getValue()
             component.props.updateHandler.call(this, component, value)
             return
         }
         const formProps = UX.getFormProps(component)
         if (formProps.updateHandler) {
-            OLog.debug("ux.js updateDatabase invoking *form* custom update handler " +
-                Util.functionName(formProps.updateHandler))
             const value = component.getValue()
             formProps.updateHandler.call(this, component, value)
             return
         }
         const modifier = {}
         UX.mutateModifier(component, modifier)
-        OLog.debug("ux.js updateDatabase dynamic update " + formProps.collection._name + " _id=" + formProps._id +
-            " modifier=" + OLog.debugString(modifier))
+        OLog.debug(`ux.js updateDatabase dynamic update ${formProps.collection._name} _id=${formProps._id} ` +
+            `modifier=${OLog.debugString(modifier)}`)
         formProps.collection.update(formProps._id, modifier, error => {
             if (error) {
                 OLog.error("ux.js updateDatabase error returned from dynamic field update=" + error)

@@ -180,6 +180,16 @@
         rx : "$Disable 2FA$"
     },
 
+    context_menu_add_tab : {
+        en : "Add Tab",
+        rx : "$Add Tab$"
+    },
+
+    context_menu_remove_tab : {
+        en : "Remove Tab",
+        rx : "$Remove Tab$"
+    },
+
     label_logo_title : {
         en: "{{system_name}}",
         rx: "${{system_name}}$"
