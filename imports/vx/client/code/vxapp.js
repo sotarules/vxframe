@@ -1351,8 +1351,9 @@ VXApp = { ...VXApp, ...{
      * @param {string} rowId Name of a property that uniquely identifies row.
      * @param {object} component Component whose state was changed resulting in this update.
      * @param {?} value New value.
+     * @param {object} extra Optional name/value pairs.
      */
-    updateRow(collection, record, rowsPath, rowId, component, value) {
+    updateRow(collection, record, rowsPath, rowId, component, value, extra) {
         try {
             const $item = $(`#${component.props.id}`).closest(".vx-list-item")
             const componentRowId = $item.attr("data-item-id")
@@ -1370,6 +1371,12 @@ VXApp = { ...VXApp, ...{
             const modifier = {}
             modifier.$set = {}
             modifier.$set[`${mongoPath}.${index}.${component.props.dbName}`] = value
+            if (extra) {
+                Object.keys(extra).forEach(key => {
+                    const value = extra[key]
+                    modifier.$set[`${mongoPath}.${index}.${key}`] = value
+                })
+            }
             OLog.debug(`vxapp.js updateRow recordId=${record._id} componentId=${component.props.id} ` +
                 `rowsPath=${rowsPath} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
             collection.update(record._id, modifier)
@@ -1600,19 +1607,24 @@ VXApp = { ...VXApp, ...{
      * @param {object} publish Standard publishing object.
      * @param {object} criteria Standard criteria filter is an object merged with publishing criteria.
      * @param {object} regexFilter Object representing regex filtering criteria { searchPhrase, propertyNames }.
+     * @param {boolean} includeRetired True to include retired records.
      * @return {object} Standard publishing object adjusted with filters.
      */
-    applyFilters(publish, criteria, regexFilter) {
+    applyFilters(publish, criteria, regexFilter, includeRetired) {
         const publishAdjusted = cloneDeep(publish)
         if (criteria) {
-            publishAdjusted.criteria = { ...publish.criteria, ...criteria }
+            publishAdjusted.criteria = { ...publishAdjusted.criteria, ...criteria }
         }
         if (regexFilter) {
-            const searchRegex = new RegExp(regexFilter.searchPhrase, "i")
+            const cleanSearchPhrase = regexFilter.searchPhrase.replace(/[^a-zA-Z0-9 ]/g, "")
+            const searchRegex = new RegExp(cleanSearchPhrase, "i")
             publishAdjusted.criteria.$or = []
             regexFilter.propertyNames.forEach(propertyName => {
                 publishAdjusted.criteria.$or.push({ [propertyName]: searchRegex })
             })
+        }
+        if (!includeRetired) {
+            publishAdjusted.criteria = { ...publishAdjusted.criteria, dateRetired: { $exists: false } }
         }
         return publishAdjusted
     },

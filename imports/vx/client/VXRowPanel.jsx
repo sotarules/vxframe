@@ -27,6 +27,7 @@ export default class VXRowPanel extends Component {
         record : PropTypes.object,
         rowsPath : PropTypes.string.isRequired,
         rowId : PropTypes.string.isRequired,
+        parent : PropTypes.object,
         rows : PropTypes.array,
         component : PropTypes.elementType.isRequired,
         emptyMessage : PropTypes.string.isRequired,
@@ -135,26 +136,7 @@ export default class VXRowPanel extends Component {
         return (
             <VXRowList {...this.props}
                 id={`${this.props.id}-row-list`}
-                editable={this.props.editable}
-                contentEditable={this.props.contentEditable}
-                borders={this.props.borders}
-                emptyListMargins={this.props.emptyListMargins}
-                emptyListWhiteBackground={this.props.emptyListWhiteBackground}
-                bodyClassName={this.props.bodyClassName}
                 rows={this.rows()}
-                rowId={this.props.rowId}
-                component={this.props.component}
-                emptyMessage={this.props.emptyMessage}
-                draggable={this.props.draggable}
-                droppable={this.props.droppable}
-                selectable={this.props.selectable}
-                scrollable={this.props.scrollable}
-                zeroHeightHack={this.props.zeroHeightHack}
-                multi={this.props.multi}
-                dropClassName={this.props.dropClassName}
-                placeholderClassName={this.props.placeholderClassName}
-                rowFilter={this.props.rowFilter}
-                onDrop={this.props.onDrop}
                 onSelectRow={this.handleSelectRow.bind(this)}
                 onUpdateRow={this.handleUpdateRow.bind(this)}/>
         )
@@ -187,6 +169,9 @@ export default class VXRowPanel extends Component {
 
     handleClickRemove(event) {
         const selectedRowIds = UX.selectedRowIdsOrLast(`${this.props.id}-row-list`, this.rows(), this.props.rowId)
+        if (!selectedRowIds) {
+            return
+        }
         if (this.props.onClickRemove) {
             this.props.onClickRemove(event, this, this.props.collection, this.props.record,
                 this.props.rowsPath, this.props.rowId, selectedRowIds)

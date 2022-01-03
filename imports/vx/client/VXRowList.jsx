@@ -16,6 +16,7 @@ export default class VXRowList extends Component {
         whiteRows : PropTypes.bool,
         bodyClassName : PropTypes.string,
         rows : PropTypes.array,
+        parent : PropTypes.object,
         rowId : PropTypes.string.isRequired,
         component : PropTypes.elementType.isRequired,
         emptyMessage : PropTypes.string,
@@ -41,7 +42,7 @@ export default class VXRowList extends Component {
         editable : false,
         contentEditable : false,
         borders : true,
-        emptyListMargins: true,
+        emptyListMargins: false,
         whiteRows : false,
         rightPanel : true,
         scrollable : true,
@@ -97,9 +98,6 @@ export default class VXRowList extends Component {
             this.mustInitializeSortable = false
             this.mode = "EMPTY"
         }
-        if (!this.props.emptyMessage) {
-            return null
-        }
         return (
             <EmptyEntityList id={this.props.id}
                 className={this.emptyListClassName()}
@@ -122,9 +120,11 @@ export default class VXRowList extends Component {
     }
 
     renderRows(filteredRows) {
-        return filteredRows.map(row => {
+        return filteredRows.map((row, rowIndex) => {
             const Component = this.props.component
             const id = `${this.props.id}-${get(row, this.props.rowId)}`
+            row.parent = this.props.parent
+            row.rowIndex = rowIndex
             return (
                 <Component {...this.props}
                     id={id}

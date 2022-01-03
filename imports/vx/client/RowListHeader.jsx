@@ -95,11 +95,11 @@ export default class RowListHeader extends Component {
     }
 
     decorationIconClassName() {
-        return `${this.props.decorationIconClassName} fa-lg entity-decoration-icon-small`
+        return `${this.props.decorationIconClassName} entity-decoration-icon-small`
     }
 
     rightDecorationIconClassName() {
-        return `${this.props.decorationIconClassNameRight} fa-lg entity-decoration-icon-small`
+        return `${this.props.decorationIconClassNameRight} entity-decoration-icon-small`
     }
 
     conditionalHandle() {

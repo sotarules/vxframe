@@ -11,6 +11,7 @@ export default class VXTabFolder extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         activeTabId : PropTypes.string.isRequired,
+        className : PropTypes.string,
         pills : PropTypes.bool,
         editable : PropTypes.bool,
         record : PropTypes.object,
@@ -80,7 +81,7 @@ export default class VXTabFolder extends Component {
 
     render() {
         return (
-            <div className="flexi-grow">
+            <div className={`flexi-grow ${this.props.className}`}>
                 {this.renderTabTop()}
                 <div className="tab-content tab-content-flex flexi-grow">
                     {this.renderTabPanels()}

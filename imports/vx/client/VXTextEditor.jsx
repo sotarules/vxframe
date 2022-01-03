@@ -22,6 +22,7 @@ export default class VXTextEditor extends Component {
         fontNames : PropTypes.array,
         onChange : PropTypes.func,
         onEnter : PropTypes.func,
+        onBlur : PropTypes.func,
         dbName : PropTypes.string,
         fetchHandler : PropTypes.func,
         updateHandler : PropTypes.func,
@@ -47,7 +48,7 @@ export default class VXTextEditor extends Component {
 
     constructor(props) {
         super(props)
-        this.state = { value : "", modified : false }
+        this.state = { value : this.props.value, modified : false }
     }
 
     reset() {
@@ -56,9 +57,7 @@ export default class VXTextEditor extends Component {
 
     componentDidMount() {
         UX.register(this)
-        this.setState({ value : this.props.value }, () => {
-            this.originalState = { ...this.state }
-        })
+        this.originalState = { ...this.state }
         $(`#${this.props.id}`).summernote({
             height : this.props.height,
             minHeight : this.props.minHeight,
@@ -97,6 +96,7 @@ export default class VXTextEditor extends Component {
     UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
             if (this.state.value !== newProps.value) {
+                OLog.debug("VXTextEditor.jsx UNSAFE_componentWillReceiveProps value has changed updating summernote")
                 this.setState({value: newProps.value }, () => {
                     $(`#${this.props.id}`).summernote("code", newProps.value ? newProps.value : null)
                 })
@@ -106,7 +106,9 @@ export default class VXTextEditor extends Component {
 
     render() {
         return (
-            <div className={`form-group flexi-grow ${this.props.formGroupClassName || ""}`}>
+            <div id={`${this.props.id}-editor`}
+                className={`form-group flexi-grow ${this.props.formGroupClassName || ""}`}
+                onBlur={this.handleBlur.bind(this)}>
                 {this.props.label &&
                     <label htmlFor={this.props.id}
                         className="control-label"
@@ -134,7 +136,6 @@ export default class VXTextEditor extends Component {
     handleChange(contents) {
         if (contents != this.state.value) {
             this.setState({value: contents }, () => {
-                this.doUpdate()
                 if (this.props.onChange) {
                     this.props.onChange(this.getValue(), this)
                 }
@@ -148,7 +149,22 @@ export default class VXTextEditor extends Component {
         }
     }
 
-    handleBlur() {
+    /**
+     * We don't want to execute doUpdate if we're bluring, yet remaining within VXTextEditor component. Specifically,
+     * the formatting buttons should be considered part of this control and not trigger an update. This is important
+     * because doUpdate will cause a "round trip" triggering UNSAFE_componentWillReceiveProps, causing the Summernote
+     * editor to refresh at the same time the formatting button is pressed. Depending on timing, the formatting
+     * gesture is often clobbered by UNSAFE_componentWillReceiveProps, making the component seem flakey.
+     */
+    handleBlur(event) {
+        const $editor = $(event.relatedTarget).parents(`#${this.props.id}-editor`)
+        if (!$editor.exists()) {
+            OLog.warn(`VXTextEditor.jsx handleBlur component losing focus value=${this.state.value}`)
+            this.doUpdate()
+            if (this.props.onBlur) {
+                this.props.onBlur(event, this.getValue(), this)
+            }
+        }
     }
 
     doUpdate() {

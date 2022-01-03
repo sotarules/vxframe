@@ -975,7 +975,8 @@ VXApp = { ...VXApp, ...{
     lookupValue(uploadStats, value, definition, index, messages, fieldIdKey,
         fieldIdVariables) {
         const coll = Util.getCollection(definition.collection)
-        const partialValueRegex = new RegExp(value, "i")
+        const cleanValue = value.replace(/[^a-zA-Z0-9 ]/g, "")
+        const partialValueRegex = new RegExp(cleanValue, "i")
         const selector = {}
         if (definition.collection === "users") {
             selector["profile.domains.domainId"] = uploadStats.domain

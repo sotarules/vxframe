@@ -118,13 +118,10 @@ Tracker.autorun(function() {
                 }
                 //console.log("master.js autorun: notification observer notificationId=" + id + " *added*", notification)
                 if (Util.isNotificationDesired(notification, "PNOTIFY")) {
-                    // Sherpa has special checkbox for verbose notifications:
-                    if (Meteor.user().profile.verboseNotifications || notification.type === "ERROR") {
-                        let type = CX.NOTIFICATION_TYPE_MAP[notification.type]
-                        let icon = CX.NOTIFICATION_ICON_MAP[notification.icon]
-                        let text = Util.i18n(notification.key, notification.variables)
-                        UX.createNotification({ type : type, text : text, icon : icon })
-                    }
+                    let type = CX.NOTIFICATION_TYPE_MAP[notification.type]
+                    let icon = CX.NOTIFICATION_ICON_MAP[notification.icon]
+                    let text = Util.i18n(notification.key, notification.variables)
+                    UX.createNotification({ type : type, text : text, icon : icon })
                 }
                 // Let's give the systems five seconds before clearing so that notifications will be shown
                 // on all workstations prior to clearing (users may be logged into multiple browser pages at the same time):

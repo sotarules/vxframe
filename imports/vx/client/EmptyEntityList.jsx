@@ -13,6 +13,7 @@ export default class EmptyEntityList extends Component {
         emptyListMargins : PropTypes.bool.isRequired,
         emptyListWhiteBackground : PropTypes.bool.isRequired,
         scrollable : PropTypes.bool,
+        zeroHeightHack : PropTypes.bool,
         droppable : PropTypes.bool,
         dropClone : PropTypes.bool,
         dropClassName : PropTypes.string,
@@ -21,9 +22,10 @@ export default class EmptyEntityList extends Component {
 
     static defaultProps = {
         scrollable : true,
-        emptyListMargins : true,
+        emptyListMargins : false,
         emptyListWhiteBackground : true,
         placeholderClassName : "entity-drag-placeholder-conditional",
+        zeroHeightHack : true
     }
 
     componentDidMount() {

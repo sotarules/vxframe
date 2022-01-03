@@ -54,7 +54,8 @@ CX.NOTIFICATION_ICON_MAP = {
     "INSURED" : "fa fa-handshake-o",
     "PLAY" : "fa fa-play",
     "PAUSE" : "fa fa-pause",
-    "REFRESH" : "fa fa-refresh"
+    "REFRESH" : "fa fa-refresh",
+    "COPY" : "fa fa-copy"
 }
 
 CX.NOTIFICATION_BOOTSTRAP_CLASS_MAP = {
