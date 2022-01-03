@@ -21,7 +21,7 @@
     "filereader": "^0.10.3",
     "html-react-parser": "^0.14.0",
     "ladda": "^2.0.1",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "meteor-node-stubs": "^1.0.3",
     "node-sass": "^4.14.1",
     "otplib": "^12.0.1",
