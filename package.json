@@ -23,7 +23,7 @@
     "ladda": "^2.0.1",
     "lodash": "^4.17.21",
     "meteor-node-stubs": "^1.0.3",
-    "node-sass": "^4.14.1",
+    "node-sass": "^7.0.0",
     "otplib": "^12.0.1",
     "prop-types": "^15.7.2",
     "qrcode.react": "^1.0.1",
