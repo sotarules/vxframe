@@ -660,7 +660,7 @@ VXApp = { ...VXApp, ...{
      * @param {string} domainId Optional Domain ID.
      * @return {boolean} True if upload is in progress.
      */
-    isUploadInProgress(uploadType, domainId) {
+    uploadInProgress(uploadType, domainId) {
         const uploadStats = VXApp.findUploadStats(uploadType, domainId)
         if (!uploadStats) {
             return false;
@@ -975,8 +975,7 @@ VXApp = { ...VXApp, ...{
     lookupValue(uploadStats, value, definition, index, messages, fieldIdKey,
         fieldIdVariables) {
         const coll = Util.getCollection(definition.collection)
-        const cleanValue = value.replace(/[^a-zA-Z0-9 ]/g, "")
-        const partialValueRegex = new RegExp(cleanValue, "i")
+        const partialValueRegex = new RegExp(value, "i")
         const selector = {}
         if (definition.collection === "users") {
             selector["profile.domains.domainId"] = uploadStats.domain
@@ -1045,18 +1044,19 @@ VXApp = { ...VXApp, ...{
      * @param {object} fieldIdVariables Variables to insert into field-identifier message.
      */
     lookupCode(definition, value, codeArray, index, messages, fieldIdKey, fieldIdVariables) {
+        const valueConverted = value.toUpperCase()
         for (const codeElement of codeArray) {
-            if (codeElement.code.toUpperCase() === value.toUpperCase()) {
+            if (codeElement.code.toUpperCase() === valueConverted) {
                 return codeElement.code
             }
-            if (codeElement.localized.toUpperCase() === value.toUpperCase()) {
+            if (codeElement.localized.toUpperCase() === valueConverted) {
                 return codeElement.code
             }
             if (definition.partial) {
-                if (codeElement.code.toUpperCase().includes(value.toUpperCase())) {
+                if (codeElement.code.toUpperCase().includes(valueConverted)) {
                     return codeElement.code
                 }
-                if (codeElement.localized.toUpperCase().includes(value.toUpperCase())) {
+                if (codeElement.localized.toUpperCase().includes(valueConverted)) {
                     return codeElement.code
                 }
             }

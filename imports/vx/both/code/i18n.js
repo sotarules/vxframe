@@ -277,6 +277,11 @@ Meteor.i18nMessages.common = {
         rx : "$That six-digit number doesn't seem to match your authenticator app, please try again$"
     },
 
+    invalid_json_string : {
+        en : "Invalid JSON string, please Google for valid JSON strings",
+        rx : "$Invalid JSON string, please Google for valid JSON strings$"
+    },
+
     option_none : {
         en : "",
         rx : "$$"

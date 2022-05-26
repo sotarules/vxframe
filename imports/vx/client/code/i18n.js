@@ -15,6 +15,11 @@
         rx : "$Cannot remove a user from his/her only remaining domain$"
     },
 
+    alert_no_row_selected : {
+        en : "Please select (click) the row that you wish to remove first",
+        rx : "$Please select (click) the row that you wish to remove first$"
+    },
+
     required_fields_incomplete : {
         en : "Please complete all required fields",
         rx : "$Please complete all required fields$"
@@ -160,24 +165,24 @@
         rx : "$Send Test<br>Email$"
     },
 
-    button_import_csv : {
-        en : "Import<br>CSV",
-        rx : "$Import<br>CSV$"
+    button_choose_file : {
+        en : "Choose<br>File",
+        rx : "$Choose<br>File$"
     },
 
-    button_stop_import : {
-        en : "Stop<br>Import",
-        rx : "$Stop<br>Import$"
+    button_stop_upload : {
+        en : "Stop<br>Upload",
+        rx : "$Stop<br>Upload$"
     },
 
     button_enable_2FA : {
-        en : "Enable 2FA",
-        rx : "$Enable 2FA$"
+        en : "Enable<br>2FA",
+        rx : "$Enable<br>2FA$"
     },
 
     button_disable_2FA : {
-        en : "Disable 2FA",
-        rx : "$Disable 2FA$"
+        en : "Disable<br>2FA",
+        rx : "$Disable<br>2FA$"
     },
 
     context_menu_add_tab : {
@@ -453,6 +458,21 @@
     label_crop_image_to_square : {
         en : "Crop your image to a square for best results",
         rx : "$Crop your image to a square for best results$"
+    },
+
+    label_upload_name : {
+        en : "File Name",
+        rx : "$File Name$"
+    },
+
+    label_upload_type : {
+        en : "File Type",
+        rx : "$File Type$"
+    },
+
+    label_upload_size : {
+        en : "Size",
+        rx : "$Size$"
     },
 
     empty_tenants : {

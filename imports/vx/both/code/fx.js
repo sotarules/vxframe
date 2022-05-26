@@ -112,3 +112,22 @@ FX.balance = {
         return Util.formatMoney(balance)
     }
 }
+
+FX.json = {
+    strip(json) {
+        if (Util.isNullish(json)) {
+            return null
+        }
+        return json.trim()
+    },
+    render(json) {
+        try {
+            const jsonObject = JSON.parse(json)
+            return JSON.stringify(jsonObject)
+        }
+        catch (e) {
+            // Bury
+        }
+        return null
+    }
+}

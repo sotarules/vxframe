@@ -222,6 +222,45 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
+     * Clone the specified domain.
+     *
+     * @param {string} domainId Domain ID to clone.
+     * @return {object} Result object.
+     */
+    cloneDomain(domainId) {
+        try {
+            if (!(_.isString(domainId))) {
+                OLog.error(`vxapp.js cloneUser parameter check failed domainId=${domainId}`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
+            }
+            if (!Meteor.userId()) {
+                OLog.error("vxapp.js cloneUser security check failed invoking user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            const domain = Domains.findOne(domainId)
+            if (!domain) {
+                OLog.error(`vxapp.js cloneDomain unable to find cloned domainId=${domainId}`)
+                return
+            }
+            if (!Util.isUserAdmin()) {
+                OLog.error("vxapp.js cloneDomain security check failed invoking user is not administrator")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            // Remove Mongo ID to prevent duplicate keys (the entire record is cloned):
+            delete domain._id
+            delete domain.base
+            delete domain.iconUrl
+            OLog.debug(`vxapp.js cloneDomain inserting cloned domain record=${OLog.debugString(domain)}`)
+            const domainIdNew = Domains.insert(domain)
+            return { success : true, icon : "CLONE", key : "common.alert_record_cloned_success", variables: { name: Util.fetchDomainName(domainId) }, domainId: domainIdNew }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js cloneUser unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
      * Clone the specified user.
      *
      * @param {string} userId User ID to clone.
@@ -1605,7 +1644,7 @@ VXApp = { ...VXApp, ...{
                 return { success: false, icon: "BUG", key: "common.alert_transaction_fail_user_not_found", variables: { userId: userId } }
             }
             const valid = authenticator.check(token, secret)
-            OLog.warn(`vxapp.js verifyAndEnableTwoFactor ${Util.getUserEmail(user)} token=${token} secret=${secret} valid=${valid}`)
+            OLog.debug(`vxapp.js verifyAndEnableTwoFactor ${Util.getUserEmail(user)} token=${token} secret=${secret} valid=${valid}`)
             if (!valid) {
                 return { success: false, icon: "TRIANGLE", key: "common.alert_invalid_2fa_token" }
             }

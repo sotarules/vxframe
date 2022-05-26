@@ -83,12 +83,20 @@
 }
 
 .navbar-custom {
-	background-color: @brand-primary;
-	border-color: @brand-primary;
 	min-height: 40px;
 	max-height: 40px;
 	height: 40px;
     margin-bottom: 0px;
+}
+
+.navbar-custom-development {
+	background-color: @brand-success;
+	border-color: @brand-success;
+}
+
+.navbar-custom-production {
+	background-color: @brand-primary;
+	border-color: @brand-primary;
 }
 
 .navbar-custom .navbar-nav {
@@ -458,6 +466,17 @@
 .row.conserve-space > [class^="col-"], .row.conserve-space > [class*=" col-"] {
     padding-right: 12px;
     padding-left: 12px;
+}
+
+.checkbox-vertical-middle {
+    margin-top: 37px;
+}
+
+@media (max-width : @screen-lg-min) {
+
+    .checkbox-vertical-middle {
+        margin-top: 20px;
+    }
 }
 
 @media (max-width : @screen-sm-min) {

@@ -760,15 +760,17 @@ RecordImporter = {
      *
      * @param {string} uploadType Upload type.
      * @param {string} originalFileName Original file name.
+     * @param {string} fileType File Type.
      * @param {number} totalSize Total size.
      * @return {object} Result object.
      */
-    initUploadStats(uploadType, originalFileName, totalSize) {
+    initUploadStats(uploadType, originalFileName, fileType, totalSize) {
         try {
             OLog.debug("recordimporter.js initUploadStats *start*")
-            if (!(_.isString(uploadType) && _.isString(originalFileName) && _.isNumber(totalSize))) {
+            if (!(_.isString(uploadType) && _.isString(originalFileName) && _.isString(fileType)
+                && _.isNumber(totalSize))) {
                 OLog.error(`recordimporter.js initUploadStats parameter check failed uploadType=${uploadType} ` +
-                    `originalFileName=${originalFileName} totalSize=${totalSize}`)
+                    `originalFileName=${originalFileName} fileType=${fileType} totalSize=${totalSize}`)
                 return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
             }
             const domainId = Util.getCurrentDomainId(Meteor.userId())
@@ -789,6 +791,7 @@ RecordImporter = {
             modifier.$set.status = "TRANSMITTING"
             modifier.$set.userId = Meteor.userId()
             modifier.$set.originalFileName = originalFileName
+            modifier.$set.fileType = fileType
             modifier.$set.totalSize = totalSize
             modifier.$set.processed = 0
             modifier.$set.total = 100
@@ -843,6 +846,7 @@ RecordImporter = {
             eventData.uploadType = uploadStats.uploadType;
             eventData.userId = uploadStats.userId;
             eventData.originalFileName = uploadStats.originalFileName
+            eventData.fileType = uploadStats.fileType
             VXApp.createEvent(eventType, domainId, eventData, {
                 fullName: Util.fetchFullName(uploadStats.userId),
                 originalFileName: uploadStats.originalFileName,

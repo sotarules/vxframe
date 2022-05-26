@@ -1399,6 +1399,12 @@ Util = {
                 }
             }
         }
+        if (timeUnit === "YEAR") {
+            nextMoment.startOf("year")
+            nextMoment.add(timeInterval, "year")
+            if (timeOption === "FIRSTDAY") nextMoment.startOf("year").startOf("day")
+            if (timeOption === "LASTDAY") nextMoment.endOf("year").startOf("day")
+        }
         return nextMoment.toDate()
     },
 
@@ -2697,5 +2703,20 @@ Util = {
         if (stringA) return +1
         if (stringB) return -1
         return 0
+    },
+
+    /**
+     * Parse a JSON string with exception catch.
+     *
+     * @param {string} json Input string JSON.
+     * @return {object} JSON object or undefined.
+     */
+    parseJSON(json) {
+        try {
+            return JSON.parse(json)
+        }
+        catch (e) {
+            // Bury
+        }
     }
 }

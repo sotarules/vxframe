@@ -42,7 +42,7 @@ export default class VXSpin extends Component {
         format : FX.trim,
         bindingType : "Integer",
         rule : VX.common.integer,
-        min : 1,
+        min : 0,
         max : 1000000,
         step : 1,
         boostat : 5,
@@ -61,8 +61,7 @@ export default class VXSpin extends Component {
 
     componentDidMount() {
         UX.register(this)
-        let selector = this.getSelector()
-        $(selector).TouchSpin({
+        $(this.getSelector()).TouchSpin({
             min: this.props.min,
             max: this.props.max,
             step: this.props.step,
@@ -70,11 +69,11 @@ export default class VXSpin extends Component {
             maxboostedstep: this.props.maxboostedstep,
         });
         if (this.props.value != null) {
-            let value = Util.getInteger(this.props.value)
-            $(selector).val(value)
+            const value = Util.getInteger(this.props.value)
+            $(this.getSelector()).val(value)
             this.setValue(value)
         }
-        $(selector).on("change", function(event) {
+        $(this.getSelector()).on("change", function(event) {
             this.doStateChange(event)
         }.bind(this))
     }
@@ -87,8 +86,7 @@ export default class VXSpin extends Component {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
             //OLog.debug("VXSpin.jsx UNSAFE_componentWillReceiveProps componentId=" + this.props.id + " value=" + newProps.value + " *update*")
             this.setValue(newProps.value)
-            let selector = this.getSelector()
-            $(selector).val(newProps.value)
+            $(this.getSelector()).val(newProps.value)
         }
     }
 
@@ -100,11 +98,15 @@ export default class VXSpin extends Component {
         return (
             <div className={"form-group top-touchspin top-fieldbox-header-center" + (this.state.error ? " " + CX.CLASS_HAS_ERROR : "")}>
                 {this.props.label &&
-                    <label htmlFor={this.props.id} className={`control-label ${this.props.labelClassName || ""}`}  title={this.props.tooltip}>
-                        {this.props.label}{" "}
-                        {this.props.star &&
-                        <span className="fa fa-star-o icon-required"></span>
-                        }
+                    <label htmlFor={this.props.id}
+                        className={`control-label ${this.props.labelClassName || ""}`}
+                        title={this.props.tooltip}>
+                        <div className="top-label-span">
+                            {this.props.label}{" "}
+                            {this.props.star &&
+                                <span className="fa fa-star-o icon-required"></span>
+                            }
+                        </div>
                     </label>
                 }
                 {/* zIndex to 3 so invalid rectangle RHS will be displayed */}
@@ -141,7 +143,7 @@ export default class VXSpin extends Component {
         this.setState({value: event.target.value }, () => {
             UX.validateComponent(this)
             if (this.props.onChange) {
-                this.props.onChange(event)
+                this.props.onChange(event, this.getValue(), this)
             }
         })
     }

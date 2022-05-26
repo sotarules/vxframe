@@ -74,13 +74,13 @@ export default class IOSButtonBar extends Component {
         const iosButtonState = this.props.iosState.iosButtonState
         const currentPanel = UX.getCurrentPanel(Util.routePath())
         if (UX.isSlideMode() && position.toUpperCase() !== currentPanel) {
-            OLog.warn(`IOSButtonBar.jsx renderPositionButtons position=${position} currentPanel=${currentPanel} ` +
+            OLog.debug(`IOSButtonBar.jsx renderPositionButtons position=${position} currentPanel=${currentPanel} ` +
                 "no buttons shall be rendered")
             return null
         }
         // Back button takes precedence over left-positioned controls:
         if (UX.isIosBackButtonVisible(this.props.iosState) && position === "left") {
-            OLog.warn("IOSButtonBar.jsx renderPositionButtons back button shall take precedence over left controls")
+            OLog.debug("IOSButtonBar.jsx renderPositionButtons back button shall take precedence over left controls")
             return null
         }
         const results = []

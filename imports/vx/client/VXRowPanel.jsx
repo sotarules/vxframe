@@ -67,7 +67,7 @@ export default class VXRowPanel extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className={`panel ${this.panelBordersClassName()} panel-default flexi-grow ${this.props.panelClassName || ""}`}>
+                className={`panel panel-default ${this.panelBordersClassName()}  ${this.panelScrollableClassName()} ${this.props.panelClassName || ""}`}>
                 <div className={`panel-heading flexi-fixed flex-direction-row ${this.props.headingClassName || ""}`}>
                     {this.props.headingComponent ? this.renderHeadingComponent() : (
                         <div className={`row-panel-title ${this.props.titleClassName || ""}`}>
@@ -92,6 +92,14 @@ export default class VXRowPanel extends Component {
                 {this.renderRowBody()}
             </div>
         )
+    }
+
+    panelBordersClassName() {
+        return !this.props.panelBorders ? "row-panel-no-borders" : ""
+    }
+
+    panelScrollableClassName() {
+        return this.props.scrollable ? "flexi-grow" : "flexi-fixed"
     }
 
     renderHeadingComponent() {
@@ -142,10 +150,6 @@ export default class VXRowPanel extends Component {
         )
     }
 
-    panelBordersClassName() {
-        return !this.props.panelBorders ? "row-panel-no-borders" : ""
-    }
-
     rows() {
         return this.props.rows ? this.props.rows : get(this.props.record, this.props.rowsPath)
     }
@@ -168,8 +172,9 @@ export default class VXRowPanel extends Component {
     }
 
     handleClickRemove(event) {
-        const selectedRowIds = UX.selectedRowIdsOrLast(`${this.props.id}-row-list`, this.rows(), this.props.rowId)
-        if (!selectedRowIds) {
+        const selectedRowIds = UX.selectedRowIds(`${this.props.id}-row-list`)
+        if (selectedRowIds.length === 0) {
+            UX.notify({ success: true, type:"INFO", icon: "BULLHORN", key: "common.alert_no_row_selected" })
             return
         }
         if (this.props.onClickRemove) {

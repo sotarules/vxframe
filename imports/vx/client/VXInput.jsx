@@ -85,10 +85,13 @@ export default class VXInput extends Component {
                         className="control-label"
                         style={this.props.labelStyle}
                         title={this.props.tooltip}>
-                        {this.props.label}{" "}
-                        {this.props.star &&
-                            <span className="fa fa-star-o icon-required"></span>
-                        }
+                        <div className="top-label-span">
+                            {this.props.label}{" "}
+                            {this.props.star &&
+                                <span className="fa fa-star-o icon-required"></span>
+                            }
+                        </div>
+                        {""}
                     </label>
                 }
                 <input

@@ -7,7 +7,6 @@ import RightHeader from "/imports/vx/client/RightHeader"
 import VXForm from "/imports/vx/client/VXForm"
 import VXInput from "/imports/vx/client/VXInput"
 import VXTextArea from "/imports/vx/client/VXTextArea"
-import UploadButton from "/imports/vx/client/UploadButton"
 
 export default class TemplateEditRight extends Component {
 
@@ -16,8 +15,7 @@ export default class TemplateEditRight extends Component {
         template : PropTypes.object,
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["green", "yellow", "red", "gray"]),
-        decorationTooltip : PropTypes.string,
-        uploadInProgress : PropTypes.bool
+        decorationTooltip : PropTypes.string
     }
 
     static defaultProps = {
@@ -117,15 +115,6 @@ export default class TemplateEditRight extends Component {
     handleDoneEditing() {
         OLog.debug("TemplateEditRight.jsx handleDoneEditing")
         UX.iosPopAndGo("crossfade")
-    }
-
-    rightButton() {
-        return (
-            <UploadButton id="template-edit-upload-button"
-                uploadType="TEMPLATE"
-                currentUpload={this.currentUpload}
-                isUploadInProgress={this.props.uploadInProgress}/>
-        )
     }
 
     handleClickSendTestEmail(callback) {

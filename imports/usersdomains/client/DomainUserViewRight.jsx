@@ -122,22 +122,14 @@ export default class UserDomainViewRight extends Component {
     }
 
     handleClone(callback) {
-        OLog.debug("DomainUserViewRight.jsx handleClone")
         callback()
-        const domain = EJSON.parse(EJSON.stringify(this.props.domain))
-        delete domain._id
-        delete domain.base
-        delete domain.iconUrl
-        Domains.insert(domain, (error, domainId) => {
-            if (error) {
-                OLog.error(`DomainUserViewRight.jsx handleClone error attempting to clone domain=${error}`)
-                UX.notifyForDatabaseError(error)
-                return
-            }
+        UX.setLocked(["domain-user-view-left"], true)
+        Meteor.call("cloneDomain", this.props.domain._id, (error, result) => {
+            UX.notify(result, error)
             const publishAuthoringDomain = {}
-            publishAuthoringDomain.criteria = { _id: domainId }
+            publishAuthoringDomain.criteria = { _id: result.domainId }
             Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
-            UX.iosMajorPush(null, null, `/domain/${domainId}`, "RIGHT", "crossfade")
+            UX.iosMajorPush(null, null, `/domain/${result.domainId}`, "RIGHT", "crossfade")
         })
     }
 

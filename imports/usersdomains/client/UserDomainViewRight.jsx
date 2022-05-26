@@ -112,7 +112,6 @@ export default class UserDomainViewRight extends Component {
     }
 
     handleClone(callback) {
-        OLog.debug("UserDomainViewRight.jsx handleCloneUser")
         callback()
         UX.setLocked(["user-domain-view-left"], true)
         Meteor.call("cloneUser", this.props.user._id, (error, result) => {

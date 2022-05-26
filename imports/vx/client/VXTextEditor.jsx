@@ -159,7 +159,7 @@ export default class VXTextEditor extends Component {
     handleBlur(event) {
         const $editor = $(event.relatedTarget).parents(`#${this.props.id}-editor`)
         if (!$editor.exists()) {
-            OLog.warn(`VXTextEditor.jsx handleBlur component losing focus value=${this.state.value}`)
+            OLog.debug(`VXTextEditor.jsx handleBlur component losing focus value=${this.state.value}`)
             this.doUpdate()
             if (this.props.onBlur) {
                 this.props.onBlur(event, this.getValue(), this)

@@ -1146,6 +1146,10 @@ Schema.UploadStats = new SimpleSchema({
         type : String,
         optional : true
     },
+    fileType : {
+        type: String,
+        optional : true
+    },
     totalSize : {
         type : Number,
         optional : true

@@ -17,7 +17,7 @@ export default class AboutModal extends Component {
     render() {
         return (
             <VXModal id={this.props.id}
-                width="320px">
+                width="340px">
                 <ModalBody>
                     <div className="row">
                         <div className="col-xs-12 margin-top-10">

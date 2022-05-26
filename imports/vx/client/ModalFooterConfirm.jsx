@@ -5,6 +5,7 @@ import VXButton from "./VXButton"
 export default class ModalFooterConfirm extends Component {
 
     static propTypes = {
+        diableConfirm : PropTypes.bool,
         onClickConfirm : PropTypes.func.isRequired,
         onClickCancel : PropTypes.func
     }
@@ -27,6 +28,7 @@ export default class ModalFooterConfirm extends Component {
                     </div>
                     <div className="col-xs-6 modal-button">
                         <VXButton id="modal-button-confirm"
+                            disabled={this.props.disableConfirm}
                             className="btn btn-block btn-primary"
                             onClick={this.handleClickConfirm.bind(this)}>
                             {Util.i18n("common.button_confirm")}

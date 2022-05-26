@@ -107,10 +107,13 @@ export default class VXSelect extends Component {
                         className="control-label"
                         title={this.props.tooltip}
                         style={this.props.labelStyle}>
-                        {this.props.label}{" "}
-                        {this.props.star &&
-                            <span className="fa fa-star-o icon-required"></span>
-                        }
+                        <div className="top-label-span">
+                            {this.props.label}{" "}
+                            {this.props.star &&
+                                <span className="fa fa-star-o icon-required"></span>
+                            }
+                        </div>
+                        {""}
                     </label>
                 }
                 {!this.state.loading ? (

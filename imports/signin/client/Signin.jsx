@@ -75,8 +75,10 @@ export default class Signin extends Component {
     handleEnter() {
         const signinButton = UX.findComponentById("signin-button")
         signinButton.start()
-        this.handleClickSignin(() => {
-            signinButton.stop()
+        Meteor.setTimeout(() => {
+            this.handleClickSignin(() => {
+                signinButton.stop()
+            })
         })
     }
 

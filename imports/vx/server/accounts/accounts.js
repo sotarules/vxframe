@@ -76,7 +76,7 @@ Accounts.registerLoginHandler("two-factor", options => {
     }
     const user = Accounts.findUserByEmail(options.user.email)
     if (!user) {
-        OLog.warn(`accounts.js registerLoginHandler unable to find account associated with email=${options.user.email}`)
+        OLog.debug(`accounts.js registerLoginHandler unable to find account associated with email=${options.user.email}`)
         throw new Meteor.Error(403, Util.i18n("common.invalid_user_not_found"))
     }
     if (!user.services || !user.services.password || !user.services.password.bcrypt) {
@@ -85,7 +85,7 @@ Accounts.registerLoginHandler("two-factor", options => {
         throw new Meteor.Error(403, Util.i18n("common.invalid_user_record_corrupt"))
     }
     if (Accounts._checkPassword(user, options.twoFactorPassword).error) {
-        OLog.warn(`accounts.js registerLoginHandler incorrect password for email=${options.user.email}`)
+        OLog.debug(`accounts.js registerLoginHandler incorrect password for email=${options.user.email}`)
         throw new Meteor.Error(403, Util.i18n("common.invalid_password_incorrect"))
     }
     if (!user.twoFactorEnabled) {
@@ -112,12 +112,12 @@ Accounts.registerLoginHandler("two-factor", options => {
         window: 2
     }
     const valid = authenticator.verify({ token, secret })
-    OLog.warn(`accounts.js registerLoginHandler email=${options.user.email} token=${token} ` +
+    OLog.debug(`accounts.js registerLoginHandler email=${options.user.email} token=${token} ` +
         `authenticator verify method returned valid=${valid}`)
     if (!valid) {
         throw new Meteor.Error(403, Util.i18n("common.invalid_two_factor_token"))
     }
     const twoFactorHash = VXApp.computeTwoFactorSecretHash(user)
-    OLog.warn(`accounts.js registerLoginHandler email=${options.user.email} twoFactorHash=${twoFactorHash}`)
+    OLog.debug(`accounts.js registerLoginHandler email=${options.user.email} twoFactorHash=${twoFactorHash}`)
     return { userId: user._id, options: { twoFactorHash } }
 })

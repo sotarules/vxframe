@@ -45,7 +45,7 @@ export default class FunctionViewLeft extends Component {
                     selectable={true}
                     chevrons={true}
                     onSelect={this.handleSelectEntity.bind(this)}/>
-                <BottomButton id="button-create-template"
+                <BottomButton id="button-create-function"
                     className="btn-primary"
                     text={Util.i18n("common.button_create_function")}
                     onClick={this.handleClickCreate.bind(this)}/>

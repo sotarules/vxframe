@@ -22,9 +22,7 @@ export default class VXSwitch extends Component {
         disabled : false,
         size : "small",
         animate : true,
-        color : "primary",
-        onText : Util.i18n("common.switch_on"),
-        offText : Util.i18n("common.switch_off"),
+        color : "primary"
     }
 
     constructor(props) {
@@ -102,8 +100,8 @@ export default class VXSwitch extends Component {
                 data-size={this.props.size}
                 data-animate={this.props.animate}
                 data-on-color={this.props.color}
-                data-on-text={this.props.onText}
-                data-off-text={this.props.offText}
+                data-on-text={this.props.onText || Util.i18n("common.switch_on")}
+                data-off-text={this.props.offText || Util.i18n("common.switch_off")}
                 onChange={()=>{}}/>
         )
     }

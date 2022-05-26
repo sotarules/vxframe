@@ -11,7 +11,7 @@ export default class VXFieldSet extends Component {
 
     render() {
         return (
-            <fieldset className={this.props.className}>
+            <fieldset className={`flexi-grow ${this.props.className || ""}`}>
                 <legend className={this.props.legendClassName}>{this.props.legend}</legend>
                 {this.props.children}
             </fieldset>

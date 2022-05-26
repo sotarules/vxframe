@@ -17,7 +17,7 @@ export default class Settings extends Component {
         states : PropTypes.array.isRequired,
         countries : PropTypes.array.isRequired,
         timezones : PropTypes.array.isRequired,
-        seletUsers : PropTypes.array.isRequired
+        selectUsers : PropTypes.array.isRequired
     }
 
     render() {

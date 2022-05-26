@@ -259,6 +259,17 @@ VX.common = {
             return { success : false, icon : "TRIANGLE", key : "common.invalid_2fa_token" }
         }
         return { success : true }
+    },
+
+    json(json) {
+        try {
+            JSON.parse(json)
+            return {success: true}
+        }
+        catch (e) {
+            // Bury
+        }
+        return { success : false, icon : "TRIANGLE", key : "common.invalid_json_string" }
     }
 }
 

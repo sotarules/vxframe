@@ -25,7 +25,7 @@ export default class SettingsDomain extends Component {
                 <RightBody>
                     <VXForm id="settings-domain-form"
                         ref={(form) => { this.form = form }}
-                        className="right-panel-form"
+                        className="right-panel-form flexi-grow"
                         dynamic={false}
                         collection={Domains}
                         receiveProps={false}

@@ -8,8 +8,10 @@ import TopBarUserPhotoContainer from "/imports/layout/client/TopBarUserPhotoCont
 export default class TopBar extends Component {
 
     render() {
+        const environment = Util.getConfigValue("environment")
+        const navbarClass = environment === "development" ? "navbar-custom-development" : "navbar-custom-production"
         return (
-            <div className="navbar navbar-custom navbar-custom-fixed flexi-fixed hidden-print not-selectable">
+            <div className={`navbar navbar-custom ${navbarClass} navbar-custom-fixed flexi-fixed hidden-print not-selectable`}>
                 <table className="nav-table">
                     <tbody>
                         <tr>

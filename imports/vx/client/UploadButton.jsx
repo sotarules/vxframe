@@ -9,51 +9,47 @@ export default class UploadButton extends Component {
         id : PropTypes.string.isRequired,
         uploadType : PropTypes.string.isRequired,
         currentUpload : PropTypes.object.isRequired,
-        isUploadInProgress : PropTypes.bool,
-        buttonText : PropTypes.string
-    }
-
-    static defaultProps = {
-        buttonText : Util.i18n("common.button_import_csv")
+        uploadInProgress : PropTypes.bool,
+        buttonText : PropTypes.string,
+        stopButtonText : PropTypes.string,
+        onChangeFile : PropTypes.func
     }
 
     render() {
-        if (!this.props.isUploadInProgress) {
+        if (!this.props.uploadInProgress) {
             return (
-                <td className="top-right-button">
-                    <VXButton id="button-import-csv"
-                        className="btn btn-primary btn-file btn-custom pull-right"
-                        fileInput={true}
-                        minimumDuration={2000}
-                        onChangeFile={this.handleChangeImport.bind(this)}>
-                        {Parser(this.props.buttonText)}
-                    </VXButton>
-                </td>
+                <VXButton id="button-import-csv"
+                    className="btn btn-primary btn-file btn-custom pull-right"
+                    fileInput={true}
+                    minimumDuration={2000}
+                    onChangeFile={this.handleChangeFile.bind(this)}>
+                    {Parser(this.props.buttonText || Util.i18n("common.button_choose_file"))}
+                </VXButton>
             )
         }
         return (
-            <td className="top-right-button">
-                <VXButton id="button-stop-import"
-                    className="btn btn-danger btn-custom pull-right"
-                    onClick={this.handleClickStopImport.bind(this)}>
-                    {Parser(Util.i18n("common.button_stop_import"))}
-                </VXButton>
-            </td>
+            <VXButton id="button-stop-import"
+                className="btn btn-danger btn-custom pull-right"
+                onClick={this.handleClickStop.bind(this)}>
+                {Parser(this.props.stopButtonText || Util.i18n("common.button_stop_upload"))}
+            </VXButton>
         )
     }
 
-    handleChangeImport(event) {
+    handleChangeFile(event) {
         try {
-            const file = event.currentTarget.files[0]
-            VXApp.uploadFile(this.props.uploadType, this.props.currentUpload, file)
+            if (this.props.onChangeFile) {
+                event.persist()
+                this.props.onChangeFile(event, event.currentTarget.files[0])
+            }
         }
         catch (error) {
-            OLog.error(`UploadButton.jsx handleChangeImport error=${error}`)
+            OLog.error(`UploadButton.jsx handleChangeFile error=${error}`)
             return
         }
     }
 
-    handleClickStopImport(callback) {
+    handleClickStop(callback) {
         VXApp.uploadStop(this.props.uploadType, this.props.currentUpload, callback)
     }
 }

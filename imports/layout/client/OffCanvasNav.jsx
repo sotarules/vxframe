@@ -14,7 +14,7 @@ export default class OffCanvasNav extends Component {
 
     render() {
         return (
-            <nav id="offcanvas-menu-react" className="navmenu navmenu-inverse navmenu-fixed-left offcanvas in scroll-y scroll-momentum scroll-fix" role="navigation" style={this.styles().offcanvasMenu}>
+            <nav id="offcanvas-menu-react" className="navmenu navmenu-inverse navmenu-fixed-left offcanvas in scroll-y scroll-momentum" role="navigation" style={this.styles().offcanvasMenu}>
                 <ul className="nav navmenu-nav">
                     <OffCanvasNavItem iconClass="fa-user"
                         text={Util.i18n("navbar.profile")}
@@ -23,7 +23,7 @@ export default class OffCanvasNav extends Component {
                         text={Util.i18n("navbar.my_tenants")}
                         path="/tenants"/>
                     {this.props.isUserAdmin &&
-                        <React.Fragment>
+                        <>
                             <OffCanvasNavSeparator/>
                             <OffCanvasNavItem iconClass="fa-file-code-o"
                                 text={Util.i18n("navbar.templates")}
@@ -34,10 +34,11 @@ export default class OffCanvasNav extends Component {
                             <OffCanvasNavItem iconClass="fa-sitemap"
                                 text={Util.i18n("navbar.members_domains")}
                                 path="/users-domains"/>
-                        </React.Fragment>
+
+                        </>
                     }
-                    {this.props.isUserSuperAdmin &&
-                        <React.Fragment>
+                    {this.props.isUserAdmin &&
+                        <>
                             <OffCanvasNavSeparator/>
                             <OffCanvasNavItem iconClass="fa-upload"
                                 text={Util.i18n("navbar.deployment")}
@@ -53,7 +54,7 @@ export default class OffCanvasNav extends Component {
                             <OffCanvasNavItem iconClass="fa-database"
                                 text={Util.i18n("navbar.log")}
                                 path="/log"/>
-                        </React.Fragment>
+                        </>
                     }
                     <OffCanvasNavSeparator/>
                     <OffCanvasNavItem iconClass="fa-info-circle"

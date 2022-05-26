@@ -62,7 +62,7 @@ export default class ProfileCredentials extends Component {
                                         buttonText={Util.i18n("common.button_enable_2FA")}
                                         className="btn-success big-button-no-margins"
                                         iconStacked={true}
-                                        iconClass="fa fa-check-square-o"
+                                        iconClass="fa fa-check-square"
                                         onClickButton={this.handleClickEnable2FA.bind(this)}>
                                     </BigButton>
                                 ) : (

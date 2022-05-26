@@ -16,6 +16,7 @@ const persistConfig = {
 }
 
 const persistedReducer = persistReducer(persistConfig, combineReducers(VXApp.unionedReducers()))
+console.log("master.js init store")
 Store = createStore(persistedReducer)
 
 Persistor = persistStore(Store, null, () => {

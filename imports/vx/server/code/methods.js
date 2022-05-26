@@ -46,6 +46,10 @@ Meteor.methods({
         return VXApp.disableTwoFactor(userId)
     },
 
+    cloneDomain(domainId) {
+        return VXApp.cloneDomain(domainId)
+    },
+
     cloneUser(userId) {
         return VXApp.cloneUser(userId)
     },
@@ -138,8 +142,8 @@ Meteor.methods({
         return VXApp.createEvent(eventType, null, eventData, variables)
     },
 
-    initUploadStats(uploadType, originalFileName, totalSize) {
-        return RecordImporter.initUploadStats(uploadType, originalFileName, totalSize)
+    initUploadStats(uploadType, originalFileName, fileType, totalSize) {
+        return RecordImporter.initUploadStats(uploadType, originalFileName, fileType, totalSize)
     },
 
     createImportEvent(eventType, uploadType) {

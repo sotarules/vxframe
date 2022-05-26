@@ -6,7 +6,6 @@ const MeteorContainer = withTracker(() => {
 
     let template, decorationIconClassName, decorationColor, decorationTooltip, uploadInProgress
     template = ContextMaker.templates()
-    uploadInProgress = VXApp.isUploadInProgress("TEMPLATE")
     if (template) {
         decorationIconClassName = VXApp.getSubsystemStatusDecorationIconClassName("TEMPLATE", template, "medium")
         decorationColor = VXApp.getSubsystemStatusDecorationColor("TEMPLATE", template)

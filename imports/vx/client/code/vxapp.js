@@ -49,12 +49,12 @@ VXApp = { ...VXApp, ...{
                     return
                 }
                 if (doNotAskAgain) {
-                    OLog.warn(`vxapp.handleSignin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *setting* local storage`)
+                    OLog.debug(`vxapp.handleSignin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *setting* local storage`)
                     UX.setLocalStorageWithExpiry(CX.LOCAL_STORAGE_TWO_FACTOR_HASH_KEY, result.twoFactorHash,
                         CX.LOCAL_STORAGE_TWO_FACTOR_HASH_TTL)
                 }
                 else {
-                    OLog.warn(`vxapp.handleSignin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *removing* local storage`)
+                    OLog.debug(`vxapp.handleSignin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *removing* local storage`)
                     UX.removeLocalStorageWithExpiry(CX.LOCAL_STORAGE_TWO_FACTOR_HASH_KEY)
                 }
             },
@@ -383,7 +383,7 @@ VXApp = { ...VXApp, ...{
             handles = handles.concat(VXApp.changeAppGlobalSubscriptions(doClient, doServer, newSubscriptionParameters))
         }
 
-        OLog.warn("vxapp.js globalSubscriptions have been computed *wait* for publication")
+        OLog.debug("vxapp.js globalSubscriptions have been computed *wait* for publication")
         UX.setLoading(true)
         UX.waitSubscriptions(handles, (error, result) => {
             if (VXApp.onAppChangeSubscriptionsReady) {
@@ -1431,40 +1431,27 @@ VXApp = { ...VXApp, ...{
 
     /**
      * This function provides update service a special type of data structure, where the user
-     * experience is a list of rows with checkboxes, but the internal database format is an array
-     * of codes that map to the "checked" rows. This type of data structure saves space and is more
-     * concise in cases where there are many potential rows, but only a tiny subset are checked.
+     * experience is a list of rows, either used or unused, but the internal database format is an array
+     * of codes that map to used rows. This type of data structure saves space and is more
+     * concise in cases where there are many potential rows, but only a tiny subset are used.
      *
      * @param {array} codeArray Invariant array of codes typically from codes.js.
      * @param {object} collection Collection to be updated.
      * @param {object} record Record to be updated.
      * @param {string} rowsPath Path to array within record.
      * @param {string} rowId Name of the property that uniquely identifies the row.
-     * @param {string} checkboxdbName Name of the checkbox property that controls whether the element exists.
+     * @param {string} id unique row ID.
      * @param {object} component Component that has been updated.
      * @param {?} value Value that has been updated.
-     * @param {string} componentRowId Optional component row ID.
      */
-    updateCodeArray(codeArray, collection, record, rowsPath, rowId, checkboxdbName, component, value, componentRowId) {
+    updateCodeArray(codeArray, collection, record, rowsPath, rowId, id, component, value) {
         try {
-            if (!componentRowId) {
-                const $item = $(`#${component.props.id}`).closest(".vx-list-item")
-                componentRowId = $item.attr("data-item-id")
-                if (!componentRowId) {
-                    OLog.error(`vxapp.js updateCodeArray recordId=${record._id} componentId=${component.props.id} ` +
-                        `rowsPath=${rowsPath} componentRowId=${componentRowId}`)
-                    return
-                }
-            }
             const rebuiltArray = []
             codeArray.forEach(code => {
                 let element = _.find(get(record, rowsPath), element => {
                     return element[rowId] === code
                 })
-                if (componentRowId === code) {
-                    if (component.props.dbName === checkboxdbName && !value) {
-                        return
-                    }
+                if (id === code) {
                     if (!element) {
                         element = {}
                         element[rowId] = code
@@ -1480,7 +1467,7 @@ VXApp = { ...VXApp, ...{
             modifier.$set = {}
             modifier.$set[mongoPath] = rebuiltArray
             OLog.debug(`vxapp.js updateCodeArray recordId=${record._id} componentId=${component.props.id} ` +
-                `rowsPath=${rowsPath} componentRowId=${componentRowId} modifier=${OLog.debugString(modifier)}`)
+                `rowsPath=${rowsPath} rowId=${rowId} id=${id} modifier=${OLog.debugString(modifier)}`)
             collection.update(record._id, modifier)
             OLog.debug(`vxapp.js updateCodeArray recordId=${record._id} *success*`)
         }
@@ -1520,21 +1507,23 @@ VXApp = { ...VXApp, ...{
      */
     handleDropMultiPrime(parameters) {
         try {
+            const dropInfo = parameters.dropInfo
             const singleUpdate =
                 parameters.sourceCollection === parameters.targetCollection &&
                 parameters.sourceRecord._id === parameters.targetRecord._id
             const singleList = singleUpdate &&
                 parameters.sourceRowsPath === parameters.targetRowsPath
-            const dropInfo = parameters.dropInfo
+            const samePanel = !dropInfo.senderId
             const sourceRows = get(parameters.sourceRecord, parameters.sourceRowsPath, [])
             const targetRows = get(parameters.targetRecord, parameters.targetRowsPath, [])
             if (dropInfo.clone) {
+                const spliceIndex = VXApp.computeSpliceIndex(targetRows, parameters.rowId, dropInfo)
                 dropInfo.items.forEach((item, index) => {
                     const newRow = parameters.newItemHandler(item, index, parameters)
                     if (!newRow) {
                         return
                     }
-                    const newIndex = dropInfo.targetIndex + index
+                    const newIndex = spliceIndex + index
                     OLog.debug("vxapp.js handleDropMultiPrime *splicing* single row " +
                         `newIndex=${newIndex} newRow=${OLog.debugString(newRow)}`)
                     targetRows.splice(newIndex, 0, newRow)
@@ -1544,36 +1533,19 @@ VXApp = { ...VXApp, ...{
                 const insertArray = dropInfo.items.map(item => {
                     return _.findWhere(sourceRows, { [parameters.rowId]: item["data-item-id"] })
                 })
-                let spliceIndex = dropInfo.targetIndex
-                if (singleList && dropInfo.targetIndex > dropInfo.items[0].sourceIndex) {
-                    spliceIndex++
-                }
                 const insertedIds = _.pluck(dropInfo.items, "data-item-id")
-                const insertStartIndex = spliceIndex
-                const insertEndIndex = insertStartIndex + dropInfo.items.length - 1
-                OLog.debug(`vxapp.js handleDropMultiPrime *splicing* singleList=${singleList} ${insertArray.length} rows ` +
-                    `into ${targetRows.length} existng rows first item sourceIndex=${dropInfo.items[0].sourceIndex} ` +
-                    `targetIndex=${dropInfo.targetIndex} spliceIndex=${spliceIndex} ` +
-                    `dropInfo.items=${OLog.debugString(dropInfo.items)}`)
-                targetRows.splice(spliceIndex, 0, ...insertArray)
-                if (singleList) {
-                    for (let purgeIndex = targetRows.length - 1; purgeIndex >= 0; purgeIndex--) {
-                        if (purgeIndex < insertStartIndex || purgeIndex > insertEndIndex) {
-                            const targetRow = targetRows[purgeIndex]
-                            if (insertedIds.includes(targetRow[parameters.rowId])) {
-                                targetRows.splice(purgeIndex, 1)
-                            }
-                        }
-                    }
+                if (samePanel) {
+                    VXApp.purgeDroppedRows(targetRows, parameters.rowId, insertedIds)
                 }
                 else {
-                    for (let purgeIndex = sourceRows.length - 1; purgeIndex >= 0; purgeIndex--) {
-                        const sourceRow = sourceRows[purgeIndex]
-                        if (insertedIds.includes(sourceRow[parameters.rowId])) {
-                            sourceRows.splice(purgeIndex, 1)
-                        }
-                    }
+                    VXApp.purgeDroppedRows(sourceRows, parameters.rowId, insertedIds)
                 }
+                const spliceIndex = VXApp.computeSpliceIndex(targetRows, parameters.rowId, dropInfo)
+                OLog.warn(`vxapp.js handleDropMultiPrime *splicing* singleList=${singleList} samePanel=${samePanel} ` +
+                    `${insertArray.length} rows into ${targetRows.length} rows at spliceIndex=${spliceIndex} between ` +
+                    `${parameters.rowId}=${dropInfo.prevTargetItemId} and ` +
+                    `${parameters.rowId}=${dropInfo.nextTargetItemId}`)
+                targetRows.splice(spliceIndex, 0, ...insertArray)
             }
             if (singleUpdate) {
                 const modifier = {}
@@ -1595,6 +1567,47 @@ VXApp = { ...VXApp, ...{
         }
         catch (error) {
             UX.notifyForError(error)
+        }
+    },
+
+    /**
+     * Given a drop information instance, compute and return the splice index.
+     *
+     * @param {array} targetRows Target rows.
+     * @param {string} rowId Row ID.
+     * @param {object} dropInfo Drop information object.
+     * @return {number} Splice index.
+     */
+    computeSpliceIndex(targetRows, rowId, dropInfo) {
+        if (dropInfo.nextTargetItemId) {
+            const elementIndex = Util.indexOf(targetRows, rowId, dropInfo.nextTargetItemId)
+            const spliceIndex = elementIndex
+            OLog.warn(`vxapp.js computeSpliceIndex nextTargetItemId=${dropInfo.nextTargetItemId} elementIndex=${elementIndex} spliceIndex=${spliceIndex}`)
+            return spliceIndex
+        }
+        if (dropInfo.prevTargetItemId) {
+            const elementIndex = Util.indexOf(targetRows, rowId, dropInfo.prevTargetItemId)
+            const spliceIndex = elementIndex + 1
+            OLog.warn(`vxapp.js computeSpliceIndex prevTargetItemId=${dropInfo.prevTargetItemId} elementIndex=${elementIndex} spliceIndex=${spliceIndex}`)
+            return spliceIndex
+        }
+        OLog.warn("vxapp.js computeSpliceIndex dropInfo does not contain prevTargetItemId nor nextTargetItemId likely empty target cell")
+        return 0
+    },
+
+    /**
+     * Mutate an array to purge rows which are about to be dropped.
+     *
+     * @param {array} rows Array of rows to be purged.
+     * @param {string} rowId Row ID.
+     * @param {array} insertedIds Array of IDs to be purged.
+     */
+    purgeDroppedRows(rows, rowId, purgeIds) {
+        for (let purgeIndex = rows.length - 1; purgeIndex >= 0; purgeIndex--) {
+            const row = rows[purgeIndex]
+            if (purgeIds.includes(row[rowId])) {
+                rows.splice(purgeIndex, 1)
+            }
         }
     },
 
@@ -1821,7 +1834,7 @@ VXApp = { ...VXApp, ...{
                 OLog.error("vxapp.js uploadFile *error* no file input was supplied")
                 return
             }
-            Meteor.call("initUploadStats", uploadType, file.name, file.size, (error, result) => {
+            Meteor.call("initUploadStats", uploadType, file.name, file.type, file.size, (error, result) => {
                 if (!result.success) {
                     UX.createNotificationForResult(result)
                     VXApp.setUploadStatus(uploadType, "CLEARED")

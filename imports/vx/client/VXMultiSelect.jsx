@@ -63,10 +63,12 @@ export default class VXMultiSelect extends Component {
             <div className={"form-group" + (this.state.error ? " " + CX.CLASS_HAS_ERROR : "")}>
                 {this.props.label &&
                     <label htmlFor={this.props.id} className="control-label"  title={this.props.tooltip}>
-                        {this.props.label}{" "}
-                        {this.props.star &&
-                            <span className="fa fa-star-o icon-required"></span>
-                        }
+                        <div className="top-label-span">
+                            {this.props.label}{" "}
+                            {this.props.star &&
+                                <span className="fa fa-star-o icon-required"></span>
+                            }
+                        </div>
                     </label>
                 }
                 <ul id={this.props.id}

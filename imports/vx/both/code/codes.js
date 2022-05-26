@@ -1498,6 +1498,16 @@ Meteor.i18nMessages.codes = {
                 rx: "$Month$"
             }
         },
+        YEAR: {
+            momentCode: "year",
+            en: "Years",
+            rx: "$Years$",
+            timeOptions: [ "FIRSTDAY", "LASTDAY" ],
+            singular: {
+                en: "Year",
+                rx: "$Year$"
+            }
+        },
     },
 
     timeOption: {
@@ -1923,5 +1933,16 @@ Meteor.i18nMessages.codes = {
             en : "General Function",
             rx : "$General Function$"
         }
+    },
+
+    yesNo : {
+        YES : {
+            en : "Yes",
+            rx : "$Yes$"
+        },
+        NO : {
+            en : "No",
+            rx : "$No$"
+        },
     }
 }

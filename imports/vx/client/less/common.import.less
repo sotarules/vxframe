@@ -242,11 +242,6 @@
     user-select: text;
 }
 
-// Apparent bug in Chrome causes spinner to not apppear with data style zoom-in due to opacity
-.ladda-button {
-    opacity: 1 !important;
-}
-
 // VXTabFolder drop-downs:
 .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus  {
     border-bottom-color: #dddddd !important;
@@ -536,10 +531,6 @@ fieldset[disabled] .form-control {
     visibility: hidden;
 }
 
-.checkbox-vertical-middle {
-    margin-top: 37px;
-}
-
 .checkbox-stacked-first {
     margin-top: 26px;
     margin-bottom: 5px;
@@ -752,6 +743,14 @@ body {
 
 .inline {
     display: inline-block;
+}
+
+.form-group > .control-label {
+    display: inline-block;
+}
+
+.top-label-span {
+    .truncate;
 }
 
 .top-banner {
@@ -1160,6 +1159,7 @@ legend.group-legend {
     /* To give a bit of padding on the left and right */
     border-bottom: none;
     margin-bottom: 5px;
+    .truncate;
 }
 
 .font-helvetica {
@@ -1323,6 +1323,10 @@ legend.group-legend {
     font-size: 14px;
 }
 
+.btn:disabled {
+    opacity: 0.5;
+}
+
 .btn-custom {
     min-width: 100px;
 }
@@ -1373,11 +1377,18 @@ legend.group-legend {
 
 .big-button {
     width: 130px;
-    height: 50px;
     margin-left: 5px;
     margin-right: 5px;
     padding-left: 0px;
     padding-right: 0px;
+}
+
+.big-button-normal {
+    height: 50px;
+}
+
+.big-button-stacked {
+    height: 100px;
 }
 
 .big-button-no-margins {
@@ -2727,6 +2738,11 @@ legend.group-legend {
 
 .ios-disabled {
     color: #E0E0E0 !important;
+}
+
+.upload-modal-body {
+    padding-top: 20px;
+    padding-bottom: 0px;
 }
 
 .upload-progress-container {

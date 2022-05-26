@@ -643,14 +643,20 @@ UX = {
      * @return {object} Drop info object.
      */
     makeDropInfo(event, ui, component, $entityTarget) {
+        const itemIdArray = []
+        $entityTarget.children(".vx-list-item").each(function() {
+            return itemIdArray.push($(this).attr("data-item-id"))
+        })
         const dropInfo = {}
         dropInfo.event = event
         dropInfo.senderId = ui.sender?.attr("id")
+        dropInfo.targetId = $entityTarget.attr("id")
         dropInfo.itemId = ui.item?.attr("id")
+        dropInfo["data-item-id"] = ui.item?.attr("data-item-id")
         dropInfo.component = component
         dropInfo.$entityTarget = $entityTarget
         dropInfo.clone = UX.isDropClone(ui, component)
-        dropInfo.targetIndex = ui.item.index()
+        dropInfo.targetIndex = itemIdArray.indexOf(dropInfo["data-item-id"])
         dropInfo.items = []
         UXState.$helper.children().each((index, helperChild) => {
             const item = {}
@@ -661,6 +667,14 @@ UX = {
             }
             dropInfo.items.push(item)
         })
+        const prevIndex = dropInfo.targetIndex - 1
+        const nextIndex = dropInfo.targetIndex + 1
+        if (prevIndex >= 0) {
+            dropInfo.prevTargetItemId = itemIdArray[prevIndex]
+        }
+        if (nextIndex < itemIdArray.length) {
+            dropInfo.nextTargetItemId = itemIdArray[nextIndex]
+        }
         return dropInfo
     },
 
@@ -730,24 +744,6 @@ UX = {
      */
     selectedRowIds(listId) {
         return UX.selectedIds(listId, "data-item-id")
-    },
-
-    /**
-     * Return the IDs of the selected rows, or the ID of the last row.
-     *
-     * @param {string} listId List ID.
-     * @param {array} rows Rows
-     * @param {string} rowId Row ID.
-     * @return {array} Array of selected child IDs or null.
-     */
-    selectedRowIdsOrLast(listId, rows, rowId) {
-        let selectedRowIds = UX.selectedRowIds(listId)
-        if (selectedRowIds.length === 0) {
-            if (rows && rows.length > 0) {
-                selectedRowIds = [ rows[rows.length - 1][rowId] ]
-            }
-        }
-        return selectedRowIds.length !== 0 ? selectedRowIds : null
     },
 
     /**
@@ -1109,7 +1105,7 @@ UX = {
         if (UXState.loading) {
             return
         }
-        OLog.warn("ux.js showLoading *fire*")
+        OLog.debug("ux.js showLoading *fire*")
         let message =  "<p class='loading-message'>" + Util.i18n("common.message_loading") + "</p>"
         let circle = "<div class='sk-spinner sk-spinner-wordpress'><span class='sk-inner-circle'></span></div>"
         UXState.loading = window.pleaseWait({ logo : CX.LOGO_PATH, backgroundColor : "#FFFFFF", loadingHtml : message + circle })
@@ -1120,7 +1116,7 @@ UX = {
      */
     clearLoading() {
         if (UXState.loading) {
-            OLog.warn("ux.js clearLoading *fire*")
+            OLog.debug("ux.js clearLoading *fire*")
             UXState.loading.finish()
             UXState.loading = null
         }
@@ -1133,7 +1129,7 @@ UX = {
      */
     setLoading(loading) {
         if (Store.getState().loading !== loading) {
-            OLog.warn(`ux.js setLoading loading=${loading}`)
+            OLog.debug(`ux.js setLoading loading=${loading}`)
             Store.dispatch(setLoading(loading))
         }
     },
@@ -1145,16 +1141,16 @@ UX = {
      * @param {function} callback Callback.
      */
     waitSubscriptions(handles, callback) {
-        OLog.warn(`ux.js waitSubscriptions *waiting* total of ${handles.length} subscriptions to be published`)
+        OLog.debug(`ux.js waitSubscriptions *waiting* total of ${handles.length} subscriptions to be published`)
         try {
             if (UX.areSubscriptionsReady(handles)) {
-                OLog.warn("ux.js waitSubscriptions immediately *ready* continue")
+                OLog.debug("ux.js waitSubscriptions immediately *ready* continue")
                 callback(null, { success: true })
                 return
             }
             Tracker.autorun(computation => {
                 if (UX.areSubscriptionsReady(handles)) {
-                    OLog.warn(`ux.js waitSubscriptions *ready* total of ${handles.length} subscriptions ` +
+                    OLog.debug(`ux.js waitSubscriptions *ready* total of ${handles.length} subscriptions ` +
                         "published stopping wait computation and invoking post-publication callback")
                     computation.stop()
                     callback(null, { success: true })
@@ -2185,7 +2181,7 @@ UX = {
                 return
             }
             component.setLocked(locked)
-            OLog.warn(`ux.js lockExitingComponents element id=${id} component *locked*`)
+            OLog.debug(`ux.js lockExitingComponents element id=${id} component *locked*`)
         })
     },
 
@@ -2401,7 +2397,7 @@ UX = {
      * @param {string} modalId Modal ID to be dismissed.
      */
     dismissModal(modalId) {
-        OLog.warn(`ux.js dismissModal dismissing modal modalId=${modalId}`)
+        OLog.debug(`ux.js dismissModal dismissing modal modalId=${modalId}`)
         $(`#${modalId}`).modal("hide")
     },
 
@@ -2437,7 +2433,7 @@ UX = {
         const id = `${element.props.id}-${modalCount}`
         $(anchorSelector).append(`<div id="${modalContainerId}"></div>`)
         const clonedElement = React.cloneElement(element, { id, anchorSelector })
-        OLog.warn(`ux.js mountModal id=${clonedElement.props.id} anchorSelector=${anchorSelector}`)
+        OLog.debug(`ux.js mountModal id=${clonedElement.props.id} anchorSelector=${anchorSelector}`)
         return ReactDOM.render(clonedElement, $(`#${modalContainerId}`)[0])
     },
 
@@ -2453,7 +2449,7 @@ UX = {
         const modalContainerId = `${anchorId}-${modalCount}`
         const success = ReactDOM.unmountComponentAtNode($(`#${modalContainerId}`)[0])
         $(`#${modalContainerId}`).remove()
-        OLog.warn(`ux.js unmountModal modalContainerId=${modalContainerId} ReactDOM.unmountComponentAtNode success=${success}`)
+        OLog.debug(`ux.js unmountModal modalContainerId=${modalContainerId} ReactDOM.unmountComponentAtNode success=${success}`)
     },
 
     /**
