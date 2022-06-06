@@ -7,6 +7,7 @@ export default class VXDate extends Component {
         id : PropTypes.string.isRequired,
         placeholder : PropTypes.string,
         label : PropTypes.string,
+        groupClass : PropTypes.string,
         star : PropTypes.bool,
         tooltip : PropTypes.string,
         required : PropTypes.bool,
@@ -136,7 +137,7 @@ export default class VXDate extends Component {
 
     render() {
         return (
-            <div className={"form-group" + (this.state.error ? " " + CX.CLASS_HAS_ERROR : "")}>
+            <div className={`form-group ${this.state.error ? " " + CX.CLASS_HAS_ERROR : ""} ${this.props.groupClass || ""}`}>
                 {this.props.label &&
                     <label htmlFor={this.props.id} className="control-label" title={this.props.tooltip}>
                         <div className="top-label-span">

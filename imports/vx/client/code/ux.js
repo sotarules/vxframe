@@ -2399,12 +2399,6 @@ UX = {
     dismissModal(modalId) {
         OLog.debug(`ux.js dismissModal dismissing modal modalId=${modalId}`)
         $(`#${modalId}`).modal("hide")
-        $(`#${modalId}`).one("hidden.bs.modal", () => {
-            const modalComponent = UX.findComponentById(modalId)
-            if (modalComponent) {
-                UX.unmountModal(modalComponent.props.anchorSelector)
-            }
-        })
     },
 
     /**
@@ -2748,15 +2742,20 @@ UX = {
     async call(method, ...parameters) {
         return new Promise((resolve, reject) => {
             OLog.debug(`ux.js call *executor* invoking ${method}`)
-            Meteor.call(method, ...parameters, (error, result) => {
-                if (error) {
-                    OLog.error(`ux.js call method ${method} *reject* error=${error}`)
-                    reject(error)
-                    return
-                }
-                OLog.debug(`ux.js call method ${method} *resolve* result=${OLog.debugString(result)}`)
-                resolve(result)
-            })
+            try {
+                Meteor.call(method, ...parameters, (error, result) => {
+                    if (error) {
+                        OLog.error(`ux.js call method ${method} *reject* error=${error}`)
+                        reject(error)
+                        return
+                    }
+                    OLog.debug(`ux.js call method ${method} *resolve* result=${OLog.debugString(result)}`)
+                    resolve(result)
+                })
+            }
+            catch (error) {
+                OLog.error(`ux.js call method ${method} unexpected error=${error}`)
+            }
         })
     },
 
