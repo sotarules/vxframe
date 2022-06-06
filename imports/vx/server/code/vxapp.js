@@ -143,16 +143,18 @@ VXApp = { ...VXApp, ...{
             let notificationObject = eventTypeObject.notification
             let selector = {}
             selector["profile.dateRetired"] = { $exists: false }
-            switch (notificationObject.scope) {
-            case "ALL" :
-                // Do nothing
-                break
-            default :
-                selector["profile.domains.domainId"] = domainId
-                break
+            selector["profile.domains.domainId"] = domainId
+            if (notificationObject.scope === "USER") {
+                selector._id = Meteor.userId()
             }
             Meteor.users.find(selector).forEach(user => {
-                let notification = {}
+                if (notificationObject.scope === "SUPERADMIN" && !Util.isUserSuperAdmin(user._id)) {
+                    return
+                }
+                if (notificationObject.scope === "ADMIN" && !Util.isUserAdmin(user._id)) {
+                    return
+                }
+                const notification = {}
                 notification.domain = domainId
                 notification.type = notificationObject.type
                 notification.icon = notificationObject.icon
@@ -162,6 +164,8 @@ VXApp = { ...VXApp, ...{
                 notification.key = notificationObject.key
                 notification.subjectKey = notificationObject.subjectKey
                 notification.variables = variables
+                OLog.warn(`vxapp.js createNotifications eventType=${eventType} scope=${notificationObject.scope} ` +
+                    ` user=${Util.fetchFullName(user._id)}`)
                 Notifications.insert(notification)
             })
         }

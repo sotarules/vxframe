@@ -248,8 +248,8 @@ VXApp = { ...VXApp, ...{
      * @return {boolean} True if this is a wide layout route.
      */
     isWideRoute() {
-        if (VXApp.isAppWideRoute && VXApp.isAppWideRoute()) {
-            return true
+        if (VXApp.isAppWideRoute) {
+            return VXApp.isAppWideRoute()
         }
         return true
     },

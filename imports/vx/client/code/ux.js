@@ -2399,6 +2399,12 @@ UX = {
     dismissModal(modalId) {
         OLog.debug(`ux.js dismissModal dismissing modal modalId=${modalId}`)
         $(`#${modalId}`).modal("hide")
+        $(`#${modalId}`).one("hidden.bs.modal", () => {
+            const modalComponent = UX.findComponentById(modalId)
+            if (modalComponent) {
+                UX.unmountModal(modalComponent.props.anchorSelector)
+            }
+        })
     },
 
     /**

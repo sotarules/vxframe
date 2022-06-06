@@ -41,10 +41,5 @@ export default class VXModal extends Component {
         OLog.debug(`VXModal.jsx componentDidMount *show* modal id=${this.props.id} ` +
             `anchorSelector=${this.props.anchorSelector}`)
         $(selector).modal("show")
-        $(selector).one("hide.bs.modal", () => {
-            $(selector).one("hidden.bs.modal", () => {
-                UX.unmountModal(this.props.anchorSelector)
-            })
-        })
     }
 }

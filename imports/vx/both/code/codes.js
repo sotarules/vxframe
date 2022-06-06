@@ -1626,7 +1626,8 @@ Meteor.i18nMessages.codes = {
                 type : "ERROR",
                 icon : "HISTORY",
                 key : "common.alert_generic",
-                subjectKey : "common.alert_generic_subject"
+                subjectKey : "common.alert_generic_subject",
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1637,7 +1638,8 @@ Meteor.i18nMessages.codes = {
                 type : "ERROR",
                 icon : "HISTORY",
                 key : "common.alert_generic",
-                subjectKey : "common.alert_generic_subject"
+                subjectKey : "common.alert_generic_subject",
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1648,7 +1650,8 @@ Meteor.i18nMessages.codes = {
                 type : "SUCCESS",
                 icon : "HISTORY",
                 key : "common.alert_generic",
-                subjectKey : "common.alert_generic_subject"
+                subjectKey : "common.alert_generic_subject",
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1659,7 +1662,7 @@ Meteor.i18nMessages.codes = {
                 type : "INFO",
                 icon : "RETIRE",
                 key : "common.alert_user_retire",
-                scope : "ALL"
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1670,7 +1673,7 @@ Meteor.i18nMessages.codes = {
                 type : "INFO",
                 icon : "RETIRE",
                 key : "common.alert_domain_retire",
-                scope : "ALL"
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1681,7 +1684,7 @@ Meteor.i18nMessages.codes = {
                 type : "INFO",
                 icon : "BULLHORN",
                 key : "common.alert_tenant_create",
-                scope : "ALL"
+                scope : "SUPERADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1692,31 +1695,29 @@ Meteor.i18nMessages.codes = {
                 type : "INFO",
                 icon : "BULLHORN",
                 key : "common.alert_tenant_retire",
-                scope : "ALL"
+                scope : "SUPERADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
         USER_LOGIN : {
             en : "When a user logs in",
             rx : "$When a user logs in$",
-            role : "SYSTEMADMIN",
             notification : {
                 type : "INFO",
                 icon : "BULLHORN",
                 key : "common.alert_user_logged_in",
-                scope : "ALL"
+                scope : "SUPERADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
         USER_LOGOUT : {
             en : "When a user logs out",
             rx : "$When a user logs out$",
-            role : "SYSTEMADMIN",
             notification : {
                 type : "INFO",
                 icon : "BULLHORN",
                 key : "common.alert_user_logged_out",
-                scope : "ALL"
+                scope : "SUPERADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1726,7 +1727,8 @@ Meteor.i18nMessages.codes = {
             notification : {
                 type : "INFO",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_start"
+                key : "common.alert_list_import_start",
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1736,7 +1738,8 @@ Meteor.i18nMessages.codes = {
             notification : {
                 type : "INFO",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_finish"
+                key : "common.alert_list_import_finish",
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1746,7 +1749,8 @@ Meteor.i18nMessages.codes = {
             notification : {
                 type : "INFO",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_stop"
+                key : "common.alert_list_import_stop",
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1756,7 +1760,8 @@ Meteor.i18nMessages.codes = {
             notification : {
                 type : "ERROR",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_fail"
+                key : "common.alert_list_import_fail",
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
@@ -1766,7 +1771,8 @@ Meteor.i18nMessages.codes = {
             notification : {
                 type : "ERROR",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_reset"
+                key : "common.alert_list_import_reset",
+                scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
