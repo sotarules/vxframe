@@ -9,7 +9,7 @@ aldeed:simple-schema@1.5.4
 allow-deny@1.1.1
 autoupdate@1.8.0
 babel-compiler@7.9.0
-babel-runtime@1.5.0
+babel-runtime@1.5.1
 base64@1.0.12
 binary-heap@1.0.11
 blaze@2.5.0
@@ -82,8 +82,8 @@ mrt:moment-timezone@0.2.1
 npm-mongo@4.3.1
 observe-sequence@1.0.20
 ordered-dict@1.1.0
-ostrio:cookies@2.7.0
-ostrio:files@2.0.1
+ostrio:cookies@2.7.2
+ostrio:files@2.1.1
 pcel:loading@1.0.3
 promise@0.12.0
 raix:eventemitter@0.1.3

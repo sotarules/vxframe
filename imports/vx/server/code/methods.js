@@ -138,8 +138,8 @@ Meteor.methods({
         return VXApp.executeDeploymentAction(formObject)
     },
 
-    createEvent(eventType, eventData, variables) {
-        return VXApp.createEvent(eventType, null, eventData, variables)
+    createEvent(eventType, eventData, variables, notificationScope) {
+        return VXApp.createEvent(eventType, null, eventData, variables, notificationScope)
     },
 
     initUploadStats(uploadType, originalFileName, fileType, totalSize) {

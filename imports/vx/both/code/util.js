@@ -428,7 +428,7 @@ Util = {
     },
 
     /**
-     * Safely get the specified profile property from the current or optionally-specified user.
+     * Get the specified user profile property.
      *
      * @param {string} Name of user profile property.
      * @param {?} userOrId Optional User object or ID.
@@ -447,6 +447,23 @@ Util = {
             return null
         }
         return user.profile[prop]
+    },
+
+    /**
+     * Set the specified user profile property.
+     *
+     * @param {string} prop Name of user profile property.
+     * @param {?} Value of property to set.
+     * @param {?} userOrId Optional User object or ID.
+     * @param {string} op MongoDB operator to use.
+     */
+    setProfileValue(prop, value, userOrId, op) {
+        op = op || "$set"
+        userOrId = userOrId || Meteor.userId()
+        const modifier = {}
+        modifier[op] = {}
+        modifier[op][`profile.${prop}`] = value
+        Meteor.users.update(Util.userId(userOrId), modifier)
     },
 
     /**
@@ -586,6 +603,58 @@ Util = {
      */
     fetchUserLimited(selector) {
         return Meteor.users.findOne(selector, { fields: CX.USER_LIMITED_FIELDS })
+    },
+
+    /**
+     * Fetch a specified user/domain field.
+     *
+     * @param {?} userOrId User object or ID.
+     * @param {string} domainId Domain ID to update.
+     * @param {string} fieldName Field name to fetch.
+     * @return {?} Domain field.
+     */
+    fetchUserDomainField(userOrId, domainId, fieldName) {
+        const domains = Util.getProfileValue("domains", userOrId)
+        const userDomainObject = _.findWhere(domains, { domainId })
+        return userDomainObject[fieldName]
+    },
+
+    /**
+     * Update a specified user/domain field.
+     *
+     * @param {?} userOrId User object or ID.
+     * @param {string} domainId Domain ID to update.
+     * @param {string} fieldName Field name to fetch.
+     * @param {?} value Value to set.
+     * @param {string} op Optional MongoDB operation ($set, $push, $pull).
+     */
+    updateUserDomainField(userOrId, domainId, fieldName, value, op) {
+        op = op || "$set"
+        const userDomains = Util.getProfileValue("domains", userOrId)
+        const index = Util.indexOf(userDomains, "domainId", domainId)
+        const mongoPath = Util.toMongoPath(Util.userDomainFieldPath(userOrId, domainId, fieldName))
+        const modifier = {}
+        modifier[op] = {}
+        modifier[op][mongoPath] = value
+        const userId = Util.userId(userOrId)
+        OLog.warn(`util.js updateUserDomainField userId=${userId} domainId=${domainId} fieldName=${fieldName} ` +
+            `index=${index} mongoPath=${mongoPath} value=${OLog.warnString(value)} op=${op} ` +
+            `modifier=${OLog.warnString(modifier)}`)
+        Meteor.users.update(userId, modifier)
+    },
+
+    /**
+     * Return the path of a specified user/domain field.
+     *
+     * @param {?} userOrId User object or ID.
+     * @param {string} domainId Domain ID to update.
+     * @param {string} fieldName Field name to fetch.
+     * @return {string} Path name suitable for get.
+     */
+    userDomainFieldPath(userOrId, domainId, fieldName) {
+        const userDomains = Util.getProfileValue("domains", userOrId)
+        const index = Util.indexOf(userDomains, "domainId", domainId)
+        return `profile.domains[${index}].${fieldName}`
     },
 
     /**
@@ -2075,7 +2144,7 @@ Util = {
      * Find the list of users within a specified domain.
      *
      * @param {object} domainId Domain ID.
-     * @param {string} includeRetiredUsers True to include retired users.
+     * @param {boolean} includeRetiredUsers True to include retired users.
      * @return {object} Cursor of users in domain.
      */
     findUsersInDomain(domainId, includeRetiredUsers) {
@@ -2433,6 +2502,20 @@ Util = {
             return
         }
         return user
+    },
+
+    /**
+     * Convenience method to always return user ID given user record or user ID.
+     * or user ID.
+     *
+     * @param {?} userOrId User object or ID.
+     * @return {string} User ID.
+     */
+    userId(userOrId) {
+        if (_.isObject(userOrId)) {
+            return userOrId._id
+        }
+        return userOrId
     },
 
     /**

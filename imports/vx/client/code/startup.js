@@ -97,6 +97,9 @@ Meteor.startup(() => {
                 console.log(`startup.js Accounts onClientLogin callback error=${error}`)
                 return
             }
+            if (VXApp.onLogin) {
+                VXApp.onLogin()
+            }
         })
     })
     // Use React-friendly FastClick:

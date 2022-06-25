@@ -81,7 +81,7 @@ export default class VXTabFolder extends Component {
 
     render() {
         return (
-            <div className={`flexi-grow ${this.props.className}`}>
+            <div className={`flexi-grow ${this.props.className || ""}`}>
                 {this.renderTabTop()}
                 <div className="tab-content tab-content-flex flexi-grow">
                     {this.renderTabPanels()}

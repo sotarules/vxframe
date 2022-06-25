@@ -554,26 +554,23 @@ VXApp = { ...VXApp, ...{
      *
      * @param {string} reduxPropertyName Name of redux property to initialize.
      * @param {object} setAction Redux set action.
-     * @param {function} listFunction Function to return an array of records.
+     * @param {?} list Function to return an array of records or array.
      */
-    selectFirstRecord(reduxPropertyName, setAction, listFunction) {
-        OLog.debug(`vxapp.js selectFirstRecord *init* reduxPropertyName=${reduxPropertyName}`)
-        if (Store.getState()[reduxPropertyName]) {
-            OLog.debug("vxapp.js selectFirstRecord redux already intialized " +
-                `${reduxPropertyName}=${OLog.debugString(Store.getState()[reduxPropertyName])}`)
-            return
-        }
-        OLog.debug(`vxapp.js selectFirstRecord invoking list function ${Util.functionName(listFunction)}`)
-        const array = listFunction()
+    selectFirstRecord(reduxPropertyName, setAction, list) {
+        const array = _.isFunction(list) ? list() : list
         if (!array || array.length === 0) {
-            OLog.error(`vxapp.js selectFirstRecord ${Util.functionName(listFunction)} returned *falsy* ` +
-                `unable to initialize redux variable ${reduxPropertyName}`)
+            Store.dispatch(setAction(null))
             return
         }
-        const publish = {}
+        const publish = Store.getState()[reduxPropertyName] || {}
+        const _id = publish?.criteria?._id
+        if (!!_.findWhere(array, { _id })) {
+            return
+        }
         publish.criteria = { _id: array[0]._id }
         publish.options = {}
-        OLog.debug(`vxapp.js selectFirstRecord *overriding* ${reduxPropertyName} criteria=${OLog.debugString(publish)}`)
+        OLog.warn(`vxapp.js selectFirstRecord reduxPropertyName=${reduxPropertyName} _id=${_id} ` +
+            `*overriding* new publish=${OLog.debugString(publish)}`)
         Store.dispatch(setAction(publish))
     },
 
@@ -1228,11 +1225,12 @@ VXApp = { ...VXApp, ...{
      * @param {string} Event type (e.g., ORDER_CREATED).
      * @param {object} Event data in object form.
      * @param {object} Variables to be inserted into notifications.
+     * @param {string} notificationScope Scope of notification (e.g., USER, DOMAIN).
      * @return {string} MongoDB ID of new event.
      */
-    async createEvent(eventType, eventData, variables) {
+    async createEvent(eventType, eventData, variables, notificationScope) {
         try {
-            await UX.call("createEvent", eventType, eventData, variables)
+            await UX.call("createEvent", eventType, eventData, variables, notificationScope)
         }
         catch (error) {
             OLog.error(`vxapp.js createEvent error=${error}`)
@@ -1541,7 +1539,7 @@ VXApp = { ...VXApp, ...{
                     VXApp.purgeDroppedRows(sourceRows, parameters.rowId, insertedIds)
                 }
                 const spliceIndex = VXApp.computeSpliceIndex(targetRows, parameters.rowId, dropInfo)
-                OLog.warn(`vxapp.js handleDropMultiPrime *splicing* singleList=${singleList} samePanel=${samePanel} ` +
+                OLog.debug(`vxapp.js handleDropMultiPrime *splicing* singleList=${singleList} samePanel=${samePanel} ` +
                     `${insertArray.length} rows into ${targetRows.length} rows at spliceIndex=${spliceIndex} between ` +
                     `${parameters.rowId}=${dropInfo.prevTargetItemId} and ` +
                     `${parameters.rowId}=${dropInfo.nextTargetItemId}`)
@@ -1582,16 +1580,16 @@ VXApp = { ...VXApp, ...{
         if (dropInfo.nextTargetItemId) {
             const elementIndex = Util.indexOf(targetRows, rowId, dropInfo.nextTargetItemId)
             const spliceIndex = elementIndex
-            OLog.warn(`vxapp.js computeSpliceIndex nextTargetItemId=${dropInfo.nextTargetItemId} elementIndex=${elementIndex} spliceIndex=${spliceIndex}`)
+            OLog.debug(`vxapp.js computeSpliceIndex nextTargetItemId=${dropInfo.nextTargetItemId} elementIndex=${elementIndex} spliceIndex=${spliceIndex}`)
             return spliceIndex
         }
         if (dropInfo.prevTargetItemId) {
             const elementIndex = Util.indexOf(targetRows, rowId, dropInfo.prevTargetItemId)
             const spliceIndex = elementIndex + 1
-            OLog.warn(`vxapp.js computeSpliceIndex prevTargetItemId=${dropInfo.prevTargetItemId} elementIndex=${elementIndex} spliceIndex=${spliceIndex}`)
+            OLog.debug(`vxapp.js computeSpliceIndex prevTargetItemId=${dropInfo.prevTargetItemId} elementIndex=${elementIndex} spliceIndex=${spliceIndex}`)
             return spliceIndex
         }
-        OLog.warn("vxapp.js computeSpliceIndex dropInfo does not contain prevTargetItemId nor nextTargetItemId likely empty target cell")
+        OLog.debug("vxapp.js computeSpliceIndex dropInfo does not contain prevTargetItemId nor nextTargetItemId likely empty target cell")
         return 0
     },
 
@@ -2041,5 +2039,22 @@ VXApp = { ...VXApp, ...{
         data["data-item-id"] =  $item.attr("data-item-id")
         data["data-db-id"] =  $item.attr("data-db-id")
         return data
+    },
+
+    /**
+     * Dynamically subscribe using a publish request and optional criteria to filter
+     * the subscription.
+     *
+     * @param {object} publishRequest Publishing request to use as a base.
+     * @param {string} subscription Name of the subscription.
+     * @param {object} criteria Optional criteria to merge with publishing request.
+     * @param {object} opotions Optional options to merge with publishing request.
+     * @return {object} handle Handle from subscription.
+     */
+    subscribe(publishRequest, subscription, criteria, options) {
+        const publishRequestModified = {}
+        publishRequestModified.criteria = { ...publishRequest.criteria, ...criteria }
+        publishRequestModified.options = { ...publishRequest.options, ...options }
+        return Meteor.subscribe(subscription, publishRequestModified)
     }
 }}

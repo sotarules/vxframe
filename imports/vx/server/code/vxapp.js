@@ -103,20 +103,22 @@ VXApp = { ...VXApp, ...{
      * @param {string} domainId Domain ID.
      * @param {object} eventData Event data in object form.
      * @param {object} variables Variables to be inserted into notifications.
+     * @param {string} notificationScope Scope of notification (e.g., USER, DOMAIN).
      * @return {string} MongoDB ID of new event.
      */
-    createEvent(eventType, domainId, eventData, variables) {
+    createEvent(eventType, domainId, eventData, variables, notificationScope) {
         try {
             const event = {}
             event.domain = domainId || Util.getCurrentDomainId(Meteor.userId())
             event.type = eventType
             event.eventData = eventData
             OLog.debug(`vxapp.js createEvent eventType=${event.type} domain=${event.domain} ` +
-                `eventData=${OLog.debugString(event.eventData)} variables=${OLog.debugString(variables)}`)
+                `eventData=${OLog.debugString(event.eventData)} variables=${OLog.debugString(variables)} ` +
+                `notificationScope=${notificationScope}`)
             const eventId = Events.insert(event)
             OLog.debug(`vxapp.js createEvent *success* eventId=${eventId}`)
             if (Util.isNotificationWarranted(event)) {
-                VXApp.createNotifications(domainId, eventType, eventId, variables)
+                VXApp.createNotifications(domainId, eventType, eventId, variables, notificationScope)
             }
             else {
                 OLog.debug(`vxapp.js createEvent notifications *not* warranted for eventId=${eventId}`)
@@ -135,23 +137,25 @@ VXApp = { ...VXApp, ...{
      * @param {string} domainId Domain ID.
      * @param {string} Event type (e.g., ORDER_CREATED).
      * @param {string} Event ID.
+     * @param {string} notificationScope Scope of notification (e.g., USER, DOMAIN).
      * @param {object} Variables to be inserted into notification.
      */
-    createNotifications(domainId, eventType, eventId, variables) {
+    createNotifications(domainId, eventType, eventId, variables, notificationScope) {
         try {
-            let eventTypeObject = Meteor.i18nMessages.codes.eventType[eventType]
-            let notificationObject = eventTypeObject.notification
-            let selector = {}
+            const eventTypeObject = Meteor.i18nMessages.codes.eventType[eventType]
+            const notificationObject = eventTypeObject.notification
+            notificationScope = notificationScope || notificationObject.scope
+            const selector = {}
             selector["profile.dateRetired"] = { $exists: false }
             selector["profile.domains.domainId"] = domainId
-            if (notificationObject.scope === "USER") {
+            if (notificationScope === "USER") {
                 selector._id = Meteor.userId()
             }
             Meteor.users.find(selector).forEach(user => {
-                if (notificationObject.scope === "SUPERADMIN" && !Util.isUserSuperAdmin(user._id)) {
+                if (notificationScope === "SUPERADMIN" && !Util.isUserSuperAdmin(user._id)) {
                     return
                 }
-                if (notificationObject.scope === "ADMIN" && !Util.isUserAdmin(user._id)) {
+                if (notificationScope === "ADMIN" && !Util.isUserAdmin(user._id)) {
                     return
                 }
                 const notification = {}
@@ -164,13 +168,13 @@ VXApp = { ...VXApp, ...{
                 notification.key = notificationObject.key
                 notification.subjectKey = notificationObject.subjectKey
                 notification.variables = variables
-                OLog.warn(`vxapp.js createNotifications eventType=${eventType} scope=${notificationObject.scope} ` +
+                OLog.debug(`vxapp.js createNotifications eventType=${eventType} scope=${notificationScope} ` +
                     ` user=${Util.fetchFullName(user._id)}`)
                 Notifications.insert(notification)
             })
         }
         catch (error) {
-            OLog.error("vxapp.js createNotification error=" + error)
+            OLog.error(`vxapp.js createNotification error=${error}`)
             return
         }
     },

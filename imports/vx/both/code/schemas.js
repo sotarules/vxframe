@@ -648,7 +648,7 @@ Schema.Clipboard = new SimpleSchema({
     }
 })
 
-Schema.UserProfileTenants = new SimpleSchema({
+Schema.UserProfileTenant = new SimpleSchema({
     tenantId : {
         type : String,
         custom: Schema.checkTenantId
@@ -659,7 +659,7 @@ Schema.UserProfileTenants = new SimpleSchema({
     }
 })
 
-Schema.UserProfileDomains = new SimpleSchema({
+Schema.UserProfileDomain = new SimpleSchema({
     domainId : {
         type : String,
         custom: Schema.checkDomainId
@@ -747,10 +747,11 @@ Schema.UserProfile = new SimpleSchema({
         allowedValues : moment.tz.names()
     },
     tenants : {
-        type : [Schema.UserProfileTenants]
+        type : [Schema.UserProfileTenant]
     },
     domains : {
-        type : [Schema.UserProfileDomains]
+        type : [Schema.UserProfileDomain],
+        blackbox : true
     },
     currentDomain: {
         type: String,

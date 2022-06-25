@@ -89,19 +89,14 @@ Serv = {
                 `userId=${userId} domainId=${domainId}`)
             return true
         }
-        let tenantId = Util.getTenantId(domainId)
-        let allowSetDomain = (Serv.isUserAdmin(adminId, tenantId, operation) || adminId === userId) &&
-            Serv.isUserDomain(adminId, domainId, operation) &&
-            Serv.isUserDomain(userId, domainId, operation)
-        if (allowSetDomain) {
+        if (Serv.isUserAdmin(adminId, operation) || adminId === userId) {
             OLog.debug(`serv.js isAllowUserSetCurrentDomain ${operation} *granted* adminId=${adminId} userId=${userId} ` +
-                `tenantId=${tenantId} domainId=${domainId}`)
+                `domainId=${domainId}`)
+            return true
         }
-        else {
-            OLog.error(`serv.js isAllowUserSetCurrentDomain ${operation} *denied* adminId=${adminId} userId=${userId} ` +
-                `tenantId=${tenantId} domainId=${domainId}`)
-        }
-        return allowSetDomain
+        OLog.error(`serv.js isAllowUserSetCurrentDomain ${operation} *denied* adminId=${adminId} userId=${userId} ` +
+            `domainId=${domainId}`)
+        return false
     },
 
     checkOperators(modifier, validOperators) {
