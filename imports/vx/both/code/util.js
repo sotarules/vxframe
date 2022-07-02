@@ -695,8 +695,8 @@ Util = {
      * @return {string} Field value.
      */
     fetchDomainField(domainId, fieldName) {
-        if (!domainId) {
-            return
+        if (!domainId || domainId === "UNKNOWN") {
+            return null
         }
         let fieldList = {}
         fieldList.fields = {}
@@ -2490,9 +2490,12 @@ Util = {
      * or user ID.
      *
      * @param {?} userOrId User object or ID.
-     * @return {object} User record.
+     * @return {object} User record or undefnied.
      */
     user(userOrId) {
+        if (!userOrId) {
+            return null
+        }
         if (_.isObject(userOrId)) {
             return userOrId
         }

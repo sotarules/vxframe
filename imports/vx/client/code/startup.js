@@ -94,12 +94,30 @@ Meteor.startup(() => {
         console.log("startup.js Accounts onLogin *fire*")
         Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, error => {
             if (error) {
-                console.log(`startup.js Accounts onClientLogin callback error=${error}`)
+                console.log(`startup.js Accounts onLogin callback error=${error}`)
                 return
             }
             if (VXApp.onLogin) {
                 VXApp.onLogin()
             }
+            Meteor.setInterval(() => {
+                try {
+                    const loginToken = Meteor._localStorage.getItem("Meteor.loginToken")
+                    const loginTokenExpires = Meteor._localStorage.getItem("Meteor.loginTokenExpires")
+                    if (loginToken && loginTokenExpires) {
+                        const tokenExpired = moment(loginTokenExpires).isBefore(moment())
+                        if (tokenExpired) {
+                            OLog.warn("startup.js Accounts onLogin token check " +
+                                `email=${Util.getUserEmail()} loginToken=${loginToken} tokenExpired=${tokenExpired} ` +
+                                "invoking VXApp.logout()")
+                            VXApp.logout()
+                        }
+                    }
+                }
+                catch (error) {
+                    OLog.error(`startup.js Accounts onLogin token check error=${error}`)
+                }
+            }, 60000)
         })
     })
     // Use React-friendly FastClick:

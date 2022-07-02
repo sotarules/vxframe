@@ -2812,6 +2812,9 @@ UX = {
         }
         if (!timezone) {
             userOrId = userOrId || Meteor.userId()
+            if (!userOrId) {
+                return null
+            }
             const user = Util.user(userOrId)
             if (!user) {
                 OLog.error(`ux.js formatDate unable to locate userOrId=${userOrId}`)
