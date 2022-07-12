@@ -6,7 +6,6 @@ import { setCurrentLocale } from "/imports/vx/client/code/actions"
 import {setFunctionUpdateTimestamp} from "/imports/vx/client/code/actions"
 
 React = require("react")
-ReactDOM = require("react-dom")
 
 const persistConfig = {
     key: "root",

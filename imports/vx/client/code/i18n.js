@@ -305,6 +305,11 @@
         rx : "$Email Templates$"
     },
 
+    label_import_templates : {
+        en : "Import Templates",
+        rx : "$Import Templates$"
+    },
+
     label_subject : {
         en : "Subject",
         rx : "$Subject$"
@@ -669,6 +674,11 @@ Meteor.i18nMessages.navbar = _.extend(Meteor.i18nMessages.navbar || {}, {
     deployment: {
         en: "Deployment",
         rx: "$Deployment$"
+    },
+
+    import_templates: {
+        en: "Import Templates",
+        rx: "$Import Templates$"
     }
 })
 

@@ -1,4 +1,5 @@
 import {cloneDeep, get, set} from "lodash"
+import UploadModalContainer from "/imports/vx/client/UploadModalContainer"
 import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
 import {
     setCurrentDomainId,
@@ -1726,7 +1727,7 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
-     * Add a database-resident function to KeepTrack global object.
+     * Add a database-resident function to global object.
      *
      * @param {object} newFunction New function.
      */
@@ -1758,7 +1759,7 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
-     * Update a KeepTrack global object function.
+     * Update a global object function.
      *
      * @param {object} newFunction New function.
      * @param {object} oldFunction Old function.
@@ -2017,6 +2018,22 @@ VXApp = { ...VXApp, ...{
             })
         })
         return messagesLocalized.join("<br>")
+    },
+
+    /**
+     * Client support for importing templates.
+     *
+     * @param {object} event Event object.
+     */
+    handleClickImportTemplates(event) {
+        OLog.debug(`vxapp.js handleClickImportTemplates user=${Util.getUserEmail()}`)
+        event.preventDefault()
+        Meteor.setTimeout(() => {
+            UX.showModal(<UploadModalContainer id="template-upload-modal"
+                uploadType="TEMPLATE"
+                heading={Util.i18n("common.label_import_templates")}/>)
+        }, 300)
+        UX.toggleNav()
     },
 
     /**

@@ -17,7 +17,7 @@ export default class UploadModal extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        uploadStats : PropTypes.string.isRequired,
+        uploadStats : PropTypes.object.isRequired,
         uploadType : PropTypes.string.isRequired,
         heading : PropTypes.string.isRequired,
         subheading : PropTypes.string,

@@ -1,5 +1,6 @@
 import initReactFastclick from "react-fastclick"
 import { createBrowserHistory } from "history"
+import { createRoot } from "react-dom/client"
 import { setRoutePath } from "/imports/vx/client/code/actions"
 import { setExemptRoute } from "/imports/vx/client/code/actions"
 import { setAuthorizedRoute } from "/imports/vx/client/code/actions"
@@ -79,7 +80,8 @@ Meteor.startup(() => {
         doRoute()
     })
 
-    ReactDOM.render(Routes.renderRoutes(), document.getElementById("react-root"))
+    UX["react-root"] = createRoot(document.getElementById("react-root"))
+    UX["react-root"].render(Routes.renderRoutes())
     // Compute initial slide mode based on device characteristics:
     UX.updateSlideMode()
     PNotify.prototype.options.styling = "fontawesome"
@@ -92,7 +94,7 @@ Meteor.startup(() => {
     // Capture and log the client version:
     Accounts.onLogin(() => {
         console.log("startup.js Accounts onLogin *fire*")
-        Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, error => {
+        Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, React.version, error => {
             if (error) {
                 console.log(`startup.js Accounts onLogin callback error=${error}`)
                 return

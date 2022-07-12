@@ -1,3 +1,5 @@
+import SimpleSchema from "simpl-schema"
+
 Schema.checkMongoIdSingle = (schema, collection, value) => {
     let record = collection.findOne(value, { fields: { "_id" : 1 } })
     if (!record) {
@@ -75,15 +77,6 @@ Schema.SubsystemStatus = new SimpleSchema({
         type : Object,
         optional : true,
         blackbox : true
-    }
-})
-
-Schema.Config = new SimpleSchema({
-    logLevel : {
-        type : Number
-    },
-    mailmanSleepInterval : {
-        type : Number
     }
 })
 
@@ -272,8 +265,11 @@ Schema.Domains = new SimpleSchema({
         optional : true
     },
     subsystemStatus : {
-        type : [Schema.SubsystemStatus],
+        type: Array,
         optional : true
+    },
+    "subsystemStatus.$" : {
+        type: Schema.SubsystemStatus
     },
     tenant : {
         type : String,
@@ -519,12 +515,11 @@ Schema.Notifications = new SimpleSchema({
 Schema.Transactions = new SimpleSchema({
     domain : {
         type : String,
-        custom : Schema.checkDomainId,
-        denyUpdate: true
+        custom : Schema.checkDomainId
     },
     userId : {
         type : String,
-        custom : Schema.checkUserId,
+        custom : Schema.checkUserId
     },
     collectionName : {
         type : String
@@ -536,9 +531,12 @@ Schema.Transactions = new SimpleSchema({
         type : Number
     },
     history: {
-        type: [Object],
-        optional : true,
-        blackbox : true
+        type: Array,
+        optional : true
+    },
+    "history.$": {
+        type: Object,
+        blackbox: true
     }
 })
 
@@ -547,9 +545,11 @@ Schema.SnapshotCollection = new SimpleSchema({
         type : String
     },
     records : {
-        type : [Object],
-        optional : true,
-        blackbox : true
+        type : Array,
+        optional : true
+    },
+    "records.$": {
+        type: Object
     }
 })
 
@@ -592,7 +592,11 @@ Schema.Snapshot = new SimpleSchema({
         custom : Schema.checkDomainId,
     },
     collections : {
-        type : [Schema.SnapshotCollection],
+        type : Array,
+        optional : true
+    },
+    "collections.$" : {
+        type : Schema.SnapshotCollection,
         optional : true
     }
 })
@@ -603,7 +607,11 @@ Schema.History = new SimpleSchema({
         custom : Schema.checkDomainId
     },
     snapshots : {
-        type : [Schema.Snapshot],
+        type : Array,
+        optional : true
+    },
+    "snapshots.$" : {
+        type : Schema.Snapshot,
         optional : true
     }
 })
@@ -654,8 +662,10 @@ Schema.UserProfileTenant = new SimpleSchema({
         custom: Schema.checkTenantId
     },
     roles : {
-        type : [String],
-        allowedValues : Util.getCodes("userRole", { tenantRole : true }),
+        type : Array
+    },
+    "roles.$" : {
+        type : String
     }
 })
 
@@ -665,8 +675,10 @@ Schema.UserProfileDomain = new SimpleSchema({
         custom: Schema.checkDomainId
     },
     roles : {
-        type : [String],
-        allowedValues : Util.getCodes("userRole", { tenantRole : false }),
+        type : Array
+    },
+    "roles.$" : {
+        type : String
     }
 })
 
@@ -747,11 +759,16 @@ Schema.UserProfile = new SimpleSchema({
         allowedValues : moment.tz.names()
     },
     tenants : {
-        type : [Schema.UserProfileTenant]
+        type : Array
+    },
+    "tenants.$" : {
+        type : Schema.UserProfileTenant
     },
     domains : {
-        type : [Schema.UserProfileDomain],
-        blackbox : true
+        type : Array
+    },
+    "domains.$" : {
+        type : Schema.UserProfileDomain
     },
     currentDomain: {
         type: String,
@@ -817,17 +834,32 @@ Schema.UserProfile = new SimpleSchema({
         regEx: SimpleSchema.RegEx.Url
     },
     notificationPreferences : {
-        type : [Object],
+        type : Array,
+        optional : true,
+        blackbox : true
+    },
+    "notificationPreferences.$" : {
+        type : Object,
         optional : true,
         blackbox : true
     },
     standardPreferences : {
-        type : [Object],
+        type : Array,
+        optional : true,
+        blackbox : true
+    },
+    "standardPreferences.$" : {
+        type : Object,
         optional : true,
         blackbox : true
     },
     reportPreferences : {
-        type : [Object],
+        type : Array,
+        optional : true,
+        blackbox : true
+    },
+    "reportPreferences.$" : {
+        type : Object,
         optional : true,
         blackbox : true
     }
@@ -965,7 +997,11 @@ Schema.Templates = new SimpleSchema({
         }
     },
     subsystemStatus : {
-        type : [Schema.SubsystemStatus],
+        type : Array,
+        optional : true
+    },
+    "subsystemStatus.$" : {
+        type : Schema.SubsystemStatus,
         optional : true
     },
     name : {
@@ -1045,7 +1081,6 @@ Schema.Functions = new SimpleSchema({
     domain : {
         type : String,
         custom: Schema.checkDomainId,
-        denyUpdate: true,
         autoValue : function() {
             if (this.isInsert && !this.isSet) {
                 return Util.getCurrentDomainId(this.userId);
@@ -1172,7 +1207,12 @@ Schema.UploadStats = new SimpleSchema({
         optional: true
     },
     messages : {
-        type : [Object],
+        type : Array,
+        blackbox : true,
+        optional : true
+    },
+    "messages.$" : {
+        type : Object,
         blackbox : true,
         optional : true
     }
@@ -1180,7 +1220,6 @@ Schema.UploadStats = new SimpleSchema({
 
 
 // Attach schemas to activate:
-Config.attachSchema(Schema.Config)
 Domains.attachSchema(Schema.Domains)
 Meteor.users.attachSchema(Schema.Users)
 

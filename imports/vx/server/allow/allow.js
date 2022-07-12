@@ -15,8 +15,8 @@ Config.allow({
     insert: function() {
         return false
     },
-    update: function(userId) {
-        return Serv.isUserSuperAdmin(userId, "Config.allow update")
+    update: function() {
+        return false
     },
     remove: function() {
         return false

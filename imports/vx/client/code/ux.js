@@ -1,7 +1,6 @@
-"use strict"
-
 import Parser from "html-react-parser"
 import isEqual from "react-fast-compare"
+import { createRoot } from "react-dom/client"
 
 import { setIosState } from "/imports/vx/client/code/actions"
 import { setFormData } from "/imports/vx/client/code/actions"
@@ -915,6 +914,7 @@ UX = {
             OLog.error(`ux.js setAnimation unable to find componentId=${componentId}`)
             return
         }
+        OLog.warn(`ux.js setAnimation componentId=${componentId} animation=${animation}`)
         component.setAnimation(animation)
     },
 
@@ -1592,10 +1592,10 @@ UX = {
         if (!dom) {
             return null
         }
-        let key = Object.keys(dom).find(key => key.startsWith("__reactInternalInstance$"))
+        let key = Object.keys(dom).find(key => key.startsWith("__reactFiber$"))
         let internalInstance = dom[key]
         if (!internalInstance) {
-            console.error(`ux.js findComponentById id=${id} value of property whose name starts with __reactInternalInstance$ is null`)
+            console.error(`ux.js findComponentById id=${id} value of property whose name starts with __reactFiber$ is null`)
             return null
         }
         let myReturn = internalInstance.return
@@ -2440,7 +2440,8 @@ UX = {
         $(anchorSelector).append(`<div id="${modalContainerId}"></div>`)
         const clonedElement = React.cloneElement(element, { id, anchorSelector })
         OLog.debug(`ux.js mountModal id=${clonedElement.props.id} anchorSelector=${anchorSelector}`)
-        return ReactDOM.render(clonedElement, $(`#${modalContainerId}`)[0])
+        UXState[modalContainerId] = createRoot($(`#${modalContainerId}`)[0])
+        return UXState[modalContainerId].render(clonedElement)
     },
 
     /**
@@ -2453,9 +2454,9 @@ UX = {
         const anchorId = anchorSelector.substr(1)
         const modalCount = $(anchorSelector).children().length
         const modalContainerId = `${anchorId}-${modalCount}`
-        const success = ReactDOM.unmountComponentAtNode($(`#${modalContainerId}`)[0])
+        UXState[modalContainerId].unmount() // ($(`#${modalContainerId}`)[0])
         $(`#${modalContainerId}`).remove()
-        OLog.debug(`ux.js unmountModal modalContainerId=${modalContainerId} ReactDOM.unmountComponentAtNode success=${success}`)
+        OLog.debug(`ux.js unmountModal modalContainerId=${modalContainerId} unmounted and removed`)
     },
 
     /**

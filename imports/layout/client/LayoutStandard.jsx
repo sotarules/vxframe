@@ -1,13 +1,12 @@
 import { Component } from "react"
-
 import PropTypes from "prop-types"
-import TransitionGroup from "react-transition-group/TransitionGroup"
+import TransitionGroup from "/imports/vx/client/TransitionGroup"
 import RouteSlidePanel from "/imports/vx/client/RouteSlidePanel"
+import LoadingSpinner from "/imports/vx/client/LoadingSpinner"
+import VXAnchor from "/imports/vx/client/VXAnchor"
 import OffCanvasNavContainer from "/imports/layout/client/OffCanvasNavContainer"
 import TopBar from "/imports/layout/client/TopBar"
 import NotAuthorizedPage from "/imports/notfound/client/NotAuthorizedPage"
-import LoadingSpinner from "/imports/vx/client/LoadingSpinner"
-import VXAnchor from "/imports/vx/client/VXAnchor"
 
 export default class LayoutStandard extends Component {
 

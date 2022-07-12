@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import Transition from "react-transition-group/Transition"
+import Transition from "/imports/vx/client/Transition"
 
 export default class SlidePanel extends Component {
 

@@ -88,13 +88,14 @@ export default class VXDate extends Component {
                 newDate = dateMoment.toDate()
             }
             const oldDate = this.getValue()
-            this.setState({ value : newDate })
-            UX.validateComponent(this)
-            if (this.props.onChange) {
-                if (!Util.isDatesEqual(newDate, oldDate)) {
-                    this.props.onChange(event, newDate, this)
+            this.setState({ value : newDate }, () => {
+                UX.validateComponent(this)
+                if (this.props.onChange) {
+                    if (!Util.isDatesEqual(newDate, oldDate)) {
+                        this.props.onChange(event, newDate, this)
+                    }
                 }
-            }
+            })
         }.bind(this))
         // It appears datetimepicker consumes focus event preventing blur on VXTextEditor:
         $(`${selector} .datepickerbutton`).on("click", () => {

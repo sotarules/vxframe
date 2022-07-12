@@ -34,7 +34,10 @@ export default class OffCanvasNav extends Component {
                             <OffCanvasNavItem iconClass="fa-sitemap"
                                 text={Util.i18n("navbar.members_domains")}
                                 path="/users-domains"/>
-
+                            <OffCanvasNavSeparator/>
+                            <OffCanvasNavItem iconClass="fa-cloud-upload"
+                                text={Util.i18n("navbar.import_templates")}
+                                onClick={this.onClickImportTemplates.bind(this)}/>
                         </>
                     }
                     {this.props.isUserAdmin &&
@@ -72,6 +75,10 @@ export default class OffCanvasNav extends Component {
         return {
             offcanvasMenu : { left : "-200px" }
         }
+    }
+
+    onClickImportTemplates(event) {
+        VXApp.handleClickImportTemplates(event)
     }
 
     onClickDeployment(event) {

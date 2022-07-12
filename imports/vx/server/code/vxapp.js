@@ -32,9 +32,10 @@ VXApp = { ...VXApp, ...{
     /**
      * Log a debug line whenever a client logs in to show the client version.
      */
-    onClientLogin(userId, clientVersion) {
+    onClientLogin(userId, clientVersion, reactVersion) {
         try {
-            OLog.debug(`vxapp.js onClientLogin user ${Util.getUserEmail(userId)} client version ${clientVersion}`)
+            OLog.debug(`vxapp.js onClientLogin user ${Util.getUserEmail(userId)} ${CX.SYSTEM_NAME} ${clientVersion} ` +
+                `Meteor ${Meteor.release} React ${reactVersion}`)
             Meteor.users.update(userId, { $set: { "profile.clientVersion": Meteor.appVersion.version } })
             return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
         }
@@ -1229,7 +1230,7 @@ VXApp = { ...VXApp, ...{
     checkSourceDomainNames(formObject) {
         try {
             const messages = []
-            const deploymentCollections = VXApp.getAppDeploymentCollections()
+            const deploymentCollections = VXApp.getDeploymentCollections()
             _.each(deploymentCollections, collection => {
                 const alreadyReported = []
                 _.each(collection.find( { domain: formObject.sourceDomain, dateRetired : { $exists : false } } ).fetch(), record => {
@@ -1325,7 +1326,7 @@ VXApp = { ...VXApp, ...{
         snapshot.targetDomain = formObject.targetDomain
         snapshot.collections = []
 
-        const deploymentCollections = VXApp.getAppDeploymentCollections()
+        const deploymentCollections = VXApp.getDeploymentCollections()
         _.each(deploymentCollections, collection => {
             const snapshotCollection = {}
             snapshotCollection.collectionName = collection._name
@@ -1372,7 +1373,7 @@ VXApp = { ...VXApp, ...{
         }
 
         const snapshot = history.snapshots[formObject.snapshotIndex]
-        const deploymentCollections = VXApp.getAppDeploymentCollections()
+        const deploymentCollections = VXApp.getDeploymentCollections()
 
         _.each(snapshot.collections, snapshotCollection => {
             OLog.debug(`vxapp.js executeDeploymentRestore collectionName=${snapshotCollection.collectionName} record count=${snapshotCollection.records.length}`)
@@ -1757,5 +1758,17 @@ VXApp = { ...VXApp, ...{
             binary += String.fromCharCode(bytes[ i ])
         }
         return new Buffer(binary, "binary").toString("base64")
+    },
+
+    /**
+     * Return the deployment collections.
+     *
+     * @return {array} Array of deployment collections.
+     */
+    getDeploymentCollections() {
+        if (VXApp.getAppDeploymentCollections) {
+            return VXApp.getAppDeploymentCollections()
+        }
+        return [ Functions ]
     }
 }}

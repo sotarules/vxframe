@@ -14,8 +14,8 @@ tracker@1.2.0                 # Meteor's client-side reactive programming librar
 es5-shim@4.8.0                # ECMAScript 5 compatibility for older browsers.
 ecmascript@0.16.2              # Enable ECMAScript2015+ syntax in app code
 
-aldeed:collection2@2.10.0
-less@2.8.0
+aldeed:collection2@3.5.0
+less@4.0.0
 kidovate:pnotify
 mrt:moment-timezone
 pcel:loading
@@ -47,7 +47,7 @@ dburles:mongo-collection-instances
 afruth:bootstrap-touchspin
 dsyko:meteor-node-csv
 mikowals:batch-insert
-ostrio:files@2.0.0
+ostrio:files@=2.0.1
 
 fetch@0.1.1
 jkuester:http

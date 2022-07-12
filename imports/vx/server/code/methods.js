@@ -6,8 +6,8 @@ Meteor.methods({
         return VXApp.getSubscriptionParameters()
     },
 
-    onClientLogin(userId, clientVersion) {
-        return VXApp.onClientLogin(userId, clientVersion)
+    onClientLogin(userId, clientVersion, reactVersion) {
+        return VXApp.onClientLogin(userId, clientVersion, reactVersion)
     },
 
     http(method, url, options) {
