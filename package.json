@@ -1,7 +1,7 @@
 {
   "name": "VXFrame",
-  "version": "1.6.3",
-  "buildDate": "2022-07-12T12:00:00-07:00",
+  "version": "1.6.4",
+  "buildDate": "2022-07-17T12:00:00-07:00",
   "description": "VXFrame",
   "author": "SOTA",
   "license": "MIT",
@@ -38,6 +38,7 @@
     "react-redux": "^8.0.2",
     "react-router-dom": "^5.3.3",
     "react-side-effect": "^2.1.2",
+    "react-transition-group": "^4.4.2",
     "readable-stream": "^4.1.0",
     "redux": "^4.2.0",
     "redux-actions": "^2.6.5",
@@ -56,6 +57,10 @@
     "eslint-plugin-jsx-a11y": "^6.6.0",
     "eslint-plugin-meteor": "^7.3.0",
     "eslint-plugin-react": "^7.30.1",
-    "eslint-plugin-react-hooks": "^4.6.0"
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "patch-package": "^6.4.7"
+  },
+  "scripts": {
+    "patch": "patch-package"
   }
 }

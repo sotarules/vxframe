@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import Transition from "/imports/vx/client/Transition"
+import { Transition } from "react-transition-group"
 
 export default class AnimationPanel extends Component {
 

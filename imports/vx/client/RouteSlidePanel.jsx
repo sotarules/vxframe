@@ -1,7 +1,7 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
 import { Switch } from "react-router-dom"
-import Transition from "/imports/vx/client/Transition"
+import { Transition } from "react-transition-group"
 
 export default class RouteSlidePanel extends Component {
 

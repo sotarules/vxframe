@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import TransitionGroup from "/imports/vx/client/TransitionGroup"
+import { TransitionGroup } from "react-transition-group"
 import IOSButtonBarContainer from "/imports/layout/client/IOSButtonBarContainer"
 import SlidePanel from "/imports/vx/client/SlidePanel"
 

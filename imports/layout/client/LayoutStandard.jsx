@@ -1,6 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
-import TransitionGroup from "/imports/vx/client/TransitionGroup"
+import { TransitionGroup } from "react-transition-group"
 import RouteSlidePanel from "/imports/vx/client/RouteSlidePanel"
 import LoadingSpinner from "/imports/vx/client/LoadingSpinner"
 import VXAnchor from "/imports/vx/client/VXAnchor"
