@@ -1,0 +1,29 @@
+diff --git a/node_modules/react-transition-group/esm/Transition.js b/node_modules/react-transition-group/esm/Transition.js
+index 6525ced..4d3ca4c 100644
+--- a/node_modules/react-transition-group/esm/Transition.js
++++ b/node_modules/react-transition-group/esm/Transition.js
+@@ -319,7 +319,23 @@ var Transition = /*#__PURE__*/function (_React$Component) {
+     // setState callbacks and unmounting in testing, so always make sure that
+     // we can cancel any pending setState callbacks after we unmount.
+     callback = this.setNextCallback(callback);
+-    this.setState(nextState, callback);
++    this.setStateConditionalFlushSync(nextState, callback);
++  };
++
++  /**
++   * Prevent React 18 from batching updates.
++   *
++   * @param {object} nextState Next state object.
++   * @param {function} callback Post-set callback.
++   */
++  _proto.setStateConditionalFlushSync = function (nextState, callback) {
++    if (nextState.status !== "exited") {
++        this.setState(nextState, callback)
++        return
++    }
++    ReactDOM.flushSync(() => {
++        this.setState(nextState, callback)
++    })
+   };
+ 
+   _proto.setNextCallback = function setNextCallback(callback) {

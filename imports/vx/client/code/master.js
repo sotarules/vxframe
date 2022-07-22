@@ -30,28 +30,28 @@ document.title = Util.i18n("master.page_title")
  * event handler for the window object because it is not possible to get the error, URL and line
  * argument values.
  */
-window.onerror = (error, url, line) => {
+window.onerror = (message, url, line, column, error) => {
 
-    if (error) {
+    if (message) {
         // Seems to occur on iOS if the device sleeps and restarts:
-        if (error.indexOf("INVALID_STATE_ERR") >= 0) {
+        if (message.indexOf("INVALID_STATE_ERR") >= 0) {
             return
         }
         // Software is under development and being changed:
-        if (error.indexOf("Uncaught SyntaxError") >= 0) {
+        if (message.indexOf("Uncaught SyntaxError") >= 0) {
             return
         }
         // Reference preview window is displaying something that is imposing "same origin" policy:
-        if (error.indexOf("Script error") >= 0) {
+        if (message.indexOf("Script error") >= 0) {
             return
         }
         // Chrome iOS throws this, but it has no symptoms:
-        if (error.indexOf("SyntaxError: Unexpected token ')'") >= 0) {
+        if (message.indexOf("SyntaxError: Unexpected token ')'") >= 0) {
             return
         }
     }
-
-    OLog.error(`master.js window onerror event, error=${error} url=${url} line=${line}`)
+    OLog.error(`master.js window onerror event, message=${message} url=${url} line=${line} column=${column} ` +
+        `stack=${error.stack}`)
 }
 
 document.addEventListener("touchstart", event => {

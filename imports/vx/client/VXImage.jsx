@@ -55,11 +55,12 @@ export default class VXImage extends Component {
         $(this.selector()).on("change.bs.fileinput clear.bs.fileinput", () => {
             const $img = $(`${this.selector()} > .fileinput-preview > img`)
             const content = $img.exists() ? $img.attr("src") : null
-            this.setState( { value: Util.getNullAsEmpty(content) } )
-            if (content) {
-                this.showCropModal()
-                return
-            }
+            this.setState( { value: Util.getNullAsEmpty(content) }, () => {
+                if (content) {
+                    this.showCropModal()
+                    return
+                }
+            })
         })
     }
 

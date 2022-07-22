@@ -614,8 +614,13 @@ Util = {
      * @return {?} Domain field.
      */
     fetchUserDomainField(userOrId, domainId, fieldName) {
-        const domains = Util.getProfileValue("domains", userOrId)
+        const user = Util.user(userOrId)
+        const domains = Util.getProfileValue("domains", user)
         const userDomainObject = _.findWhere(domains, { domainId })
+        if (!userDomainObject) {
+            OLog.error(`util.js fetchUserDomainField cannot find user domain object userId=${user._id} domainId=${domainId} fieldName=${fieldName}`)
+            return
+        }
         return userDomainObject[fieldName]
     },
 
