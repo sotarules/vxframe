@@ -1,7 +1,10 @@
+import formData from "form-data"
+import Mailgun from "mailgun.js"
+
 Service = {
 
     /**
-     * Send an email via Mailgun.
+     * Send email via Mailgun.
      *
      * @param {string} domainId Domain ID.
      * @param {string} from From email.
@@ -9,46 +12,38 @@ Service = {
      * @param {string} subject Subject.
      * @param {string} html HTML message.
      * @param {string} text Text message.
+     * @param {string} filename Optional attachment filename.
+     * @param {object} data Optional buffer of attachment data.
      */
-    async sendEmail(domainId, from, to, subject, html, text) {
+    async sendEmail(domainId, from, to, subject, html, text, filename, data) {
         const domain = Domains.findOne(domainId)
         if (!domain) {
             OLog.error(`service.js sendEmail unable to find domainId=${domainId}`)
             return { success : false }
         }
+        const mailgunPrivateApiKey = domain.mailgunPrivateApiKey || CX.MAILGUN_PRIVATE_API_KEY
+        const mailgun = new Mailgun(formData)
+        const mailgunAPI = mailgun.client({username: "api",  key: mailgunPrivateApiKey })
+        const mailgunDomain = domain.mailgunDomain || CX.MAILGUN_DOMAIN
+        to = domain.mailgunDestinationOverride ? domain.mailgunDestinationOverride : to
+        to = _.isArray(to) ? to : [to]
+        const messageParams = { from, to, subject, html, text }
+        messageParams["o:testmode"] = domain.mailgunTest ? "yes" : "no"
+        if (filename && data) {
+            messageParams.attachment = [{ filename, data }]
+        }
         try {
-            const testmode = domain.mailgunTest ? "yes" : "no"
-            to = domain.mailgunDestinationOverride ? domain.mailgunDestinationOverride : to
-            const params = {}
-            params.from = from
-            params.to = to
-            params.subject = subject
-            params["o:testmode"] = testmode
-            if (html) {
-                params.html = html
-            }
-            if (text) {
-                params.text = text
-            }
-            const mailgunPrivateApiKey = domain.mailgunPrivateApiKey || CX.MAILGUN_PRIVATE_API_KEY
-            const mailgunDomain = domain.mailgunDomain || CX.MAILGUN_DOMAIN
-
-            const url = `${CX.MAILGUN_API}/${mailgunDomain}/messages`
-            const request = {}
-            request.auth = `api:${mailgunPrivateApiKey}`
-            request.params = params
-
-            OLog.debug(`service.js sendEmail domainId=${domainId} url=${url} request=${OLog.debugString(request)}`)
-            const result = await VXApp.http("POST", url, request)
-            OLog.debug(`service.js sendEmail domainId=${domainId} url=${url} result=${OLog.debugString(result)}`)
-
+            OLog.debug(`service.js sendEmail domainId=${domainId} to=${to} subject=${subject} *invoke* MailGun API mailgunTest=${domain.mailgunTest}`)
+            mailgunAPI.messages.create(mailgunDomain, messageParams)
+            OLog.debug(`service.js sendEmail domainId=${domainId} to=${to} subject=${subject} *success*`)
             VXApp.setSubsystemStatus("MAILGUN", domain, "GREEN", "common.status_mailgun_green")
-            return { success : true, result : result }
+            return { success : true }
         }
         catch (error) {
             OLog.error(`service.js sendEmail *error* domainId=${domainId} error=${error}`)
-            VXApp.setSubsystemStatus("MAILGUN", domain, "RED", "common.status_mailgun_error", { errorString: error.toString() } )
-            return { success: false, error: error }
+            VXApp.setSubsystemStatus("MAILGUN", domain, "RED", "common.status_mailgun_error",
+                { errorString: error.toString() } )
+            return { success: false, error }
         }
     },
 
@@ -88,13 +83,10 @@ Service = {
                     "Body" : messageBody
                 }
             }
-
             const url = `${CX.TWILIO_API_URL_PREFIX}/${twilioUser}/${CX.TWILIO_API_URL_SUFFIX}`
-
             OLog.debug(`service.js sendSms domainId=${domainId} url=${url} request=${OLog.debugString(request)}`)
             const result = await VXApp.http("POST", url, request)
             OLog.debug(`service.js sendSms domainId=${domainId} url=${url} response=${OLog.debugString(result)}`)
-
             VXApp.setSubsystemStatus("TWILIO", domain, "GREEN", "common.status_twilio_green")
             return { success : true, result : result }
         }

@@ -32,6 +32,12 @@ Meteor.startup(() => {
             }
         }
     })
+    Functions.find({}).observeChanges({
+        changed(id, fields) {
+            OLog.debug(`startup.js Functions observeChanges *change* id=${id} fields=${OLog.debugString(fields)}`)
+            VXApp.deployFunction(id)
+        }
+    })
     console.log("startup.js (vx) *init* user status monitoring")
     UserStatus.events.on("connectionLogin", fields => {
         VXApp.onLogin(fields.userId)
@@ -40,9 +46,6 @@ Meteor.startup(() => {
         VXApp.onLogout(fields.userId)
     })
     console.log(`startup.js (vx) user sessions shall expire in ${VXApp.loginExpirationInDays()} day(s)`)
-    // Must initialize Reporter on all node.js instances so users can create
-    // reports on demand:
-    Reporter.init()
     VXApp.deployAllFunctions()
     if (VXApp.doAppServerStartup) {
         console.log("startup.js (vx) invoking doAppServerStartup")

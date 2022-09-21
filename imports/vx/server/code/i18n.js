@@ -11,7 +11,7 @@ Meteor.i18nMessages.common = _.extend(Meteor.i18nMessages.common || {}, {
     },
 
     label_mail_from : {
-        en : "{{system_name}} <admin@sotaenterprises.com>",
-        rx : "${{system_name}} <admin@sotaenterprises.com>$"
+        en : "{{system_name}} <{{system_email}}>",
+        rx : "${{system_name}} <{{system_email}}>$"
     }
 })

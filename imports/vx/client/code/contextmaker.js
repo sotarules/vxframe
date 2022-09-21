@@ -3,8 +3,9 @@ import {
     setPublishAuthoringDomain,
     setPublishAuthoringTemplate,
     setPublishAuthoringFunction,
+    setPublishAuthoringReport,
     setPublishAuthoringUser,
-    setPublishCurrentDomain
+    setPublishCurrentDomain,
 } from "/imports/vx/client/code/actions"
 
 ContextMaker = {
@@ -196,5 +197,30 @@ ContextMaker = {
         const criteria = { _id : UX.lastSegment() }
         OLog.debug(`contextmaker.js function criteria=${OLog.debugString(criteria)}`)
         return Functions.findOne(criteria)
+    },
+
+    reportsBeforeRender() {
+        VXApp.selectFirstRecord("publishAuthoringReport", setPublishAuthoringReport, VXApp.findReportList)
+    },
+
+    reports() {
+        const publishAuthoringReport = Store.getState().publishAuthoringReport
+        if (!publishAuthoringReport) {
+            OLog.debug("contextmaker.js templates redux variable publishAuthoringReport is *falsy* " +
+                "unable to return report list")
+            return
+        }
+        const report = Reports.findOne(publishAuthoringReport.criteria, publishAuthoringReport.options)
+        if (!report) {
+            OLog.debug("contextmaker.js reports *falsy* return from Reports.findOne, subscription is not ready")
+            return
+        }
+        OLog.debug(`contextmaker.js reports publishAuthoringReport=${OLog.debugString(publishAuthoringReport)}`)
+        return report
+    },
+
+    report() {
+        const criteria = { _id : UX.lastSegment() }
+        return Reports.findOne(criteria)
     },
 }

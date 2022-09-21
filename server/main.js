@@ -41,6 +41,9 @@ import "/imports/vx/server/code/vxapp"
 //import "/imports/app/both/code/vxapp"
 //import "/imports/app/server/code/vxapp"
 
+import "/imports/vx/both/code/meta"
+//import "/imports/app/both/code/meta"
+
 import "/imports/vx/server/code/methods"
 //import "/imports/app/server/code/methods"
 
@@ -68,9 +71,6 @@ import "/imports/vx/server/service/service"
 import "/imports/vx/server/publications/publications"
 //import "/imports/app/server/publications/publications"
 
-import "/imports/vx/both/code/importschemas"
-//import "/imports/app/both/code/importschemas"
-
 import "/imports/vx/server/reporter/i18n"
 //import "/imports/app/server/reporter/i18n"
 
@@ -80,6 +80,8 @@ import "/imports/vx/server/reporter/user_list"
 import "/imports/vx/server/daemon/mailman"
 import "/imports/vx/server/daemon/recordremover"
 import "/imports/vx/server/daemon/recordimporter"
+import "/imports/vx/server/daemon/reporter"
+
 import "/imports/vx/server/daemon/daemon"
 //import "/imports/app/server/daemon/daemon"
 

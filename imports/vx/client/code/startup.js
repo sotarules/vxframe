@@ -42,7 +42,7 @@ const doRoute = () => {
         VXApp.routeAfter()
         return
     }
-    const wideRoute = VXApp.isWideRoute()
+    const wideRoute = VXApp.isWideRoute(routePath)
     if (wideRoute !== Store.getState().wideRoute) {
         Store.dispatch(setWideRoute(wideRoute))
     }
@@ -109,7 +109,7 @@ Meteor.startup(() => {
                     if (loginToken && loginTokenExpires) {
                         const tokenExpired = moment(loginTokenExpires).isBefore(moment())
                         if (tokenExpired) {
-                            OLog.warn("startup.js Accounts onLogin token check " +
+                            OLog.debug("startup.js Accounts onLogin token check " +
                                 `email=${Util.getUserEmail()} loginToken=${loginToken} tokenExpired=${tokenExpired} ` +
                                 "invoking VXApp.logout()")
                             VXApp.logout()

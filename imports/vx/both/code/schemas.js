@@ -1,12 +1,11 @@
 import SimpleSchema from "simpl-schema"
 
 Schema.checkMongoIdSingle = (schema, collection, value) => {
-    let record = collection.findOne(value, { fields: { "_id" : 1 } })
+    const record = collection.findOne(value, { fields: { "_id" : 1 } })
     if (!record) {
-        OLog.error("schema.js checkMongoIdSingle collection=" + collection._name + " definition=" + OLog.errorString(schema.definition) + " value=" + schema.value + " *invalid*")
+        OLog.error(`schema.js checkMongoIdSingle collection=${collection._name} definition=${OLog.errorString(schema.definition)} value=${schema.value} *invalid*`)
         return "notAllowed"
     }
-    //OLog.debug("schema.js checkMongoId collection=" + collection._name + " definition=" + OLog.debugString(schema.definition) + " value=" + schema.value+" *valid*")
     return null
 }
 
@@ -656,6 +655,44 @@ Schema.Clipboard = new SimpleSchema({
     }
 })
 
+Schema.UserProfileReport = new SimpleSchema({
+    id : {
+        type : String
+    },
+    reportId : {
+        type : String,
+        optional : true
+    },
+    reportFrequency : {
+        type : String,
+        optional : true
+    },
+    timeUnit : {
+        type : String,
+        optional : true
+    },
+    timeOption : {
+        type : String,
+        optional : true
+    },
+    attachments : {
+        type : Boolean,
+        optional : true
+    },
+    customDistribution : {
+        type : Boolean,
+        optional : true
+    },
+    distributionFunctionId : {
+        type : String,
+        optional : true
+    },
+    recipients : {
+        type : String,
+        optional : true
+    }
+})
+
 Schema.UserProfileTenant = new SimpleSchema({
     tenantId : {
         type : String,
@@ -679,6 +716,14 @@ Schema.UserProfileDomain = new SimpleSchema({
     },
     "roles.$" : {
         type : String
+    },
+    reports : {
+        type : Array,
+        optional : true,
+    },
+    "reports.$" : {
+        type : Schema.UserProfileReport,
+        optional : true
     }
 })
 
@@ -849,16 +894,6 @@ Schema.UserProfile = new SimpleSchema({
         blackbox : true
     },
     "standardPreferences.$" : {
-        type : Object,
-        optional : true,
-        blackbox : true
-    },
-    reportPreferences : {
-        type : Array,
-        optional : true,
-        blackbox : true
-    },
-    "reportPreferences.$" : {
         type : Object,
         optional : true,
         blackbox : true
@@ -1218,6 +1253,132 @@ Schema.UploadStats = new SimpleSchema({
     }
 })
 
+Schema.ReportField = new SimpleSchema({
+    metadataPath : {
+        type : String
+    },
+    padding : {
+        type : String,
+        optional : true
+    },
+    limit : {
+        type : Number,
+        optional : true
+    },
+    alignment : {
+        type : String,
+        optional : true
+    },
+    width : {
+        type : String,
+        optional : true
+    },
+    overflow : {
+        type : String,
+        optional : true
+    },
+    sort : {
+        type : Number,
+        optional : true
+    },
+    negation : {
+        type : String,
+        optional : true
+    },
+    operator : {
+        type : String,
+        optional : true
+    },
+    filter : {
+        type : Object,
+        optional : true,
+        blackbox: true
+    }
+})
+
+Schema.Reports = new SimpleSchema({
+    dateCreated : {
+        type : Date,
+        autoValue: function() {
+            if (this.isInsert && !this.isSet) {
+                return new Date();
+            }
+        }
+    },
+    userCreated : {
+        type : String,
+        custom: Schema.checkUserId,
+        autoValue: function() {
+            if (this.isInsert && !this.isSet) {
+                return Schema.getAuditUserId(this);
+            }
+        }
+    },
+    dateModified : {
+        type : Date,
+        autoValue: function() {
+            return new Date();
+        }
+    },
+    userModified : {
+        type : String,
+        custom: Schema.checkUserId,
+        autoValue: function() {
+            return Schema.getAuditUserId(this);
+        }
+    },
+    dateRetired : {
+        type : Date,
+        optional: true
+    },
+    userRetired : {
+        type : String,
+        custom: Schema.checkUserId,
+        optional: true
+    },
+    comment : {
+        type : String,
+        optional: true
+    },
+    domain : {
+        type : String,
+        custom: Schema.checkDomainId,
+        autoValue : function() {
+            if (this.isInsert && !this.isSet) {
+                return Util.getCurrentDomainId(this.userId);
+            }
+        }
+    },
+    name : {
+        type : String,
+        optional : true
+    },
+    description : {
+        type : String,
+        optional : true
+    },
+    entityType : {
+        type : String,
+        optional : true
+    },
+    checked : {
+        type : Array,
+        optional : true
+    },
+    "checked.$" : {
+        type : String,
+        optional : true
+    },
+    fields : {
+        type : Array,
+        optional : true,
+    },
+    "fields.$" : {
+        type : Schema.ReportField,
+        optional : true,
+        blackbox: true
+    }
+})
 
 // Attach schemas to activate:
 Domains.attachSchema(Schema.Domains)
@@ -1233,3 +1394,4 @@ Templates.attachSchema(Schema.Templates)
 Functions.attachSchema(Schema.Functions)
 DaemonJobs.attachSchema(Schema.DaemonJobs)
 UploadStats.attachSchema(Schema.UploadStats)
+Reports.attachSchema(Schema.Reports)

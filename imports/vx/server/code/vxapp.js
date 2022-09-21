@@ -1,5 +1,6 @@
 import {authenticator} from "otplib"
 import crypto from "crypto"
+import { unionBy } from "lodash"
 
 VXApp = { ...VXApp, ...{
 
@@ -544,6 +545,47 @@ VXApp = { ...VXApp, ...{
         catch (error) {
             OLog.error(`vxapp.js retireFunction unexpected error=${error}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Retire the specified report.
+     *
+     * @param {string} reportId Report ID.
+     * @param {string} comment Optional comment.
+     * @return {object} Result object.
+     */
+    retireReport(reportId, comment) {
+        try {
+            if (!(_.isString(reportId) && (!comment || _.isString(comment)))) {
+                OLog.error(`vxapp.js retireReport parameter check failed functionId=${reportId} comment=${comment}`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
+            }
+            const report = Reports.findOne(reportId)
+            if (!report) {
+                OLog.error(`vxapp.js retireReport unable to find reportId=${reportId}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_report_not_found",
+                    variables : { reportId : reportId } }
+            }
+            if (!Meteor.userId()) {
+                OLog.error("vxapp.js retireReport security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            let modifier = {}
+            modifier.$set = {}
+            modifier.$set.dateRetired = new Date()
+            modifier.$set.userRetired = Meteor.userId()
+            if (comment) {
+                modifier.$set.comment = comment
+            }
+            OLog.debug(`vxapp.js retireReport reportId=${reportId} modifier=${OLog.debugString(modifier)}`)
+            Reports.update(reportId, modifier)
+            return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js retireReport unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error",
+                variables : { error : error.toString() } }
         }
     },
 
@@ -1137,7 +1179,7 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
-     * Execute arbitrary function on server (only available to Super Administrators).
+     * Execute arbitrary VXApp function on server (only available to Super Administrators).
      *
      * @param {string} functionName Name of VXApp server-side function to invoke.
      * @param {array} args Additional arguments if any.
@@ -1162,6 +1204,38 @@ VXApp = { ...VXApp, ...{
         }
         catch (error) {
             OLog.error(`vxapp.js serverExecute unexpected error=${error}`)
+            return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
+        }
+    },
+
+    /**
+     * Execute arbitrary user-written function on server (only available to Super Administrators).
+     *
+     * @param {string} name Name of user-written Function to invoke.
+     * @param {array} args Additional arguments if any.
+     * @return {?} Return from function if any.
+     */
+    serverExecuteFunction(name, ...args) {
+        try {
+            if (!_.isString(name)) {
+                OLog.error(`vxapp.js serverExecuteFunction parameter check failed name=${name}`)
+                return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed" }
+            }
+            const userId = Meteor.userId()
+            if (!userId) {
+                OLog.error("vxapp.js serverExecuteFunction security check failed user is not logged in")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            if (!Util.isUserSuperAdmin(userId)) {
+                OLog.error("vxapp.js serverExecuteFunction security check failed only Super Administrators can invoke server-side functions arbitrarily")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            const domainId = Util.getCurrentDomainId(userId)
+            OLog.debug(`vxapp.js serverExecuteFunction *invoking* domainId=${domainId} name=${name} args=${args}`)
+            return VXApp.executeFunction(domainId, name, ...args)
+        }
+        catch (error) {
+            OLog.error(`vxapp.js serverExecuteFunction unexpected error=${error}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1610,6 +1684,26 @@ VXApp = { ...VXApp, ...{
         }
         return value
     },
+    /**
+     * Execute arbitrary user-written function on server.
+     *
+     * @param {string} domainId Domain ID.
+     * @param {string} name Name of user-written function.
+     * @param {array} args Additional arguments if any.
+     * @return {?} Return from function if any.
+     */
+    executeFunction(domainId, name, ...args) {
+        const functionAnchor = VXApp.functionAnchorForDomain(domainId)
+        const qualifiedFunctionAnchor = VXApp.qualifiedFunctionAnchor(functionAnchor, domainId)
+        const funktion = FunctionAnchors[qualifiedFunctionAnchor][name]
+        if (!funktion) {
+            OLog.error(`vxapp.js executeFunction unable to find function name domainId=${domainId} name=${name} ` +
+                `qualifiedFunctionAnchor=${qualifiedFunctionAnchor}`)
+            return false
+        }
+        OLog.debug(`vxapp.js executeFunction domainId=${domainId} name=${name} *execute*`)
+        return FunctionAnchors[qualifiedFunctionAnchor][name](...args)
+    },
 
     /**
      * Generate and return a secret for 2FA.
@@ -1770,5 +1864,379 @@ VXApp = { ...VXApp, ...{
             return VXApp.getAppDeploymentCollections()
         }
         return [ Functions ]
+    },
+
+    /**
+     * Send a report in HTML format to a distribution list of recipients.
+     *
+     * @param {string} reportId ID of report to send.
+     * @param {string} recipients List of recipients.
+     * @param {boolean} attachments True to attach complementary Excel spreadsheets to each email.
+     * @return {object} Standard result object.
+     */
+    async sendReportEmail(reportId, recipients, attachments) {
+        try {
+            if (!(_.isString(reportId) && _.isString(recipients) && (Util.isNullish(attachments) || _.isBoolean(attachments)))) {
+                OLog.error(`vxapp.js sendReportEmail parameter check failed reportId=${reportId} recipients=${recipients}`)
+                return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
+            }
+            const report  = Reports.findOne(reportId)
+            if (!report) {
+                OLog.error(`vxapp.js sendReportEmail unable to find reportId=${reportId}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_report_not_found",
+                    variables : { reportId : reportId } }
+            }
+            const reportData = VXApp.makeReportData(report)
+            const from = Util.i18n("common.label_mail_from")
+            const subject = report.name
+            const html = VXApp.makeReportHtml(report, reportData, true, true)
+            const fileName = attachments ? reportData.name || Util.i18n("common.label_date_undefined") : null
+            const data = attachments ? VXApp.makeReportSpreadsheet(report, reportData) : null
+            const recipientArray = recipients.split(";")
+            for (let index = 0; index < recipientArray.length; index++) {
+                const recipient = recipientArray[index]?.trim()
+                const result = await Service.sendEmail(report.domain, from, recipient, subject, html, null, fileName, data)
+                if (!result.success) {
+                    return { success: false, icon: "TRIANGLE", key: "common.alert_send_report_email_fail",
+                        variables: { error: result.error.toString() } }
+                }
+            }
+            return { success: true, icon: "PLANE", key: "common.alert_send_report_email_success" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js sendReportEmail unexpected error=${error} stack=${error.stack}`)
+            return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
+                variables: { error: error.toString(), stack: error.stack } }
+        }
+    },
+
+    /**
+     * Send a report in HTML format to a custom distribution list via a distribution function.
+     *
+     * @param {string} reportId ID of report to send.
+     * @param {string} distributionFunctionId Distribution function ID.
+     * @param {boolean} attachments True to attach Excel spreadsheets to each email.
+     * @return {object} Standard result object.
+     */
+    async sendReportEmailCustom(reportId, distributionFunctionId, attachments) {
+        try {
+            if (!(_.isString(reportId) && _.isString(distributionFunctionId) &&
+                (Util.isNullish(attachments) || _.isBoolean(attachments)))) {
+                OLog.error(`vxapp.js sendReportEmailCustom parameter check failed reportId=${reportId} ` +
+                    `distributionFunctionId=${distributionFunctionId}`)
+                return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
+            }
+            const report  = Reports.findOne(reportId)
+            if (!report) {
+                OLog.error(`vxapp.js sendReportEmailCustom unable to find reportId=${reportId}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_report_not_found",
+                    variables : { reportId : reportId } }
+            }
+            const distroArray = VXApp.makeDistroArray(report, distributionFunctionId)
+            if (!distroArray) {
+                OLog.error(`vxapp.js sendReportEmailCustom unable to make distro array for reportId=${reportId} ` +
+                    `distributionFunctionId=${distributionFunctionId}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_make_report_distro",
+                    variables : { distributionFunctionId } }
+            }
+            for (let distroIndex = 0; distroIndex < distroArray.length; distroIndex++) {
+                const distro = distroArray[distroIndex]
+                if (!(distro.fieldsOverlay && distro.recipients)) {
+                    OLog.error(`vxapp.js sendReportEmailCustom invalid distro for reportId=${reportId} ` +
+                        `distributionFunctionId=${distributionFunctionId} distro=${OLog.errorString(distro)}`)
+                    return
+                }
+                const reportPrime = Util.clone(report)
+                reportPrime.fields = reportPrime.fields || []
+                reportPrime.fields = unionBy(distro.fieldsOverlay, reportPrime.fields, "metadataPath")
+                const reportData = VXApp.makeReportData(reportPrime)
+                const from = Util.i18n("common.label_mail_from")
+                const subject = report.name
+                const html = VXApp.makeReportHtml(report, reportData, true, true)
+                const fileName = attachments ? reportData.name || Util.i18n("common.label_date_undefined") : null
+                const data = attachments ? VXApp.makeReportSpreadsheet(report, reportData) : null
+                const recipientArray = distro.recipients.split(";")
+                for (let index = 0; index < recipientArray.length; index++) {
+                    const recipient = recipientArray[index]?.trim()
+                    OLog.debug(`vxapp.js sendReportEmailCustom reportId=${reportId} ` +
+                        `distributionFunctionId=${distributionFunctionId} sending reportPrime=${OLog.debugString(reportPrime)}`)
+                    const result = await Service.sendEmail(report.domain, from, recipient, subject, html, null, fileName, data)
+                    if (!result.success) {
+                        OLog.error(`vxapp.js sendReportEmailCustom invalid distro for reportId=${reportId} ` +
+                            `distributionFunctionId=${distributionFunctionId} result=${OLog.errorString(result)}`)
+                    }
+                }
+            }
+            return { success: true, icon: "PLANE", key: "common.alert_send_report_email_success" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js sendReportEmail unexpected error=${error} stack=${error.stack}`)
+            return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
+                variables: { error: error.toString(), stack: error.stack } }
+        }
+    },
+
+    /**
+     * Create a distribution array for a report via a user-defined function.
+     *
+     * @param {object} report Report object.
+     * @param {string} distributionFunctionId Distribution function ID.
+     * @return {array} Distribution array of objects.
+     */
+    makeDistroArray(report, distributionFunctionId) {
+        try {
+            const name = VXApp.fetchFunctionField(distributionFunctionId, "name")
+            if (!name) {
+                OLog.error("vxapp.js makeDistroArray unable to fetch function name of " +
+                    `distributionFunctionId=${distributionFunctionId})`)
+                return
+            }
+            const data = {}
+            data.report = report
+            const distroArray = VXApp.executeFunction(report.domain, name, data)
+            OLog.debug(`vxapp.js makeDistroArray functionName=${name} reportName=${report.name} returned distroArray=${OLog.debugString(distroArray)}`)
+            return distroArray
+        }
+        catch (error) {
+            OLog.error(`vxapp.js makeDistroArray unexpected error=${error.toString()}`)
+            return
+        }
+    },
+
+    /**
+     * Fetch report data server-side.
+     *
+     * @param {string} reportId ID of report to send.
+     * @return {object} Standard result object.
+     */
+    fetchReportData(reportId) {
+        try {
+            if (!_.isString(reportId)) {
+                OLog.error(`vxapp.js fetchReportData parameter check failed reportId=${reportId}`)
+                return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
+            }
+            if (!Meteor.userId()) {
+                OLog.error("vxapp.js fetchReportData security check failed user is not logged in")
+                return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
+            }
+            const report  = Reports.findOne(reportId)
+            if (!report) {
+                OLog.error(`vxapp.js fetchReportData unable to find reportId=${reportId}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_report_not_found",
+                    variables : { reportId : reportId } }
+            }
+            const reportData = VXApp.makeReportData(report)
+            return { success: true, icon: "PLANE", key: "common.alert_transaction_success", reportData }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js fetchReportData unexpected error=${error}`)
+            return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
+                variables: { error: error.toString() } }
+        }
+    },
+
+    /**
+     * Fetch report spreadsheet as string.
+     *
+     * @param {string} reportId ID of report to send.
+     * @return {object} Standard result object bearing spreadsheet.
+     */
+    fetchReportSpreadsheet(reportId) {
+        try {
+            if (!_.isString(reportId)) {
+                OLog.error(`vxapp.js fetchReportSpreadsheet parameter check failed reportId=${reportId}`)
+                return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
+            }
+            if (!Meteor.userId()) {
+                OLog.error("vxapp.js fetchReportSpreadsheet security check failed user is not logged in")
+                return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
+            }
+            const report  = Reports.findOne(reportId)
+            if (!report) {
+                OLog.error(`vxapp.js fetchReportSpreadsheet unable to find reportId=${reportId}`)
+                return { success : false, icon : "BUG", key : "common.alert_transaction_fail_report_not_found",
+                    variables : { reportId : reportId } }
+            }
+            const reportData = VXApp.makeReportData(report)
+            const data = VXApp.makeReportSpreadsheet(report, reportData)
+            const array = new Uint8Array(data)
+            return { success: true, icon: "PLANE", key: "common.alert_transaction_success", array }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js fetchReportSpreadsheet unexpected error=${error}`)
+            return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
+                variables: { error: error.toString() } }
+        }
+    },
+
+    /**
+     * Make and return report spreadsheet (type Buffer).
+     *
+     * @param {object} report Report record
+     * @param {object} reportData Report data.
+     * @return {object} Spreadsheet data (Buffer).
+     */
+    makeReportSpreadsheet(report, reportData) {
+        OLog.debug(`vxapp.js makeReportSpreadsheet name=${reportData.name}`)
+        const spreadsheetParameters = VXApp.makeSpreadsheetParameters(report, reportData)
+        const workbook = VXApp.makeWorkbook(report, spreadsheetParameters, reportData)
+        return VXApp.convertWorkbookToBuffer(workbook)
+    },
+
+    makeSpreadsheetParameters(report, reportData) {
+        const spreadsheetParameters = {}
+        spreadsheetParameters.columns = []
+        reportData.headings?.forEach(heading => {
+            const definition = VXApp.findDefinition(Meta[report.entityType], heading.metadataPath)
+            const column = {}
+            column.key =  heading.metadataPath
+            column.text = heading.text
+            column.alignment = { horizontal: heading.alignment }
+            column.numFmt = VXApp.spreadsheetFormat(definition)
+            spreadsheetParameters.columns.push(column)
+        })
+        spreadsheetParameters.zoomScale = 100
+        return spreadsheetParameters
+    },
+
+    /**
+     * Given spreadsheet parameters and report data, return an exceljs workbook.
+     *
+     * @param {object} report Report record.
+     * @param {array} spreadsheetParameters Attachment parameters object.
+     * @param {object} reportData Report data object.
+     * @return {object} Workbook object (exceljs).
+     */
+    makeWorkbook(report, spreadsheetParameters, reportData) {
+        OLog.debug(`vxapp.js makeWorkbook spreadsheetParameters.columns=${OLog.debugString(spreadsheetParameters.columns)}`)
+        const workbook = new Excel.Workbook()
+        workbook.creator = reportData.userCreated
+        workbook.lastModifiedBy = reportData.userCreated
+        workbook.created = new Date()
+        workbook.modified = new Date()
+        workbook.views = [
+            {
+                x: 0,
+                y: 0,
+                width: 10000,
+                height: 20000,
+                firstSheet: 0,
+                activeTab: 0,
+                visibility: "visible",
+            }
+        ]
+        const worksheetName = reportData.name
+        OLog.debug(`vxapp.js makeWorkbook worksheetName=${worksheetName}`)
+        const worksheet = workbook.addWorksheet(VXApp.formatWorksheetName(worksheetName))
+        worksheet.columns = spreadsheetParameters.columns.map(column => {
+            return { header: column.text, key: column.key,
+                style : { alignment : column.alignment, numFmt: column.numFmt } }
+        })
+        worksheet.views = [ { zoomScale : spreadsheetParameters.zoomScale } ]
+        for (let columnIndex = 1; columnIndex <= spreadsheetParameters.columns.length; columnIndex++) {
+            const cellName = `${Util.columnToLetter(columnIndex)}1`
+            worksheet.getCell(cellName).font = { bold: true }
+        }
+        for (let rowIndex = 0; rowIndex < reportData.rows.length; rowIndex++) {
+            const row = reportData.rows[rowIndex]
+            for (let subrowIndex = 0; subrowIndex < row.subrowCount; subrowIndex++) {
+                const columns = reportData.rows[rowIndex].columns
+                const worksheetObject = {}
+                columns.map(column => {
+                    // If there is only a single row in the path array, replicate that row data
+                    // for all subrows to make a cartesian product.
+                    const textIndex = column.pathArray.length === 1 && subrowIndex > 0 ? 0 : subrowIndex
+                    const text = column.cellArray[textIndex]
+                    if (!Util.isNullish(text)) {
+                        worksheetObject[column.metadataPath] = VXApp.convertToOptimalType(column.definition, text)
+                    }
+                })
+                const row = worksheet.addRow(worksheetObject)
+                row.commit()
+            }
+        }
+        VXApp.adjustColumnWidths(worksheet)
+        return workbook
+    },
+
+    convertToOptimalType(definition, text) {
+        if (definition.bindingType === "String") {
+            return text
+        }
+        if (definition.bindingType === "Integer") {
+            return Util.getInteger(text)
+        }
+        if (definition.bindingType === "Money") {
+            return Util.getFloat(text)
+        }
+        if (definition.bindingType === "Boolean") {
+            return text
+        }
+        if (definition.bindingType === "Date") {
+            return text
+        }
+        return text
+    },
+
+    adjustColumnWidths(worksheet) {
+        worksheet.columns.forEach(column => {
+            const values = column.values
+            column.width = values.reduce((memo, value) => {
+                const length = !Util.isNullish(value) ? value.toString().length : 0
+                return Math.max(memo, length)
+            }, 0) + 2
+        })
+    },
+
+    /**
+     * Worksheet name cannot have slashes and is limited to 30 characters
+     *
+     * @param {string} worksheetName Raw heading.
+     * @return {string} Worksheet name converted and stripped as needed.
+     */
+    formatWorksheetName(worksheetName) {
+        const adjustedWorksheetName = worksheetName.replace(/\//g, ", ")
+        return adjustedWorksheetName.substring(0, 30)
+    },
+
+    /**
+     * Convert a workbook object to buffer.
+     *
+     * @param {object} workbook Workbook object.
+     */
+    convertWorkbookToBuffer(workbook) {
+        let buffer = new Buffer.alloc(0)
+        class EchoStream extends stream.Writable {
+            _write(chunk, enc, next) {
+                buffer = Buffer.concat([ buffer, chunk ])
+                next()
+            }
+        }
+        const fut = new Future()
+        workbook.xlsx.write(new EchoStream()).then(function() {
+            fut.return()
+        })
+        fut.wait()
+        OLog.debug(`vxapp.js convertWorkbookToBuffer buffer length=${buffer.length}`)
+        return buffer
+    },
+
+    /**
+     * Given a definition object, return a special spreadsheet format mask if applicable.
+     *
+     * @param {object} definition Metadata definition.
+     * @return {string} Format mask for spreadsheet.
+     */
+    spreadsheetFormat(definition) {
+        if (definition.format) {
+            return definition.format.spreadsheetFormat()
+        }
+        if (definition.bindingType === "String") {
+            return "@"
+        }
+        if (definition.bindingType === "Date") {
+            return definition.dateFormat.toLowerCase()
+        }
+        return null
     }
 }}

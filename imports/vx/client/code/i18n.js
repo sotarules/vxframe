@@ -150,6 +150,16 @@
         rx : "$Functions$"
     },
 
+    button_reports : {
+        en : "Reports",
+        rx : "Reports"
+    },
+
+    button_reset : {
+        en : "Reset",
+        rx : "$Reset$"
+    },
+
     button_create_function : {
         en : "Create Function",
         rx : "$Create Function$"
@@ -158,6 +168,11 @@
     button_test_function : {
         en : "Test<br/>Function",
         rx : "$Test<br/>Function$"
+    },
+
+    button_create_report : {
+        en : "Create Report",
+        rx : "$Create Report$"
     },
 
     button_send_test_email : {
@@ -335,6 +350,11 @@
         rx : "$Functions$"
     },
 
+    label_reports : {
+        en : "Reports",
+        rx : "$Reports$"
+    },
+
     label_function_header : {
         en : "JavaScript",
         rx : "$JavaScript$"
@@ -480,6 +500,101 @@
         rx : "$Size$"
     },
 
+    label_report_name : {
+        en : "Report Name",
+        rx : "$Report Name$"
+    },
+
+    label_report_description : {
+        en : "Report Description",
+        rx : "$Report Description$"
+    },
+
+    label_entity_type : {
+        en : "Entity Type",
+        rx : "$Entity Type$"
+    },
+
+    label_report_count : {
+        en : "{{count}} Records",
+        rx : "${{count}} Records$"
+    },
+
+    label_alignment : {
+        en : "Alignment",
+        rx : "$Alignment$"
+    },
+
+    label_sort : {
+        en : "Sort",
+        rx : "$Sort$"
+    },
+
+    label_operator : {
+        en : "Operator",
+        rx : "$Operator$"
+    },
+
+    label_negation : {
+        en : "Negation",
+        rx : "$Negation$"
+    },
+
+    label_width : {
+        en : "Width",
+        rx : "$Width$"
+    },
+
+    label_overflow : {
+        en : "Overflow",
+        rx : "$Overflow$"
+    },
+
+    label_padding : {
+        en : "Padding",
+        rx : "$Padding$"
+    },
+
+    label_limit : {
+        en : "Limit",
+        rx : "$Limit$"
+    },
+
+    label_filter : {
+        en : "Filter",
+        rx : "$Filter$"
+    },
+
+    label_field_properties : {
+        en : "Field Properties",
+        rx : "$Field Properties$"
+    },
+
+    label_send_report_email : {
+        en : "Send Report via Email",
+        rx : "$Send Report via Email$"
+    },
+
+    label_send_report_recipients : {
+        en : "Enter recipient email addresses separated by semicolons",
+        rx : "$Enter recipient email addresses separated by semicolons$"
+    },
+
+    label_attachments : {
+        en : "Attach Excel spreadsheets",
+        rx : "$Attach Excel spreadsheets$"
+    },
+
+    label_custom_distribution : {
+        en : "Custom Distribution",
+        rx : "$Custom Distribution$"
+    },
+
+    label_distribution_function : {
+        en : "Distribution Function",
+        rx : "$Distribution Function$"
+    },
+
     empty_tenants : {
         en : "There are no tenants to display",
         rx : "$There are no tenants to display$"
@@ -510,6 +625,16 @@
         rx : "$The details of your selected Function will appear here$"
     },
 
+    empty_reports : {
+        en : "There are no Reports, press Create Report to add one",
+        rx : "$There are no Reports, press Create Reports to add one$"
+    },
+
+    empty_report_rhs_details : {
+        en : "The details of your selected Report will appear here",
+        rx : "$The details of your selected Report will appear here$"
+    },
+
     empty_domain_rhs_details : {
         en : "The details of your selected Domain will appear here",
         rx : "$The details of your selected Domain will appear here$"
@@ -528,6 +653,11 @@
     empty_edit_record_missing : {
         en : "The record ID in the URL doesn't match any record in the database",
         rx : "$The record ID in the URL doesn't match any record in the database$"
+    },
+
+    empty_report_body : {
+        en : "Please enter report name, description, entity type, then click field checkboxes to build your report",
+        rx : "$Please enter report name, description, entity type, then click field checkboxes to build your report$"
     },
 
     switch_on : {
@@ -573,6 +703,16 @@
     popup_menu_done_editing : {
         en : "Done",
         rx : "$Done$"
+    },
+
+    popup_menu_send : {
+        en : "Send",
+        rx : "$Send$"
+    },
+
+    popup_menu_download : {
+        en : "Download",
+        rx : "$Download$"
     },
 
     tooltip_domain_decoration_current : {
@@ -659,6 +799,11 @@ Meteor.i18nMessages.navbar = _.extend(Meteor.i18nMessages.navbar || {}, {
     functions : {
         en: "Functions",
         rx: "$Functions$"
+    },
+
+    reports : {
+        en: "Reports",
+        rx: "$Reports$"
     },
 
     members_domains: {
@@ -1014,6 +1159,36 @@ Meteor.i18nMessages.profile = _.extend(Meteor.i18nMessages.profile || {}, {
     label_confirm_password : {
         en : "Confirm Password",
         rx : "$Confirm Password$"
+    },
+
+    label_reports : {
+        en : "Reports",
+        rx : "$Reports$"
+    },
+
+    label_report : {
+        en : "Report",
+        rx : "$Report$"
+    },
+
+    label_frequency : {
+        en : "Frequency",
+        rx : "$Frequency$"
+    },
+
+    label_time_unit : {
+        en : "Time Unit",
+        rx : "$Time Unit$"
+    },
+
+    label_time_option : {
+        en : "Time Option",
+        rx : "$Time Option$"
+    },
+
+    empty_reports : {
+        en : "Press [+] to declare a new email report",
+        rx : "$Press [+] to declare a new email report$"
     },
 
     tooltip_country : {

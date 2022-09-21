@@ -4,18 +4,26 @@ import PropTypes from "prop-types"
 export default class RightBody extends Component {
 
     static propTypes = {
-        className : PropTypes.string.isRequired
+        className : PropTypes.string.isRequired,
+        scrollable : PropTypes.bool.isRequired,
+        scrollClass : PropTypes.string.isRequired
     }
 
     static defaultProps = {
-        className : "right-body"
+        className : "right-body",
+        scrollable : true,
+        scrollClass : "scroll-y"
     }
 
     render() {
         return (
-            <div id="right-body" className={`scroll-y scroll-momentum flexi-grow zero-height-hack ${this.props.className || ""}`}>
+            <div id="right-body" className={`flexi-grow ${this.scrollClasses()} ${this.props.className || ""}`}>
                 {this.props.children}
             </div>
         )
+    }
+
+    scrollClasses() {
+        return this.props.scrollable ? `${this.props.scrollClass} scroll-momentum zero-height-hack` : ""
     }
 }

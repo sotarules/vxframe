@@ -77,6 +77,11 @@ Meteor.i18nMessages.common = {
         rx : "$Retire Function$"
     },
 
+    label_retire_report : {
+        en : "Retire Report",
+        rx : "$Retire Report$"
+    },
+
     label_enter_comment : {
         en : "Enter Comment (optional)",
         rx : "$Enter Comment (optional)$"
@@ -422,6 +427,11 @@ Meteor.i18nMessages.common = {
         rx : "$Transaction failed, function not found, functionId={{functionId}}$"
     },
 
+    alert_transaction_fail_report_not_found : {
+        en : "Transaction failed, report not found, reportId={{reportId}}",
+        rx : "$Transaction failed, report not found, reportId={{reportId}}$"
+    },
+
     alert_transaction_fail_record_not_found : {
         en : "Transaction failed, record not found, recordId={{recordId}}",
         rx : "$Transaction failed, record not found, recordId={{recordId}}$"
@@ -482,6 +492,11 @@ Meteor.i18nMessages.common = {
         rx : "$Transaction failed unable to find deployment history of {{targetDomainName}}$"
     },
 
+    alert_transaction_fail_unable_to_make_report_distro : {
+        en : "Unable to make report distribution for distributionFunctionId={{distributionFunctionId}}",
+        rx : "$Unable to make report distribution for distributionFunctionId={{distributionFunctionId}}$"
+    },
+
     alert_report_send_success : {
         en : "{{reportName}} has been sent to {{email}}",
         rx : "${{reportName}} has been sent to {{email}}$"
@@ -510,6 +525,11 @@ Meteor.i18nMessages.common = {
     alert_domain_retire : {
         en : "\"{{domainName}}\" has been retired.",
         rx : "$\"{{domainName}}\" has been retired.$"
+    },
+
+    alert_report_retire : {
+        en : "\"{{reportName}}\" has been retired.",
+        rx : "$\"{{reportName}}\" has been retired.$"
     },
 
     alert_send_enrollment_email_success : {
@@ -575,6 +595,16 @@ Meteor.i18nMessages.common = {
     alert_send_test_email_fail : {
         en : "Send email test failed - {{error}}",
         rx : "$Send email test failed - {{error}}$"
+    },
+
+    alert_send_report_email_success : {
+        en : "Report email has been sent successfully.",
+        rx : "$Report email has been sent successfully.$"
+    },
+
+    alert_send_report_email_fail : {
+        en : "Send report email failed - {{error}}",
+        rx : "$Send report email failed - {{error}}$"
     },
 
     alert_http_unexpected_error : {

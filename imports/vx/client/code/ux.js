@@ -184,41 +184,11 @@ UX = {
      * Return an array of all users with the specified role suitable for populating a VXSelect
      * component.
      *
-     * @param {string} tenant True to include users from the entire tenant.
      * @param {array} roleNames Optional array of role names to use as filter.
      * @return {array} Array of users bearing given role (prepared for <select>).
      */
-    makeUserArray(tenant, roleNames) {
-        const criteria = {}
-        criteria["profile.dateRetired"] = { $exists: false }
-        if (tenant) {
-            criteria["profile.domains"] = { $elemMatch: { domainId : { $in: Util.getDomainIdsOfCurrentTenant() } } }
-        }
-        else {
-            criteria["profile.domains"] = { $elemMatch: { domainId : Util.getCurrentDomainId(Meteor.userId()) } }
-        }
-        let codeArray = []
-        Meteor.users.find(criteria).forEach(user => {
-            let qualified
-            if (roleNames) {
-                _.each(roleNames, roleName => {
-                    if (Util.isUserRole(user._id, roleName)) {
-                        qualified = true
-                    }
-                })
-            }
-            else {
-                qualified = true
-            }
-            if (qualified) {
-                const localized = Util.fetchFullName(user._id)
-                codeArray.push( { code : user._id, localized : localized } )
-            }
-        })
-        codeArray.sort((userA, userB) => {
-            return Util.safeCompare(userA.localized, userB.localized)
-        })
-        return codeArray
+    makeUserArray(roleNames) {
+        return Util.makeUserArray(null, roleNames)
     },
 
     /**
@@ -914,7 +884,7 @@ UX = {
             OLog.error(`ux.js setAnimation unable to find componentId=${componentId}`)
             return
         }
-        OLog.warn(`ux.js setAnimation componentId=${componentId} animation=${animation}`)
+        OLog.debug(`ux.js setAnimation componentId=${componentId} animation=${animation}`)
         component.setAnimation(animation)
     },
 
@@ -1660,11 +1630,7 @@ UX = {
      * @return {array} Array of timezones.
      */
     makeTimezoneArray() {
-        let tzArray = _.map(moment.tz.names(), (timezone) => {
-            return { code: timezone, localized: timezone }
-        })
-        tzArray.unshift( { code: "", localized: "" } )
-        return tzArray
+        return Util.makeTimezoneArray()
     },
 
     /**
@@ -1858,7 +1824,7 @@ UX = {
     },
 
     /**
-     * Mutate a modifier to add either a set/unset instruction on behalf of a given component.
+     * Mutate a modifier defering to modification handler if applicable..
      *
      * @param {object} component Component with value to be considered.
      * @param {object} modifier Modifier to be mutated place.
@@ -1868,6 +1834,16 @@ UX = {
             component.props.modifyHandler(component, modifier)
             return
         }
+        UX.mutateModifierTraditional(component, modifier)
+    },
+
+    /**
+     * Mutate a modifier in the traditional way.
+     *
+     * @param {object} component Component with value to be considered.
+     * @param {object} modifier Modifier to be mutated place.
+     */
+    mutateModifierTraditional(component, modifier) {
         let value = component.getValue()
         let dbName = component.props.dbName || component.props.id
         if (Util.isNullish(value)) {
@@ -1983,6 +1959,17 @@ UX = {
         form.reset()
         for (let component of form.components) {
             component.reset()
+        }
+    },
+
+    /**
+     * Clear a form.
+     *
+     * @param {object} form Form to reset.
+     */
+    clearForm(form) {
+        for (let component of form.components) {
+            component.setValue(null)
         }
     },
 
@@ -2168,7 +2155,7 @@ UX = {
         $(".lock-exiting-component").each((index, element) => {
             const id = $(element).attr("id")
             if (!id) {
-                OLog.error("ux.js lockExitingComponents element does not have attribute id")
+                OLog.error(`ux.js lockExitingComponents element does not have attribute id element=${$(element).html()}`)
                 return
             }
             const component = UX.findComponentById(id)
@@ -2755,7 +2742,7 @@ UX = {
                     reject(error)
                     return
                 }
-                OLog.debug(`ux.js call method ${method} *resolve* result=${OLog.debugString(result)}`)
+                OLog.debug(`ux.js call method ${method} *resolve*`)
                 resolve(result)
             })
         })
@@ -3003,5 +2990,21 @@ UX = {
         Meteor.setTimeout(() => {
             $element.scrollTop($element[0].scrollHeight)
         }, 100)
-    }
+    },
+
+    /**
+     * Find dupliate HTML IDs and dump them to console.
+     */
+    dumpDuplicateIds() {
+        const idArray = [...document.querySelectorAll("[id]")].map((x) => x.id)
+        const idToCount = idArray.reduce((acc, id) => {
+            acc[id] = (acc[id] || 0) + 1
+            return acc
+        }, {})
+        // console.log("ux.js dumpDuplicateIds idToCount", idToCount)
+        const duplicates = Object.entries(idToCount).filter(idObject => {
+            return idObject.value > 1
+        })
+        console.log("ux.js dumpDuplicateIds duplicates", duplicates)
+    },
 }

@@ -47,6 +47,9 @@ import "/imports/vx/client/code/vxapp"
 //import "/imports/app/both/code/vxapp"
 //import "/imports/app/client/code/vxapp"
 
+import "/imports/vx/both/code/meta"
+//import "/imports/app/both/code/meta"
+
 import "/imports/vx/client/code/prototype"
 
 import "/imports/vx/client/code/master"

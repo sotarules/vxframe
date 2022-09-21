@@ -20,6 +20,9 @@ import TenantEdit from "/imports/tenants/client/TenantEdit"
 import TenantView from "/imports/tenants/client/TenantView"
 import UserDomainView from "/imports/usersdomains/client/UserDomainView"
 import UserEdit from "/imports/users/client/UserEdit"
+import ReportView from "/imports/reports/client/ReportView"
+import ReportEdit from "/imports/reports/client/ReportEdit"
+import ReportPreviewContainer from "/imports/reports/client/ReportPreviewContainer"
 
 Routes = {
     getRoutes() {
@@ -43,7 +46,10 @@ Routes = {
             { path: "/templates", layoutName: "LayoutStandardContainer", component: TemplateView },
             { path: "/template/:_id", layoutName: "LayoutStandardContainer", component: TemplateEdit },
             { path: "/functions", layoutName: "LayoutStandardContainer", component: FunctionView },
-            { path: "/function/:_id", layoutName: "LayoutStandardContainer", component: FunctionEdit }
+            { path: "/function/:_id", layoutName: "LayoutStandardContainer", component: FunctionEdit },
+            { path: "/reports", layoutName: "LayoutStandardContainer", component: ReportView },
+            { path: "/report/:_id", layoutName: "LayoutStandardContainer", component: ReportEdit },
+            { path: "/reportpreview/:_id", layoutName: "LayoutStandardContainer", component: ReportPreviewContainer }
         ])
     },
 

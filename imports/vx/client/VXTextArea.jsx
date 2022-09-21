@@ -7,6 +7,7 @@ export default class TextArea extends Component {
         id : PropTypes.string.isRequired,
         name : PropTypes.string,
         autoComplete : PropTypes.string,
+        groupClass : PropTypes.string,
         className : PropTypes.string,
         type : PropTypes.string,
         placeholder : PropTypes.string,
@@ -75,7 +76,7 @@ export default class TextArea extends Component {
 
     render() {
         return (
-            <div className={`form-group ${this.state.error ? " " + CX.CLASS_HAS_ERROR : ""} ${this.props.formGroupClassName || ""}`}>
+            <div className={`form-group ${this.state.error ? " " + CX.CLASS_HAS_ERROR : ""} ${this.props.groupClass || ""}`}>
                 {this.props.label &&
                     <label htmlFor={this.props.id} className="control-label"  title={this.props.tooltip}>
                         {this.props.label}{" "}

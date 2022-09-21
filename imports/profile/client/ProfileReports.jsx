@@ -1,126 +1,58 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import RightBody from "/imports/vx/client/RightBody"
 import VXForm from "/imports/vx/client/VXForm"
-import ProfileReportsRow from "/imports/profile/client/ProfileReportsRow"
-import FooterCancelSave from "/imports/vx/client/FooterCancelSave"
+import VXRowPanel from "/imports/vx/client/VXRowPanel"
+import ProfileReportsRow from "./ProfileReportsRow"
 
 export default class ProfileReports extends Component {
 
     static propTypes = {
         user : PropTypes.object.isRequired,
         reportDefinitionObjects : PropTypes.array.isRequired,
-        reportFrequencies : PropTypes.array.isRequired,
-        timeUnits : PropTypes.array.isRequired,
+        reports : PropTypes.array.isRequired
+    }
+
+    static defaultProps = {
+        id : "profile-reports"
     }
 
     render() {
         return (
             <RightPanel>
                 <RightBody>
-                    <VXForm id="profile-reports-form"
+                    <VXForm id={`${this.props.id}-form`}
                         ref={form => {this.form = form}}
                         className="right-panel-form"
-                        autoComplete="on"
                         collection={Meteor.users}
-                        receiveProps={false}
-                        _id={this.props.user._id}
-                        updateHandler={this.handleUpdate.bind(this)}>
-                        <div className="row">
-                            <div className="col-sm-12">
-                                <div className="report-list list-group">
-                                    {this.renderReports()}
-                                </div>
-                            </div>
-                        </div>
+                        dynamic={true}
+                        _id={this.props.user._id}>
+                        <VXRowPanel id={`${this.props.id}-row-panel`}
+                            editable={true}
+                            scrollable={false}
+                            title={Util.i18n("profile.label_reports")}
+                            collection={Meteor.users}
+                            record={this.props.user}
+                            rowsPath={this.rowsPath()}
+                            rowId="id"
+                            component={ProfileReportsRow}
+                            emptyMessage={Util.i18n("profile.empty_reports")}
+                            reports={this.props.reports}
+                            onUpdateRow={this.handleUpdateReportRow.bind(this)}/>
                     </VXForm>
                 </RightBody>
-                <FooterCancelSave ref={(footer) => {this.footer = footer} }
-                    id="right-panel-footer"
-                    onReset={this.onReset.bind(this)}
-                    onSave={this.onSave.bind(this)}/>
             </RightPanel>
         )
     }
 
-    renderReports() {
-        return this.props.reportDefinitionObjects.map(reportDefinitionObject => (
-            <ProfileReportsRow id={"profile-report-row-" + reportDefinitionObject.reportType}
-                key={reportDefinitionObject.reportType}
-                user={this.props.user}
-                reportType={reportDefinitionObject.reportType}
-                description={reportDefinitionObject.description}
-                reportFrequencies={this.props.reportFrequencies}
-                timeUnits={this.props.timeUnits}/>
-        ))
+    rowsPath() {
+        const domainId = Util.getCurrentDomainId(this.props.user)
+        const domainIndex = Util.indexOf(this.props.user.profile.domains, "domainId", domainId)
+        return `profile.domains[${domainIndex}].reports`
     }
 
-    onReset() {
-        UX.resetForm(this.form)
-    }
-
-    onSave(laddaCallback) {
-        UX.save(this.form, laddaCallback)
-    }
-
-    handleUpdate(callback) {
-
-        let reportPreferences
-
-        for (let reportType in Meteor.i18nMessages.codes.reportType) {
-
-            let component = UX.findComponentById("profile-report-row-" + reportType)
-            if (!component) {
-                OLog.debug("ProfileReports.jsx handleUpdate unable to find reportType=" + reportType)
-                continue
-            }
-
-            if (!component.state.isCheckedSendEmail) {
-                continue
-            }
-
-            reportPreferences = reportPreferences || []
-
-            let reportPreference = {}
-
-            reportPreference.reportType = reportType
-            reportPreference.reportFrequency = component.state.selectedFrequency
-            reportPreference.timeUnit = component.state.selectedTimeUnit
-            reportPreference.timeOption = component.state.selectedTimeOption
-
-            // Note that we are starting fresh using the current date as the last executed date.
-            // This will prevent a ton of "catch up" reports from being generated if the user switches from
-            // MONTH report to an HOUR report.
-            reportPreference.nextDate = Util.computeNextDate(reportPreference.reportFrequency,
-             reportPreference.timeUnit, reportPreference.timeOption, this.props.user.profile.timezone, new Date())
-
-            reportPreferences.push(reportPreference)
-        }
-
-        let modifier = {}
-
-        if (reportPreferences) {
-            modifier.$set = {}
-            modifier.$set["profile.reportPreferences"] = reportPreferences
-        }
-        else {
-            modifier.$unset = {}
-            modifier.$unset["profile.reportPreferences"] = ""
-        }
-
-        OLog.debug("ProfileReports.jsx handleUpdate userId=" + this.props.user._id + " modifier=" + OLog.debugString(modifier))
-
-        Meteor.users.update(this.props.user._id, modifier, function(error) {
-            if (callback) {
-                if (error) {
-                    callback(error)
-                    return
-                }
-                callback(null, { success : true })
-            }
-        })
-
-        return true
+    handleUpdateReportRow(component, value, collection, record, rowsPath, rowId) {
+        VXApp.handleUpdateReportRow(component, value, collection, record, rowsPath, rowId)
     }
 }

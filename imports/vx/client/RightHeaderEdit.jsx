@@ -10,11 +10,19 @@ export default class RightHeaderEdit extends Component {
         id : PropTypes.string.isRequired,
         record : PropTypes.object.isRequired,
         collection : PropTypes.object.isRequired,
-        imageType : PropTypes.string.isRequired,
-        iconUrlDbName : PropTypes.string.isRequired,
         nameDbName : PropTypes.string.isRequired,
         descriptionDbName : PropTypes.string.isRequired,
+        namePlaceholder : PropTypes.string,
+        descriptionPlaceholder : PropTypes.string,
+        editableImage : PropTypes.bool.isRequired,
+        imageType : PropTypes.string,
+        iconUrlDbName : PropTypes.string,
+        iconUrlLeft : PropTypes.string,
         iconUrlRight : PropTypes.string
+    }
+
+    static defaultProps = {
+        editableImage : true
     }
 
     render() {
@@ -33,19 +41,26 @@ export default class RightHeaderEdit extends Component {
                                 <tbody>
                                     <tr>
                                         <td className="top-left">
-                                            <VXImage id={`${this.props.id}-icon-url`}
-                                                size="small"
-                                                imageType={this.props.imageType}
-                                                value={this.props.record[this.props.iconUrlDbName]}
-                                                dbName={this.props.iconUrlDbName}/>
+                                            {this.props.editableImage ? (
+                                                <VXImage id={`${this.props.id}-icon-url`}
+                                                    size="small"
+                                                    imageType={this.props.imageType}
+                                                    value={this.props.record[this.props.iconUrlDbName]}
+                                                    dbName={this.props.iconUrlDbName}/>
+                                            ) : (
+                                                <img className="top-image"
+                                                    src={this.props.iconUrlLeft}/>
+                                            )}
                                         </td>
                                         <td className="top-center">
                                             <div className="top-input">
                                                 <VXInput id={`${this.props.id}-name`}
                                                     value={this.props.record[this.props.nameDbName]}
+                                                    placeholder={this.props.namePlaceholder}
                                                     dbName={this.props.nameDbName}/>
                                                 <VXInput id={`${this.props.id}-description`}
                                                     value={this.props.record[this.props.descriptionDbName]}
+                                                    placeholder={this.props.descriptionPlaceholder}
                                                     dbName={this.props.descriptionDbName}/>
                                             </div>
                                         </td>
@@ -62,7 +77,7 @@ export default class RightHeaderEdit extends Component {
                     </div>
                 </VXForm>
                 <>
-                {this.props.children}
+                    {this.props.children}
                 </>
             </div>
         )

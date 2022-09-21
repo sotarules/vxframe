@@ -757,6 +757,76 @@
     }
 }
 
+.print-preview-container .report-body {
+    background-color: #FFFFFF;
+}
+
+.page-top {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.page-margin {
+    margin-bottom: .25in;
+    margin-left: .25in;
+    margin-right: .25in;
+}
+
+.flexi-prime {
+    display: block;
+    height: 100%;
+}
+
+@media print {
+
+    html,
+    body {
+        overflow: visible;
+    }
+
+    #react-root {
+        display: block;
+        overflow: visible;
+    }
+
+    .scroll-y {
+        overflow: visible;
+    }
+
+    .container {
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+    #basic-panel-row {
+        display: block;
+        margin: 0;
+    }
+
+    #basic-panel-column {
+        padding: 0;
+    }
+
+    .page-margin {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .flexi-grow {
+        display: block;
+        .flex-shrink(0);
+        .flex-grow(0);
+        height: auto;
+    }
+
+    .fill {
+        overflow: visible !important;
+    }
+}
+
 .blink {
 	-moz-transition: all 0.5s ease-in-out;
 	-webkit-transition: all 0.5s ease-in-out;

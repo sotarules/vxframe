@@ -260,6 +260,11 @@
     min-width: 50px;
 }
 
+.rct-title {
+    font-weight: 400;
+    font-size: 14px;
+}
+
 .row-panel-title {
     font-size: 20px;
     line-height: 20px;
@@ -697,6 +702,85 @@ body {
 
 .position-relative {
     position:relative;
+}
+
+.position-absolute {
+    position:absolute;
+}
+
+.tree-control-container:focus {
+    outline: 0 !important;
+}
+
+.tree-control-container {
+    border: 1px solid #e3e3e3;
+    .border-radius(4px);
+    .box-shadow(0 0 6px 1px #C7C7C7);
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    background-color: #FFFFFF;
+    .flexi-fixed;
+}
+
+.tree-control-container .form-group-first {
+    margin-top: 4px;
+    margin-bottom: 0px;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.tree-control-container .form-group {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.tree-control-title {
+    font-size: 18px;
+    margin-left: 3px;
+    margin-bottom: 10px;
+}
+
+.top-header-group.report-filters-form {
+    margin-bottom: 20px;
+}
+
+.top-header-group .report-filters-button {
+    margin-top: 32px;
+}
+
+.report-container {
+}
+
+.report-container p {
+    margin: 0;
+}
+
+.report-container-empty {
+    background-color: #FFFFFF;
+    margin-top: 0px;
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
+}
+
+.report-body {
+    background-color: #F5F5F5;
+}
+
+.report-footer {
+    margin-top: 0px;
+    margin-bottom: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.report-footer-text {
+    font-size: 14px;
+    font-weight: normal;
 }
 
 .control-label-first {
@@ -1538,6 +1622,7 @@ legend.group-legend {
     padding-right: 15px;
     height: 100%;
     border: 1px solid #e3e3e3;
+    background-color: #FFFFFF;
     .border-radius(4px);
 }
 
@@ -1595,6 +1680,10 @@ legend.group-legend {
     margin-bottom: 20px;
     margin-left: 20px;
     margin-right: 20px;
+}
+
+.right-body-white {
+    background-color: #FFFFFF;
 }
 
 .right-body-no-margin {
@@ -2432,6 +2521,10 @@ legend.group-legend {
     padding-right: 20px;
 }
 
+.modal-body.modal-body-thin-bottom {
+    padding-bottom: 10px;
+}
+
 .modal-form {
     padding-top: 0px;
     padding-bottom: 0px;
@@ -2581,6 +2674,11 @@ legend.group-legend {
   margin-top: 5px;
   font-size: 13px;
   line-height: @modal-title-line-height;
+}
+
+.loading-spinner-white-background {
+    background-color: #FFFFFF;
+    border: 1px solid #e3e3e3;
 }
 
 .loading-message {
@@ -2891,93 +2989,7 @@ legend.group-legend {
     font-size: 14px;
 }
 
-.preferences-control {}
-
-.report-list {
-    list-style-type: none;
-    min-height: 60px;
-}
-
-.report-container-small {
-    padding: 0px;
-}
-
-.report-list-description {
-    vertical-align: middle;
-    white-space: normal;
-    word-wrap: break-word;
-}
-
-.report-list-right {
-    vertical-align: middle;
-}
-
-.report-list-right-set {
-    float: right;
-}
-
-.report-table {
-    table-layout: fixed;
-    width: 100%;
-    min-height: 40px;
-}
-
-.report-text {
-    padding-left: 0px;
-    padding-right: 10px;
-    font-size: 14px;
-    .truncate;
-}
-
-.report-list-button {
-    display: inline-block;
-}
-
-.report-list-checkbox {
-    display: inline-block;
-    margin-left: 10px;
-}
-
-.report-list-label {
-    display: inline-block;
-}
-
-.report-list-preposition {
-    display: inline-block;
-    margin-left: 5px;
-    margin-right: 0px;
-}
-
-.report-list-dropdown {
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 5px;
-    margin-bottom: 0px;
-}
-
-.report-list-select {
-    margin-top: -4px;
-    font-size: 14px;
-    height: 30px;
-    padding-top: 0px;
-    padding-bottom: 0px;
-    padding-left: 6px;
-    padding-right: 0px;
-}
-
-.report-list-select-frequency {
-    min-width: 45px;
-    .report-list-select;
-}
-
-.report-list-select-timeunit {
-    min-width: 80px;
-    .report-list-select;
-}
-
-.report-list-select-timeoption {
-    min-width: 120px;
-    .report-list-select;
+.preferences-control {
 }
 
 /* For Bootstrap tabs, activation sets display: block which is not right for Flexbox */

@@ -23,6 +23,7 @@ Meteor.startup(() => {
 
     Templates._ensureIndex({ domain : 1})
     Functions._ensureIndex({ domain : 1})
+    Reports._ensureIndex({ domain : 1})
 
     console.log("indexes.js (vx) indexes have been ensured")
 })

@@ -1,20 +1,24 @@
-import {cloneDeep, get, set} from "lodash"
+import {get, set} from "lodash"
 import UploadModalContainer from "/imports/vx/client/UploadModalContainer"
 import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
+import ReportSendModal from "/imports/reports/client/ReportSendModal"
 import {
     setCurrentDomainId,
     setCurrentLocale,
     setCurrentPublishingMode,
+    setCurrentReportRecord,
     setCurrentUserId,
     setFunctionUpdateTimestamp,
     setListImportLastPercent,
     setPublishAuthoringDomain,
     setPublishAuthoringFunction,
+    setPublishAuthoringReport,
     setPublishAuthoringTemplate,
     setPublishAuthoringUser,
     setPublishCurrentDomain,
     setPublishCurrentDomains,
     setPublishCurrentFunctions,
+    setPublishCurrentReports,
     setPublishCurrentTemplates,
     setPublishCurrentTenant,
     setPublishCurrentTenants,
@@ -22,9 +26,11 @@ import {
     setPublishCurrentUsers,
     setPublishingModeClient,
     setPublishingModeServer,
+    setReportData,
+    setReportGuid,
+    setReportLoading,
     setSubscriptionParameters
 } from "/imports/vx/client/code/actions"
-
 
 VXApp = { ...VXApp, ...{
 
@@ -117,9 +123,10 @@ VXApp = { ...VXApp, ...{
     clearSessionSettings() {
         OLog.debug("vxapp.js clearSessionSettings")
         Store.dispatch(setPublishAuthoringDomain(null))
-        Store.dispatch(setPublishAuthoringUser(null))
-        Store.dispatch(setPublishAuthoringTemplate(null))
         Store.dispatch(setPublishAuthoringFunction(null))
+        Store.dispatch(setPublishAuthoringReport(null))
+        Store.dispatch(setPublishAuthoringTemplate(null))
+        Store.dispatch(setPublishAuthoringUser(null))
         Store.dispatch(setFunctionUpdateTimestamp(null))
         if (VXApp.clearAppSessionSettings) {
             VXApp.clearAppSessionSettings()
@@ -142,6 +149,8 @@ VXApp = { ...VXApp, ...{
             newSubscriptionParameters, { dateRetired : { $exists : false } }, { sort: { "name": 1 } })
         const publishCurrentFunctions = VXApp.makePublishingRequest("functions",
             newSubscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
+        const publishCurrentReports = VXApp.makePublishingRequest("reports",
+            newSubscriptionParameters, { dateRetired : { $exists: false } }, { sort: { name: 1 } })
         const publishCurrentUploadStats = VXApp.makePublishingRequest("uploadstats",
             newSubscriptionParameters, { }, { })
 
@@ -151,6 +160,7 @@ VXApp = { ...VXApp, ...{
             Store.dispatch(setPublishCurrentUsers(publishCurrentUsers.client))
             Store.dispatch(setPublishCurrentTemplates(publishCurrentTemplates.client))
             Store.dispatch(setPublishCurrentFunctions(publishCurrentFunctions.client))
+            Store.dispatch(setPublishCurrentReports(publishCurrentReports.client))
             Store.dispatch(setPublishCurrentUploadStats(publishCurrentUploadStats.client))
         }
 
@@ -162,6 +172,7 @@ VXApp = { ...VXApp, ...{
             handles.push(Meteor.subscribe("current_users", publishCurrentUsers.server))
             handles.push(Meteor.subscribe("templates", publishCurrentTemplates.server))
             handles.push(Meteor.subscribe("functions", publishCurrentFunctions.server))
+            handles.push(Meteor.subscribe("reports", publishCurrentReports.server))
             handles.push(Meteor.subscribe("uploadstats", publishCurrentUploadStats.server))
         }
 
@@ -231,8 +242,7 @@ VXApp = { ...VXApp, ...{
             return !!meteorUserId
         }
         const superAdminRoutes = ["/log", "/events" ]
-        const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/",
-            "/functions", "/function/", ]
+        const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/"]
         const path = Util.routePath()
         if (Util.startsWith(superAdminRoutes, path)) {
             return Util.isUserSuperAdmin(meteorUserId)
@@ -246,11 +256,12 @@ VXApp = { ...VXApp, ...{
     /**
      * Determine if this is a wide layout route.
      *
+     * @param {string} rotePath Route path to test.
      * @return {boolean} True if this is a wide layout route.
      */
-    isWideRoute() {
+    isWideRoute(routePath) {
         if (VXApp.isAppWideRoute) {
-            return VXApp.isAppWideRoute()
+            return VXApp.isAppWideRoute(routePath)
         }
         return true
     },
@@ -570,7 +581,7 @@ VXApp = { ...VXApp, ...{
         }
         publish.criteria = { _id: array[0]._id }
         publish.options = {}
-        OLog.warn(`vxapp.js selectFirstRecord reduxPropertyName=${reduxPropertyName} _id=${_id} ` +
+        OLog.debug(`vxapp.js selectFirstRecord reduxPropertyName=${reduxPropertyName} _id=${_id} ` +
             `*overriding* new publish=${OLog.debugString(publish)}`)
         Store.dispatch(setAction(publish))
     },
@@ -1071,6 +1082,33 @@ VXApp = { ...VXApp, ...{
         })
     },
 
+    findReportList() {
+        const publishCurrentReports = Store.getState().publishCurrentReports
+        OLog.debug(`vxapp.js findReportList publishCurrentReports=${OLog.debugString(publishCurrentReports)}`)
+        return Reports.find(publishCurrentReports.criteria, publishCurrentReports.options).fetch()
+    },
+
+    cloneReport(reportId) {
+        const report = Reports.findOne(reportId)
+        if (!report) {
+            return
+        }
+        delete report._id
+        delete report.dateCreated
+        delete report.userCreated
+        Reports.insert(report, (error, reportId) => {
+            if (error) {
+                OLog.error(`vxapp.js error attempting to clone reportId=${reportId} error=${error}`)
+                UX.notifyForDatabaseError(error)
+                return
+            }
+            const publishAuthoringReport = {}
+            publishAuthoringReport.criteria = { _id: reportId }
+            Store.dispatch(setPublishAuthoringReport(publishAuthoringReport))
+            UX.iosMajorPush(null, null, `/report/${reportId}`, "RIGHT", "crossfade")
+        })
+    },
+
     /**
      * Perform undo on the specified collection.
      *
@@ -1156,10 +1194,17 @@ VXApp = { ...VXApp, ...{
      * @param {string} functionType True to limit the list to a particular function type.
      * @return {array} Array of functions (code and localized).
      */
-    makeFunctionArray(functionType) {
-        const functions = VXApp.findFunctionList()
-        const codeArray = _.filter(functions, funktion => funktion.functionType === functionType).map(funktion => {
-            return { code: funktion._id, localized: funktion.description || "" }
+    makeFunctionArray(domainId, functionType) {
+        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        const criteria = {}
+        criteria.dateRetired = { $exists: false }
+        criteria.domain = domainId
+        if (functionType)  {
+            criteria.functionType = functionType
+        }
+        const codeArray = Functions.find(criteria).map(funktion => {
+            const friendlyName = funktion.description || funktion.name
+            return { code : funktion._id, localized : friendlyName }
         })
         codeArray.sort((recordA, recordB) => {
             return Util.safeCompare(recordA.localized, recordB.localized)
@@ -1246,13 +1291,19 @@ VXApp = { ...VXApp, ...{
      * @param {object} collection MongoDB collection to update.
      * @param {object} record Record to be updated.
      * @param {string} rowsPath Lodash-style update path.
-     * @param {?} value New value.
+     * @param {?} value New value or null to unset.
      */
     updateHandlerSimple(collection, record, rowsPath, value) {
         const mongoPath = Util.toMongoPath(rowsPath)
         const modifier = {}
-        modifier.$set = {}
-        modifier.$set[mongoPath] = value
+        if (!Util.isNullish(value)) {
+            modifier.$set = {}
+            modifier.$set[mongoPath] = value
+        }
+        else {
+            modifier.$unset = {}
+            modifier.$unset[mongoPath] = null
+        }
         OLog.debug(`vxapp.js updateHandlerSimple collection=${collection._name} recordId=${record._id} ` +
             `rowsPath=${rowsPath} mongoPath=${mongoPath} modifier=${OLog.debugString(modifier)}`)
         collection.update(record._id, modifier, error => {
@@ -1434,7 +1485,7 @@ VXApp = { ...VXApp, ...{
      * of codes that map to used rows. This type of data structure saves space and is more
      * concise in cases where there are many potential rows, but only a tiny subset are used.
      *
-     * @param {array} codeArray Invariant array of codes typically from codes.js.
+     * @param {array} codeArray Array of objects bearing code and localization.
      * @param {object} collection Collection to be updated.
      * @param {object} record Record to be updated.
      * @param {string} rowsPath Path to array within record.
@@ -1446,14 +1497,19 @@ VXApp = { ...VXApp, ...{
     updateCodeArray(codeArray, collection, record, rowsPath, rowId, id, component, value) {
         try {
             const rebuiltArray = []
-            codeArray.forEach(code => {
+            codeArray.forEach(codeArrayObject => {
                 let element = _.find(get(record, rowsPath), element => {
-                    return element[rowId] === code
+                    return element[rowId] === codeArrayObject.code
                 })
-                if (id === code) {
+                if (id === codeArrayObject.code) {
+                    // If this component bears the usedIndicator property, it will be a checkbox control.
+                    // When this control is cleared, we simply omit the element from the rebuilt array.
+                    if (component.props.usedIndicator && !value) {
+                        return
+                    }
                     if (!element) {
                         element = {}
-                        element[rowId] = code
+                        element[rowId] = codeArrayObject.code
                     }
                     set(element, component.props.dbName, value)
                 }
@@ -1473,6 +1529,55 @@ VXApp = { ...VXApp, ...{
         catch (error) {
             UX.notifyForError(error)
         }
+    },
+
+    /**
+     * This function handles the update of a single field associated with a tree node (VXTree). Such updates
+     * are typically driven by the tree node modal.
+     *
+     * @param {object} collection Collection to be updated.
+     * @param {object} record Record to be updated.
+     * @param {string} fieldsDbName MongoDB name of fields array.
+     * @param {string} metadataPath Path of metadata definition.
+     * @param {object} component Component that has been updated.
+     * @param {?} value Value that has been updated.
+     */
+    updateTreeNodeField(collection, record, fieldsDbName, metadataPath, component, value) {
+        metadataPath = metadataPath || "ROOT"
+        const fields = record[fieldsDbName] || []
+        let fieldsObject = _.findWhere(fields, { metadataPath })
+        if (!fieldsObject) {
+            fieldsObject = {}
+            fieldsObject.metadataPath = metadataPath
+            fields.push(fieldsObject)
+        }
+        if (!(Util.isNullish(value) || value === false)) {
+            fieldsObject[component.props.dbName] = value
+        }
+        else {
+            delete fieldsObject[component.props.dbName]
+        }
+        if (Object.keys(fieldsObject).length === 1) {
+            const index = Util.indexOf(fields, "metadataPath", metadataPath)
+            fields.splice(index, 1)
+        }
+        VXApp.updateHandlerSimple(collection, record, fieldsDbName, fields)
+    },
+
+    /**
+     * Reset all fields associated with a specified metadata path.
+     *
+     * @param {object} collection Collection to be updated.
+     * @param {object} record Record to be updated.
+     * @param {string} fieldsDbName MongoDB name of fields array.
+     * @param {string} metadataPath Path of metadata definition.
+     */
+    updateTreeNodeFieldsReset(collection, record, fieldsDbName, metadataPath) {
+        metadataPath = metadataPath || "ROOT"
+        const fields = record[fieldsDbName] || []
+        const index = Util.indexOf(fields, "metadataPath", metadataPath)
+        fields.splice(index, 1)
+        VXApp.updateHandlerSimple(collection, record, fieldsDbName, fields)
     },
 
     /**
@@ -1608,37 +1713,6 @@ VXApp = { ...VXApp, ...{
                 rows.splice(purgeIndex, 1)
             }
         }
-    },
-
-    /**
-     * Apply filters to a standard publishing object. There are two types of filters: criteria or text.
-     * Criteria filters are simply additional properties added to the criteria. Text filters leverage
-     * Regex expressions to search text fields within the collection, and the caller must supply an
-     * object such as { searchPhrase: "Aetna", propertyNames: [ "name", "description" ] }.
-     *
-     * @param {object} publish Standard publishing object.
-     * @param {object} criteria Standard criteria filter is an object merged with publishing criteria.
-     * @param {object} regexFilter Object representing regex filtering criteria { searchPhrase, propertyNames }.
-     * @param {boolean} includeRetired True to include retired records.
-     * @return {object} Standard publishing object adjusted with filters.
-     */
-    applyFilters(publish, criteria, regexFilter, includeRetired) {
-        const publishAdjusted = cloneDeep(publish)
-        if (criteria) {
-            publishAdjusted.criteria = { ...publishAdjusted.criteria, ...criteria }
-        }
-        if (regexFilter) {
-            const cleanSearchPhrase = regexFilter.searchPhrase.replace(/[^a-zA-Z0-9 ]/g, "")
-            const searchRegex = new RegExp(cleanSearchPhrase, "i")
-            publishAdjusted.criteria.$or = []
-            regexFilter.propertyNames.forEach(propertyName => {
-                publishAdjusted.criteria.$or.push({ [propertyName]: searchRegex })
-            })
-        }
-        if (!includeRetired) {
-            publishAdjusted.criteria = { ...publishAdjusted.criteria, dateRetired: { $exists: false } }
-        }
-        return publishAdjusted
     },
 
     /**
@@ -2073,5 +2147,227 @@ VXApp = { ...VXApp, ...{
         publishRequestModified.criteria = { ...publishRequest.criteria, ...criteria }
         publishRequestModified.options = { ...publishRequest.options, ...options }
         return Meteor.subscribe(subscription, publishRequestModified)
+    },
+
+    /**
+     * Construct and return a report tree model based on a supplied report record.
+     *
+     * @param {object} report Report record.
+     * @return {array} Array of nodes.
+     */
+    makeReportTreeModel(report) {
+        if (!report.entityType) {
+            return
+        }
+        const metadataPathStack = []
+        const treeRoot = {}
+        treeRoot.label = VXApp.makeReportTreeModelLabelRoot(report)
+        treeRoot.value = null
+        treeRoot.children = VXApp.makeReportTreeModelRecursive(report, treeRoot,
+            Meta[report.entityType], metadataPathStack)
+        return [ treeRoot ]
+    },
+
+    /**
+     * Construct and return label for the metadata ROOT node.
+     *
+     * @param {object} report Report record.
+     * @return {string} Metadata root label.
+     */
+    makeReportTreeModelLabelRoot(report) {
+        let label = Util.localizeCode("entityType", report.entityType)
+        const fieldsObject = _.findWhere(report.fields, { metadataPath: "ROOT" })
+        if (!fieldsObject) {
+            return label
+        }
+        const fieldsArray = []
+        if (fieldsObject.padding) {
+            fieldsArray.push(Util.localizeCode("reportCellPadding", fieldsObject.padding))
+        }
+        if (fieldsObject.limit === 0) {
+            fieldsArray.push(Util.i18n("common.label_all"))
+        }
+        if (fieldsObject.limit > 0) {
+            fieldsArray.push(fieldsObject.limit)
+        }
+        if (fieldsArray.length > 0) {
+            label += ` \u25CF\u25CF\u25CF ${fieldsArray.join(" ")}  \u25CF\u25CF\u25CF`
+        }
+        return label
+    },
+
+    /**
+     * Given a report tree node (parent) and a metadata object, construct and return
+     * an array of child tree nodes.
+     *
+     * @param {object} report Report record.
+     * @param {object} treeNode Report tree node (parent).
+     * @param {object} metadataNode Metadata node.
+     * @param {object} metadataPathStack Metadata path stack.
+     * @return {array} Child tree nodes (processed recursively).
+     */
+    makeReportTreeModelRecursive(report, treeNode, metadataNode, metadataPathStack) {
+        const treeNodes = []
+        Object.keys(metadataNode).forEach(key => {
+            const metadataChild = metadataNode[key]
+            if (metadataChild.guid) {
+                return
+            }
+            if (metadataChild.usedIndicator) {
+                return
+            }
+            metadataPathStack.push(key)
+            const metadataPath = metadataPathStack.join(".")
+            const treeChild = {}
+            treeChild.label = VXApp.makeReportTreeModelLabel(metadataPath, metadataChild, report)
+            treeChild.value = treeNode.value ? `${treeNode.value}.${key}` : key
+            if (metadataChild.definition) {
+                treeChild.children = VXApp.makeReportTreeModelRecursive(report, treeChild, metadataChild.definition, metadataPathStack)
+            }
+            treeNodes.push(treeChild)
+            metadataPathStack.pop()
+        })
+        return treeNodes
+    },
+
+    makeReportTreeModelLabel(metadataPath, metadataChild, report) {
+        let label = Util.i18nLocalize(metadataChild.localized)
+        const fieldsObject = _.findWhere(report.fields, { metadataPath })
+        if (!fieldsObject) {
+            return label
+        }
+        const fieldsArray = []
+        if (fieldsObject.sort) {
+            fieldsArray.push(`[${fieldsObject.sort}]`)
+        }
+        if (fieldsObject.alignment) {
+            fieldsArray.push(Util.localizeCode("reportColumnAlignment", fieldsObject.alignment))
+        }
+        if (fieldsObject.width) {
+            fieldsArray.push(Util.localizeCode("reportColumnWidth", fieldsObject.width))
+        }
+        if (fieldsObject.overflow) {
+            fieldsArray.push(Util.localizeCode("reportOverflowRule", fieldsObject.overflow))
+        }
+        if (fieldsObject.negation) {
+            fieldsArray.push(Util.localizeCode("negationOperator", fieldsObject.negation))
+        }
+        if (fieldsObject?.operator) {
+            fieldsArray.push(Util.localizeCode("logicalOperator", fieldsObject.operator))
+        }
+        if (fieldsObject?.filter) {
+            fieldsArray.push(VXApp.transformText(metadataChild, report.domain, fieldsObject.filter))
+        }
+        if (fieldsArray.length > 0) {
+            label += ` \u25CF\u25CF\u25CF ${fieldsArray.join(" ")}  \u25CF\u25CF\u25CF`
+        }
+        return label
+    },
+
+
+    /**
+     * Conditionally fetch report data to Redux.
+     *
+     * @param {object} report Report record.
+     */
+    async conditionallyFetchReportData(report) {
+        try {
+            if (!(report && report.entityType)) {
+                return
+            }
+            const currentReportRecord = Store.getState().currentReportRecord
+            const equalReport = currentReportRecord &&
+                Util.isDeepEqual(currentReportRecord.checked, report.checked) &&
+                Util.isDeepEqual(currentReportRecord.fields,  report.fields)
+            if (equalReport) {
+                OLog.debug(`vxapp.js conditionallyFetchReportData report name=${report.name} is unchanged fetch bypassed`)
+                return
+            }
+            const reportGuid = Util.getGuid()
+            OLog.debug(`vxapp.js conditionallyFetchReportData report name=${report.name} *fetch* report=${reportGuid}`)
+            Store.dispatch(setCurrentReportRecord(report))
+            Store.dispatch(setReportGuid(reportGuid))
+            const server = Util.getCodeProperty("entityType", report.entityType, "server")
+            if (!server) {
+                Store.dispatch(setReportLoading(true))
+                const reportData = VXApp.makeReportData(report)
+                if (Store.getState().reportGuid === reportGuid) {
+                    Store.dispatch(setReportLoading(false))
+                    Store.dispatch(setReportData(reportData))
+                }
+                else {
+                    OLog.warn(`vxapp.js conditionallyFetchReportData report name=${report.name} *client* GUID mismatch *ignore*`)
+                }
+                return
+            }
+            Store.dispatch(setReportLoading(true))
+            const result = await UX.call("fetchReportData", report._id)
+            if (Store.getState().reportGuid === reportGuid) {
+                Store.dispatch(setReportLoading(false))
+                Store.dispatch(setReportData(result.reportData))
+            }
+            else {
+                OLog.warn(`vxapp.js conditionallyFetchReportData report name=${report.name} *server* GUID mismatch *ignore*`)
+            }
+        }
+        catch (error) {
+            UX.notifyForError(error)
+            Store.dispatch(setReportLoading(false))
+        }
+    },
+
+    /**
+     * Handle the update of a report row in the user profile.
+     *
+     * @param {object} collection MongoDB collection to update.
+     * @param {?} value The value being updated.
+     * @param {object} collection MongoDB collection to update.
+     * @param {object} record Record to be updated.
+     * @param {string} rowsPath JSON path to array of rows to be updated.
+     * @param {string} rowId Name of a property that uniquely identifies row.
+     */
+    handleUpdateReportRow(component, value, collection, record, rowsPath, rowId) {
+        const extra = {}
+        extra.nextDate = null
+        VXApp.updateRow(collection, record, rowsPath, rowId, component, value, extra)
+    },
+
+    handlePrintReport(callback, report) {
+        callback()
+        UX.iosMajorPush(null, null, `/reportpreview/${report._id}`,
+            "RIGHT", "crossfade")
+    },
+
+    handleSendReport(callback, report) {
+        callback()
+        UX.showModal(<ReportSendModal title={report.name}
+            report={report}/>)
+    },
+
+    async handleDownloadReport(callback, report) {
+        try {
+            const result = await UX.call("fetchReportSpreadsheet", report._id)
+            if (!result.success) {
+                callback()
+                UX.notify(result)
+            }
+            const blob = new Blob([result.array.buffer])
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = `${report.name}.xlsx`
+            const clickHandler = () => {
+                callback()
+                setTimeout(() => {
+                    URL.revokeObjectURL(url)
+                    a.removeEventListener("click", clickHandler)
+                }, 150)
+            }
+            a.addEventListener("click", clickHandler, false)
+            a.click()
+        }
+        catch (error) {
+            UX.notifyForError(error)
+        }
     }
 }}

@@ -108,6 +108,16 @@ Meteor.publish("my_functions", function(request) {
     return cursor
 })
 
+Meteor.publish("reports", function(request) {
+    if (!request || !this.userId) {
+        return
+    }
+    VXApp.adjustPublishingRequest(request, this.userId)
+    const cursor = Reports.find(request.criteria, request.options)
+    OLog.debug(`publications.js reports count=${cursor.count()} publish=${OLog.debugString(request)}`, this.userId)
+    return cursor
+})
+
 Meteor.publish("uploadstats", function(request) {
     if (!request || !this.userId) {
         return;

@@ -1,4 +1,5 @@
 import { get } from "lodash"
+import { cloneDeep } from "lodash"
 import reactFastDeepEqual from "fast-deep-equal/es6/react"
 
 Util = {
@@ -169,6 +170,71 @@ Util = {
     },
 
     /**
+     * Return an array of all users with the specified role suitable for populating a VXSelect
+     * component. Include retired users.
+     *
+     * @param {string} domainId Optional domain ID.
+     * @param {array} roleNames Optional array of role names to use as filter.
+     * @return {array} Array of all users for select element.
+     */
+    makeUserArrayWithRetired(domainId, roleNames) {
+        return Util.makeUserArray(domainId, roleNames, true)
+    },
+
+    /**
+     * Return an array of all users with the specified role suitable for populating a VXSelect
+     * component.
+     *
+     * @param {string} domainId Optional domain ID.
+     * @param {array} roleNames Optional array of role names to use as filter.
+     * @param {boolean} includeRetired True to include retired.
+     * @return {array} Array of users for select element.
+     */
+    makeUserArray(domainId, roleNames, includeRetired) {
+        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        const criteria = {}
+        if (!includeRetired) {
+            criteria["profile.dateRetired"] = { $exists: false }
+        }
+        criteria["profile.domains"] = { $elemMatch: { domainId } }
+        const codeArray = []
+        Meteor.users.find(criteria).forEach(user => {
+            let qualified
+            if (roleNames) {
+                _.each(roleNames, roleName => {
+                    if (Util.isUserRole(user._id, roleName)) {
+                        qualified = true
+                    }
+                })
+            }
+            else {
+                qualified = true
+            }
+            if (qualified) {
+                const localized = Util.fetchFullName(user._id)
+                codeArray.push( { code : user._id, localized : localized } )
+            }
+        })
+        codeArray.sort((userA, userB) => {
+            return Util.safeCompare(userA.localized, userB.localized)
+        })
+        return codeArray
+    },
+
+    /**
+     * Make timezone array for select lists.
+     *
+     * @return {array} Array of timezones.
+     */
+    makeTimezoneArray() {
+        let tzArray = _.map(moment.tz.names(), (timezone) => {
+            return { code: timezone, localized: timezone }
+        })
+        tzArray.unshift( { code: "", localized: "" } )
+        return tzArray
+    },
+
+    /**
      * Return the value of a system configuration field.
      *
      * @param {string} fieldName Name of configuration field to fetch.
@@ -263,7 +329,17 @@ Util = {
         if (_.isString(message)) {
             return message
         }
+        return Util.i18nLocalize(message)
+    },
 
+    /**
+     * Given a message object bearing localizations, return the correct
+     * localization.
+     *
+     * @param {object} message Message object.
+     * @return {string} Localized value.
+     */
+    i18nLocalize(message)  {
         let locale
         if (Meteor.isClient) {
             locale = Store.getState().currentLocale || "en_US"
@@ -271,7 +347,6 @@ Util = {
         else {
             locale = Meteor.locale || "en_US"
         }
-
         let _ref = locale.split("_")
         let language = _ref[0]
         let territory = _ref[1]
@@ -320,7 +395,7 @@ Util = {
     },
 
     /**
-     * Givne a code set and code, return the local value.
+     * Gien a code set and code, return the local value.
      *
      * @param {string} codeSet Code set name (e.g., state).
      * @param {string} codeName Code name (e.g., NY).
@@ -474,15 +549,15 @@ Util = {
      * @returns {string} Primary e-mail address.
      */
     getUserEmail(userOrId) {
-        if (_.isObject(userOrId)) {
-            return userOrId.emails && userOrId.emails.length > 0 ? userOrId.emails[0].address : null
-        }
         userOrId = userOrId || Meteor.userId()
-        let user = Meteor.users.findOne(userOrId, { fields: { emails: 1 }})
-        if (!user) {
-            return null
+        const user = Util.user(userOrId)
+        if (!(user && user.username)) {
+            return
         }
-        return user.emails && user.emails.length > 0 ? user.emails[0].address : null
+        if (user.profile.dateRetired) {
+            return user.username.substring(0, user.username.lastIndexOf("-"))
+        }
+        return user.username
     },
 
     /**
@@ -618,7 +693,6 @@ Util = {
         const domains = Util.getProfileValue("domains", user)
         const userDomainObject = _.findWhere(domains, { domainId })
         if (!userDomainObject) {
-            OLog.error(`util.js fetchUserDomainField cannot find user domain object userId=${user._id} domainId=${domainId} fieldName=${fieldName}`)
             return
         }
         return userDomainObject[fieldName]
@@ -642,9 +716,9 @@ Util = {
         modifier[op] = {}
         modifier[op][mongoPath] = value
         const userId = Util.userId(userOrId)
-        OLog.warn(`util.js updateUserDomainField userId=${userId} domainId=${domainId} fieldName=${fieldName} ` +
-            `index=${index} mongoPath=${mongoPath} value=${OLog.warnString(value)} op=${op} ` +
-            `modifier=${OLog.warnString(modifier)}`)
+        OLog.debug(`util.js updateUserDomainField userId=${userId} domainId=${domainId} fieldName=${fieldName} ` +
+            `index=${index} mongoPath=${mongoPath} value=${OLog.debugString(value)} op=${op} ` +
+            `modifier=${OLog.debugString(modifier)}`)
         Meteor.users.update(userId, modifier)
     },
 
@@ -1232,6 +1306,26 @@ Util = {
     },
 
     /**
+     * Determine whether a given value is a decimal number.
+     *
+     * @param {string} input Input value.
+     * @return {boolean} True if input is a decimal number.
+     */
+    isDecimal(input) {
+        return CX.REGEX_DECIMAL.test(input)
+    },
+
+    /**
+     * Determine whether a given value is a money amount.
+     *
+     * @param {string} input Input value.
+     * @return {boolean} True if input is a money amount.
+     */
+    isMoney(input) {
+        return CX.REGEX_MONEY.test(input)
+    },
+
+    /**
      * Given a string input, return either the whole number value of that input
      * or null if the value is non-numeric or empty.
      *
@@ -1255,13 +1349,18 @@ Util = {
 
     /**
      * Given a string input, return either the floating point equivalent
-     * or null if the value is non-numeric or empty.
+     * or null if the value is non-numeric or empty.  Note that JavaScript
+     * floating point numbers are all double-precision.
      *
      * @param {string} input Input field.
      * @return {number} Number or null.
      */
     getFloat(input) {
-        return CX.REGEX_FLOAT.test(input) ? parseFloat(input) : null
+        if (Util.isNullish(input) || !_.isString(input)) {
+            return input
+        }
+        const stripped = input.replace(CX.REGEX_DECIMAL_STRIP1, CX.REGEX_DECIMAL_STRIP2)
+        return CX.REGEX_DECIMAL.test(stripped) ? parseFloat(stripped) : null
     },
 
     /**
@@ -1734,6 +1833,27 @@ Util = {
     },
 
     /**
+     * Return domain timezone.
+     *
+     * @param {string} domainId Domain ID.
+     * @return {string} Domain timezone.
+     */
+    fetchDomainTimezone(domainId) {
+        const tenantId = Util.getTenantId(domainId)
+        return Util.fetchTenantField(tenantId, "timezone")
+    },
+
+    /**
+     * Return tenant timezone.
+     *
+     * @param {string} tenantId Tenant ID.
+     * @return {string} Tenant timezone.
+     */
+    fetchTenantTimezone(tenantId) {
+        return Util.fetchTenantField(tenantId, "timezone")
+    },
+
+    /**
      * Return the name of the specified field in a tenant.
      *
      * @param {string} tenantId Tenant ID.
@@ -1812,8 +1932,7 @@ Util = {
      * @return {string} Domain ID or UNKNOWN.
      */
     getCurrentDomainId(userOrId) {
-        // There is no way to default the ID.  If we try to use Meteor.userId() we will
-        // fail when this method is called directly or indirectly from publishing functions.
+        userOrId = userOrId || Meteor.userId()
         if (!userOrId) {
             return "UNKNOWN"
         }
@@ -2504,12 +2623,7 @@ Util = {
         if (_.isObject(userOrId)) {
             return userOrId
         }
-        const user = Util.fetchUserLimited(userOrId)
-        if (!user) {
-            OLog.error(`util.js user unable to find userOrId=${userOrId}`)
-            return
-        }
-        return user
+        return Util.fetchUserLimited(userOrId)
     },
 
     /**
@@ -2576,7 +2690,7 @@ Util = {
      * @return {object} Cloned object.
      */
     clone(input) {
-        return EJSON.parse(EJSON.stringify(input))
+        return cloneDeep(input)
     },
 
     /**
@@ -2753,6 +2867,39 @@ Util = {
     },
 
     /**
+     * Remove a token from a given input string.
+     *
+     * @param {string} input Input string.
+     * @param {string} splitCharacter Character to use to split.
+     * @param {string} offset Offset from last expressed as negative (defaults -1 aka last).
+     * @return {string} String with token removed.
+     */
+    removeToken(input, splitCharacter, offset) {
+        if (!input) {
+            return input
+        }
+        offset = offset || -1
+        const array = input.split(splitCharacter)
+        const index = array.length + offset
+        array.splice(index, 1)
+        return array.join(splitCharacter)
+    },
+
+    /**
+     * Remove an array subscript from the end of a string.
+     *
+     * @param {string} input Input string.
+     * @return {string} String with array subscript removed.
+     */
+    removeArraySubscript(input) {
+        if (!input) {
+            return input
+        }
+        const lastIndex = input.lastIndexOf("[")
+        return input.substring(0, lastIndex)
+    },
+
+    /**
      * Given a date in any timezone, return the same date GMT at 00:00:00.
      *
      * @param {?} date Either date or moment.
@@ -2809,5 +2956,69 @@ Util = {
         catch (e) {
             // Bury
         }
+    },
+
+    /**
+     * Do a recursive traversal of an object in order to locate any arrays. For each array found,
+     * mutate the array (within the object) to remove any null elements.
+     *
+     * @param {object} obj Object to process.
+     */
+    removeNullsFromArrays(obj) {
+        Object.keys(obj).forEach(key => {
+            let property = obj[key]
+            if (_.isArray(property)) {
+                obj[key] = property.filter(element => element != null)
+            }
+            else if (_.isObject(property)) {
+                Util.removeNullsFromArrays(property)
+            }
+        })
+    },
+
+    /**
+     * Strip the "px" off of the tail end of a style specification.
+     *
+     * @param {string} input Input.
+     * @return {string} String without "px".
+     */
+    stripPixels(input) {
+        if (input === "100%") {
+            return null
+        }
+        if (!input) {
+            return input
+        }
+        return input.endsWith("px") ? input.substring(0, input.length - 2) : input
+    },
+
+    /**
+     * Convert Excel column index to letter.
+     *
+     * @param {number} columnIndex Column index.
+     * @return {string} Excel letter(s) representing column heading.
+     */
+    columnToLetter(columnIndex) {
+        let letter = ""
+        while (columnIndex > 0) {
+            const alphabetIndex = (columnIndex - 1) % 26
+            letter = String.fromCharCode(alphabetIndex + 65) + letter
+            columnIndex = (columnIndex - alphabetIndex - 1) / 26
+        }
+        return letter
+    },
+
+    /**
+     * Convert Excel letter(s) to column index.
+     *
+     * @param {string} letter Excel letter(s).
+     * @return {number} Column index.
+     */
+    letterToColumn(letter) {
+        let column = 0
+        for (let letterIndex = 0; letterIndex < letter.length; letterIndex++) {
+            column += (letter.toUpperCase().charCodeAt(letterIndex) - 64) * Math.pow(26, letter.length - letterIndex - 1)
+        }
+        return column
     }
 }

@@ -10,7 +10,7 @@ export default class LoadingSpinner extends Component {
 
     render() {
         return (
-            <div className="flexi-grow position-relative">
+            <div className={`flexi-grow position-relative ${this.props.className || ""}`}>
                 <ReactSpinner config={ LoadingSpinner.opts }/>
             </div>
         )

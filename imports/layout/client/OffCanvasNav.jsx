@@ -16,12 +16,16 @@ export default class OffCanvasNav extends Component {
         return (
             <nav id="offcanvas-menu-react" className="navmenu navmenu-inverse navmenu-fixed-left offcanvas in scroll-y scroll-momentum" role="navigation" style={this.styles().offcanvasMenu}>
                 <ul className="nav navmenu-nav">
+                    <OffCanvasNavItem iconClass="fa-print"
+                        text={Util.i18n("navbar.reports")}
+                        path="/reports"/>
                     <OffCanvasNavItem iconClass="fa-user"
                         text={Util.i18n("navbar.profile")}
                         path="/profile"/>
                     <OffCanvasNavItem iconClass="fa-building-o"
                         text={Util.i18n("navbar.my_tenants")}
                         path="/tenants"/>
+
                     {this.props.isUserAdmin &&
                         <>
                             <OffCanvasNavSeparator/>

@@ -1,9 +1,9 @@
-Functions.after.insert(function(userId) {
-    OLog.debug(`hooks.js functions after insert userId=${userId} _id=${this._id}`)
-    VXApp.deployFunction(this._id)
+Reports.after.insert(function(userId, doc) {
+    OLog.debug(`hooks.js reports after insert userId=${userId} _id=${this._id}`)
+    VXApp.handleInsert(Reports, userId, doc)
 })
 
-Functions.after.update(function(userId, doc) {
-    OLog.debug(`hooks.js functions after update userId=${userId} docId=${doc._id}`)
-    VXApp.deployFunction(doc._id)
+Reports.after.update(function(userId, doc, fieldNames, modifier, options) {
+    OLog.debug(`hooks.js reports after update userId=${userId} docId=${doc._id}`)
+    VXApp.handleUpdate(Reports, userId, doc, fieldNames, modifier, options, this.previous)
 })

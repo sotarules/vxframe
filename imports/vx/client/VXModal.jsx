@@ -11,7 +11,7 @@ export default class VXModal extends Component {
     }
 
     static defaultProps = {
-        backdrop : "true",
+        backdrop : "static",
         width : "600px",
         anchorSelector : "#vx-anchor"
     }
@@ -23,6 +23,7 @@ export default class VXModal extends Component {
                 tabIndex="-1"
                 role="dialog"
                 data-backdrop={this.props.backdrop}
+                data-keyboard="false"
                 aria-labelledby="modal-title"
                 aria-hidden="true">
                 <div className="modal-dialog"
@@ -42,6 +43,13 @@ export default class VXModal extends Component {
             `anchorSelector=${this.props.anchorSelector}`)
         $(selector).modal("show")
         $(selector).on("hidden.bs.modal", () => {
+            const modalIn = $(selector).hasClass("in")
+            OLog.debug(`VXModal.jsx componentDidMount hidden.bs.modal *fire* id=${this.props.id} ` +
+                `anchorSelector=${this.props.anchorSelector} modalIn=${modalIn}`)
+            if (modalIn) {
+                OLog.debug("VXModal.jsx componentDidMount hidden.bs.modal is *in* and will not be unmounted")
+                return
+            }
             const modalComponent = UX.findComponentById(this.props.id)
             if (modalComponent) {
                 UX.unmountModal(modalComponent.props.anchorSelector)

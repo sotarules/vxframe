@@ -21,7 +21,6 @@ mrt:moment-timezone
 pcel:loading
 accounts-base@2.2.3
 accounts-password@2.3.1
-tsega:bootstrap3-datetimepicker
 ejson@1.1.2
 
 
@@ -51,5 +50,5 @@ ostrio:files@=2.0.1
 
 fetch@0.1.1
 jkuester:http
-lookback:emails
+tsega:bootstrap3-datetimepicker
 summernote:standalone

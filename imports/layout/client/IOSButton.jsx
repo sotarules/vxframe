@@ -64,19 +64,20 @@ export default class IOSButton extends Component {
         const minimumDuration = this.props.showLoading ? this.props.minimumDuration : 0
         OLog.debug(`IOSButton.jsx handleClick id=${this.props.id} *loading* for minimumDuration=${minimumDuration}`)
         this.setState({ loading: true }, () => {
-            this.execute()
+            UX.iosDisable(`#${this.props.id}`)
             Meteor.setTimeout(() => {
                 if (this._isMounted) {
-                    this.setState( { loading: false } )
+                    this.execute()
                 }
             }, minimumDuration)
         })
     }
 
     execute() {
-        UX.iosDisable(`#${this.props.id}`)
         UXState[this.props.id](() => {
-            UX.iosEnable(`#${this.props.id}`)
+            this.setState({ loading: false }, () => {
+                UX.iosEnable(`#${this.props.id}`)
+            })
         }, event, this)
     }
 }

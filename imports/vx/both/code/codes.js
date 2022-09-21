@@ -1699,6 +1699,17 @@ Meteor.i18nMessages.codes = {
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
+        REPORT_RETIRE : {
+            en : "When a report is retired",
+            rx : "$When a report is retired$",
+            notification : {
+                type : "INFO",
+                icon : "RETIRE",
+                key : "common.alert_report_retire",
+                scope : "ADMIN"
+            },
+            notificationDefaults : [ "PNOTIFY" ]
+        },
         USER_LOGIN : {
             en : "When a user logs in",
             rx : "$When a user logs in$",
@@ -1823,23 +1834,6 @@ Meteor.i18nMessages.codes = {
         },
     },
 
-    reportType : {
-        USER_LIST : {
-            en : "User List",
-            rx : "$User List$",
-            template_name: "user_list",
-            timezone : "America/New_York",
-            parameterDefinitions : {
-                state : {
-                    en : "State",
-                    rx : "$State$",
-                    type : "SELECT",
-                    code : "state"
-                }
-            }
-        }
-    },
-
     deploymentAction : {
         COPY : {
             en : "Copy domain",
@@ -1864,7 +1858,6 @@ Meteor.i18nMessages.codes = {
             rx : "$Send scheduled email reports$",
             timeInterval: 60,
             timeUnit: "SECOND",
-            initFunctionName : "Reporter.init",
             execFunctionName: "Reporter.run"
         },
         RECORD_REMOVER : {
@@ -1938,6 +1931,10 @@ Meteor.i18nMessages.codes = {
         GENERAL : {
             en : "General Function",
             rx : "$General Function$"
+        },
+        EMAIL_DISTRIBUTION : {
+            en : "Email Distribution",
+            rx : "$Email Distribution$"
         }
     },
 
@@ -1950,5 +1947,242 @@ Meteor.i18nMessages.codes = {
             en : "No",
             rx : "$No$"
         },
+    },
+
+    entityType : {
+        USER : {
+            en : "User",
+            rx : "$User$",
+            collection : "users",
+            domainPath : "profile.domains.domainId",
+            retirePath : "profile.dateRetired"
+        }
+    },
+
+    userSource : {
+        USER_EDITOR : {
+            en : "User Editor",
+            rx : "$User Editor$",
+        }
+    },
+
+    sortPriority : {
+        "1" : {
+            en : "1",
+            rx : "$1$"
+        },
+        "2" : {
+            en : "2",
+            rx : "$2$"
+        },
+        "3" : {
+            en : "3",
+            rx : "$3$"
+        },
+        "4" : {
+            en : "4",
+            rx : "$4$"
+        },
+        "5" : {
+            en : "5",
+            rx : "$5$"
+        },
+        "6" : {
+            en : "6",
+            rx : "$6$"
+        },
+        "7" : {
+            en : "7",
+            rx : "$7$"
+        },
+        "8" : {
+            en : "8",
+            rx : "$8$"
+        },
+        "9" : {
+            en : "9",
+            rx : "$9$"
+        },
+        "10" : {
+            en : "10",
+            rx : "$10$"
+        }
+    },
+
+    reportColumnWidth : {
+        "100%" : {
+            en : "100%",
+            rx : "$100%$"
+        },
+        "50px" : {
+            en : "50px",
+            rx : "$50px$"
+        },
+        "100px" : {
+            en : "100px",
+            rx : "$100px$"
+        },
+        "150px" : {
+            en : "150px",
+            rx : "$150px$"
+        },
+        "200px" : {
+            en : "200px",
+            rx : "$200px$"
+        },
+        "250px" : {
+            en : "250px",
+            rx : "$250px$"
+        },
+        "300px" : {
+            en : "300px",
+            rx : "$300px$"
+        },
+        "350px" : {
+            en : "350px",
+            rx : "$350px$"
+        },
+        "400px" : {
+            en : "400px",
+            rx : "$400px$"
+        },
+        "500px" : {
+            en : "500px",
+            rx : "$500px$"
+        },
+        "600px" : {
+            en : "600px",
+            rx : "$600px$"
+        },
+        "700px" : {
+            en : "700px",
+            rx : "$700px$"
+        },
+        "800px" : {
+            en : "800px",
+            rx : "$800px$"
+        },
+        "900px" : {
+            en : "900px",
+            rx : "$900px$"
+        },
+        "1000px" : {
+            en : "1000px",
+            rx : "$1000px$"
+        }
+    },
+
+    reportColumnAlignment : {
+        LEFT : {
+            en : "Left",
+            rx : "$Left$"
+        },
+        CENTER : {
+            en : "Center",
+            rx : "$Center$"
+        },
+        RIGHT : {
+            en : "Right",
+            rx : "$Right$"
+        }
+    },
+
+    reportCellPadding : {
+        "0px" : {
+            en : "0px",
+            rx : "$0px$"
+        },
+        "1px" : {
+            en : "1px",
+            rx : "$1px$"
+        },
+        "3px" : {
+            en : "3px",
+            rx : "$3px$"
+        },
+        "5px" : {
+            en : "5px",
+            rx : "$5px$"
+        },
+        "10px" : {
+            en : "10px",
+            rx : "$10px$"
+        },
+        "20px" : {
+            en : "20px",
+            rx : "$20px$"
+        }
+    },
+
+    reportOverflowRule : {
+        "WRAP" : {
+            en : "Wrap Words",
+            rx : "$Wrap Words$"
+        },
+        "TRUNCATE" : {
+            en : "Truncate",
+            rx : "$Truncate$"
+        },
+    },
+
+    logicalOperator : {
+        EQUAL : {
+            en : "Equal",
+            rx : "$Equal$"
+        },
+        GREATER_THAN : {
+            en : "Greater Than",
+            rx : "$Greater Than$"
+        },
+        LESS_THAN : {
+            en : "Less Than",
+            rx : "$Less Than$"
+        },
+        CONTAINS : {
+            en : "Contains",
+            rx : "$Contains$"
+        },
+        EXISTS : {
+            en : "Exists",
+            rx : "$Exists$"
+        }
+    },
+
+    negationOperator : {
+        NOT : {
+            en : "Not",
+            rx : "$Not$"
+        }
+    },
+
+    reportLimit : {
+        "0" : {
+            en : "All",
+            rx : "$All$"
+        },
+        "100" : {
+            en : "100",
+            rx : "$100$"
+        },
+        "500" : {
+            en : "500",
+            rx : "$500$"
+        },
+        "1000" : {
+            en : "1000",
+            rx : "$1000$"
+        },
+        "2000" : {
+            en : "2000",
+            rx : "$2000$"
+        },
+        "5000" : {
+            en : "5000",
+            rx : "$5000$"
+        },
+        "10000" : {
+            en : "10000",
+            rx : "$10000$"
+        }
     }
 }

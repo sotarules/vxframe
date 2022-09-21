@@ -209,14 +209,14 @@ VX.common = {
     },
 
     balance(balance) {
-        if (!CX.REGEX_FLOAT.test(balance)) {
+        if (!CX.REGEX_DECIMAL.test(balance)) {
             return { success : false, icon : "TRIANGLE", key : "common.invalid_balance" }
         }
         return { success : true }
     },
 
     money(money) {
-        if (!CX.REGEX_FLOAT.test(money)) {
+        if (!CX.REGEX_DECIMAL.test(money)) {
             return { success : false, icon : "TRIANGLE", key : "common.invalid_money" }
         }
         return { success : true }
@@ -270,6 +270,20 @@ VX.common = {
             // Bury
         }
         return { success : false, icon : "TRIANGLE", key : "common.invalid_json_string" }
+    },
+
+    emailDistributionList(recipients) {
+        if (!recipients) {
+            return { success : true }
+        }
+        const recipientsArray = recipients.split(";")
+        for (let index = 0; index < recipientsArray.length; index++) {
+            const result = VX.common.email(recipientsArray[index]?.trim())
+            if (!result.success) {
+                return result
+            }
+        }
+        return { success : true }
     }
 }
 

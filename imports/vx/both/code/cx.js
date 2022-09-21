@@ -14,14 +14,17 @@ CX.REGEX_ZIP_US =  /(^\d{5}$)|(^\d{5}-\d{4}$)/
 CX.REGEX_PHONE_US = /^\d{10}$/
 CX.REGEX_NUMERIC_STRIP1 = /[^0-9]/g
 CX.REGEX_NUMERIC_STRIP2 = ""
-CX.REGEX_DECIMAL_STRIP1 = /[^0-9.]/g
+CX.REGEX_DECIMAL_STRIP1 = /[^0-9.\-]/g
 CX.REGEX_DECIMAL_STRIP2 = ""
 CX.REGEX_WHOLE_NUMBER = /^\d+$/
 CX.REGEX_INTEGER = /^[-]?\d*$/
 CX.REGEX_POSITIVE = /^[1-9][0-9]*$/
-CX.REGEX_FLOAT = /^-?\d+\.?\d*$/
+CX.REGEX_DECIMAL = /^-?\d+\.?\d*$/
+CX.REGEX_MONEY = /(?=.*?\d)^\$?(([1-9]\d{0,2}(,\d{3})*)|\d+)?(\.\d{1,2})?$/
 CX.REGEX_PHONE_RENDER1 = /(\d{3})(\d{3})(\d{4})/
 CX.REGEX_PHONE_RENDER2 = "($1) $2-$3"
+CX.REGEX_ZIP_RENDER1 = /(\d{5})(\d{4})/
+CX.REGEX_ZIP_RENDER2 = "$1-$2"
 CX.REGEX_PIN = /^([0-9]{4})?$/
 CX.REGEX_URL = /(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp:\/~+#-]*[\w@?^=%&amp\/~+#-])?/
 CX.REGEX_TOKEN = /^\d{6}$/

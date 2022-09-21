@@ -12,11 +12,10 @@ export default class Profile extends Component {
         countries : PropTypes.array.isRequired,
         locales :  PropTypes.array.isRequired,
         timezones : PropTypes.array.isRequired,
-        reportFrequencies : PropTypes.array.isRequired,
-        timeUnits : PropTypes.array.isRequired,
         eventTypeObjects : PropTypes.array.isRequired,
         preferenceDefinitionObjects : PropTypes.array.isRequired,
-        reportDefinitionObjects : PropTypes.array.isRequired
+        reportDefinitionObjects : PropTypes.array.isRequired,
+        reports : PropTypes.array.isRequired
     }
 
     render() {

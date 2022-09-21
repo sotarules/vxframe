@@ -1,4 +1,5 @@
-import {get} from "lodash"
+import {cloneDeep, get} from "lodash"
+import Handlebars from "handlebars"
 
 VXApp = { ...VXApp, ...{
 
@@ -195,6 +196,37 @@ VXApp = { ...VXApp, ...{
         }
 
         return request
+    },
+
+    /**
+     * Apply filters to a standard publishing object. There are two types of filters: criteria or text.
+     * Criteria filters are simply additional properties added to the criteria. Text filters leverage
+     * Regex expressions to search text fields within the collection, and the caller must supply an
+     * object such as { searchPhrase: "Aetna", propertyNames: [ "name", "description" ] }.
+     *
+     * @param {object} publish Standard publishing object.
+     * @param {object} criteria Standard criteria filter is an object merged with publishing criteria.
+     * @param {object} regexFilter Object representing regex filtering criteria { searchPhrase, propertyNames }.
+     * @param {boolean} includeRetired True to include retired records.
+     * @return {object} Standard publishing object adjusted with filters.
+     */
+    applyFilters(publish, criteria, regexFilter, includeRetired) {
+        const publishAdjusted = cloneDeep(publish)
+        if (criteria) {
+            publishAdjusted.criteria = { ...publishAdjusted.criteria, ...criteria }
+        }
+        if (regexFilter) {
+            const cleanSearchPhrase = regexFilter.searchPhrase.replace(/[^a-zA-Z0-9 ]/g, "")
+            const searchRegex = new RegExp(cleanSearchPhrase, "i")
+            publishAdjusted.criteria.$or = []
+            regexFilter.propertyNames.forEach(propertyName => {
+                publishAdjusted.criteria.$or.push({ [propertyName]: searchRegex })
+            })
+        }
+        if (!includeRetired) {
+            publishAdjusted.criteria = { ...publishAdjusted.criteria, dateRetired: { $exists: false } }
+        }
+        return publishAdjusted
     },
 
     /**
@@ -546,6 +578,16 @@ VXApp = { ...VXApp, ...{
             return
         }
         return VXApp.subsystemStatusMessage(subsystem, record)
+    },
+
+    /**
+     * Return name of a specified function.
+     *
+     * @param {?} functionOrId Function record or ID.
+     * @return {string} Name of the function.
+     */
+    fetchFunctionName(functionOrId) {
+        return VXApp.fetchFunctionField(functionOrId, "name")
     },
 
     /**
@@ -901,19 +943,19 @@ VXApp = { ...VXApp, ...{
      * Validate all of the paths in the header row to ensure that the are properly represented in the
      * import schema.
      *
-     * @param {object} importSchema Import schema.
+     * @param {object} metadataRoot Import schema.
      * @param {array} headerArray Array of columns of first row.
      * @param {array} messages Array of messages.
      * @param {string} fieldIdKey i18n bundle key of field-identifier message.
      */
-    validatePaths(importSchema, headerArray, messages, fieldIdKey) {
+    validatePaths(metadataRoot, headerArray, messages, fieldIdKey) {
         let valid = true
         headerArray.forEach((path) => {
             if (path === "command") {
                 return
             }
-            const importSchemaPath = RecordImporter.importSchemaPath(path)
-            const definition = get(importSchema, importSchemaPath)
+            const metadataPath = VXApp.metadataPath(path)
+            const definition = VXApp.findDefinition(metadataRoot, metadataPath)
             if (!(definition && VXApp.isDefinition(definition))) {
                 valid = false
                 const message = {}
@@ -958,12 +1000,12 @@ VXApp = { ...VXApp, ...{
         return commandColumnIndex
     },
 
-
     /**
      * For definitions that have the lookup attribute, lookup and return the effective value
      * from another record. In such instances, the spreadsheet cell contains a key used to
      * refer another collection. This is akin to a foreign-key lookup.
      *
+     * @param {object} uploadStats Upload stats record.
      * @param {string} value Value (key) from spreadsheet cell.
      * @param {object} definition Import schema definition.
      * @param {number} index Index of row containing value.
@@ -983,7 +1025,9 @@ VXApp = { ...VXApp, ...{
         else {
             selector.domain = uploadStats.domain
         }
-        selector[definition.retiredDatePath] = { $exists: false }
+        if (definition.retiredDatePath) {
+            selector[definition.retiredDatePath] = { $exists: false }
+        }
         selector[definition.keyPropertyName] = partialValueRegex
         const record = coll.findOne(selector)
         if (record) {
@@ -1127,6 +1171,786 @@ VXApp = { ...VXApp, ...{
      */
     cloneName(originalName) {
         return Util.i18n("common.template_clone_name", { originalName })
+    },
+
+    /**
+     * Given an entity type, return the corresponding collection.
+     *
+     * @param {string} entityType Entity type (e.g., CLIENT).
+     * @return {object} Meteor collection.
+     */
+    entityCollection(entityType) {
+        const entityTypeObject = Util.getCodeObject("entityType", entityType)
+        return Util.getCollection(entityTypeObject.collection)
+    },
+
+    /**
+     * Return Handlebars template for reports.
+     *
+     * @param {boolean} showHeading True to include headings in template.
+     * @return {string} Handlebars template.
+     */
+    reportTemplate(showHeading) {
+        return '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' +
+            '<html xmlns="http://www.w3.org/1999/xhtml">' +
+                "<head>" +
+                    '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">' +
+                    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+                    "<title>{{name}}</title>" +
+                    '<style type="text/css">' +
+                        ".nolinkcolor > a {" +
+                        " color: inherit !important;" +
+                        " text-decoration: none !important;" +
+                        "}" +
+                    "</style>" +
+                "</head>" +
+                '<body leftmargin="0" marginwidth="0" topmargin="0" marginheight="0" offset="0">' +
+                    '<table cellSpacing="0" cellPadding="0" border="0" height="100%" width="100%">' +
+                        "<tr>" +
+                            '<td className="body" align="center" valign="top">' +
+                                VXApp.reportBodyTemplate(showHeading) +
+                            "</td>" +
+                        "</tr>" +
+                    "</table>" +
+                "</body>" +
+            "</html>"
+    },
+
+    /**
+     * Return Handlebars body template for reports.
+     *
+     * @param {boolean} showHeading True to include headings in template.
+     * @return {string} Handlebars template.
+     */
+    reportBodyTemplate(showHeading) {
+        const reportHeadingTemplate = showHeading ? VXApp.reportHeadingTemplate() : ""
+        return '<table cellspacing="0" cellpadding="0" border="0" height="100%" width="100%" ' +
+            'style="border: none; border-collapse: collapse; ' +
+            "color: #333333; display: block; font-family: verdana, arial, sans-serif; margin-bottom: 0px; margin-left: 0px; " +
+            'margin-right: 0px; margin-top: 0px; table-layout: fixed; width: 100%; min-width: 100%;">' +
+                "<thead>" +
+                    reportHeadingTemplate +
+                    '<tr style="font-size: 14px;">' +
+                        "{{#each headings}}" +
+                            '<th style="background-color: #F0F0F0 !important; border: 1px solid #DDDDDD; -webkit-print-color-adjust: exact !important; ' +
+                            "font-weight: normal; padding: {{padding}}; text-align: {{alignment}}; " +
+                            'width: {{width}}; min-width: {{width}}; max-width: {{width}}; {{overflowStyle}}">' +
+                            "{{{text}}}" +
+                            "</th>" +
+                        "{{/each}}" +
+                    "</tr>" +
+                "</thead>" +
+                "<tbody>" +
+                    "{{#each rows}}" +
+                        '<tr style="font-size: 14px;">' +
+                            "{{#each columns}}" +
+                                '<td style="border: 1px solid #DDDDDD; color: #333333; ' +
+                                "font-family: verdana, arial, sans-serif; padding: {{padding}}; " +
+                                "width: {{width}}; min-width: {{width}}; max-width: {{width}}; {{overflowStyle}}" +
+                                'text-align: {{alignment}}; background-color: #FFFFFF;">' +
+                                '<span class="nolinkcolor">{{{text}}}</span></td>' +
+                            "{{/each}}" +
+                        "</tr>" +
+                    "{{/each}}" +
+                "</tbody>" +
+            "</table>"
+    },
+
+    /**
+     * Return Handlebars heading template for reports.
+     *
+     * @return {string} Handlebars template.
+     */
+    reportHeadingTemplate() {
+        return  "<tr>" +
+                    '<th colspan="100%">' +
+                        '<div style="padding: 0px; height: 70px; margin-bottom: 10px;">' +
+                            '<table style="width: 100%; table-layout: fixed; min-height: 70px; max-height: 70px; height: 70px;">' +
+                                "<tbody>" +
+                                "<tr>" +
+                                    '<td style="width: 100%; vertical-align: middle; text-align: left">' +
+                                        '<div style="padding-left: 0px; padding-right: 0px">' +
+                                            '<div style="font-family: verdana, arial, sans-serif; font-size: 16px; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' +
+                                            "{{name}}" +
+                                            "</div>" +
+                                            '<div style="font-family: verdana, arial, sans-serif; font-size: 13px; font-weight: normal; line-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' +
+                                            "{{description}}" +
+                                            "</div>" +
+                                        "</div>" +
+                                    "</td>" +
+                                "</tr>" +
+                                "</tbody>" +
+                            "</table>" +
+                        "</div>" +
+                    "</th>" +
+                "</tr>"
+    },
+
+    /**
+     * Return the value of the specified field in a report record.
+     *
+     * @param {?} reportOrId Report record or ID.
+     * @param {string} fieldName Field name (e.g., "name").
+     * @param {string} defaultValue Optional default value.
+     * @return {string} Field value.
+     */
+    fetchReportField(reportOrId, fieldName, defaultValue) {
+        let report
+        if (!reportOrId) {
+            return
+        }
+        if (_.isObject(reportOrId)) {
+            report = reportOrId
+        }
+        else {
+            const fieldList = {}
+            fieldList.fields = {}
+            fieldList.fields[fieldName] = 1
+            report = Reports.findOne(reportOrId, fieldList)
+            if (!report) {
+                OLog.error(`vxapp.js fetchReportField unable to find reportOrId=${reportOrId}`)
+                return
+            }
+        }
+        return report[fieldName] ? report[fieldName] : defaultValue
+    },
+
+    /**
+     * Given report record, create and return a data object bearing the information
+     * necessary to render that report.
+     *
+     * @param {object} report Report object.
+     * @return {object} Report data object.
+     */
+    makeReportData(report) {
+        if (!report.entityType) {
+            return
+        }
+        const sortFields = _.sortBy(_.filter(report.fields, (field => field.sort)), "sort")
+        const reportData = {}
+        reportData.name = report.name
+        reportData.description = report.description
+        reportData.userCreated = Util.fetchFullName(report.userCreated)
+        reportData.dateCreated = new Date()
+        const rootProperties = VXApp.makeRootProperties(report)
+        reportData.headings = VXApp.makeReportHeadings(report, rootProperties, sortFields)
+        const records = VXApp.fetchReportRecords(report)
+        reportData.rows = VXApp.makeReportRows(report, records, rootProperties, sortFields)
+        return reportData
+    },
+
+    /**
+     * Given a report record and root properties return an array of heading cells.
+     *
+     * @param {object} report Report record.
+     * @param {object} rootProperties Root properties to be merged into each cell.
+     * @param {object} sortFields Array of sort fields.
+     * @return {array} Array of heading cells.
+     */
+    makeReportHeadings(report, rootProperties, sortFields) {
+        const headings = []
+        const metadataPaths = VXApp.sortedMetadataPaths(report.checked, sortFields)
+        metadataPaths.forEach(metadataPath => {
+            const definition = VXApp.findDefinition(Meta[report.entityType], metadataPath)
+            const columnProperties = VXApp.makeColumnProperties(report, metadataPath)
+            const cell = { text: Util.i18nLocalize(definition.localized), ...rootProperties, ...columnProperties }
+            headings.push(cell)
+        })
+        return headings
+    },
+
+    /**
+     * Given a report and an array of records, return an array of row objects.
+     *
+     * @param {object} report Report record.
+     * @param {object} records Array of records.
+     * @param {object} rootProperties Root properties to be merged into each cell.
+     * @param {object} sortFields Array of sort fields.
+     * @return {array} Array of row objects.
+     */
+    makeReportRows(report, records, rootProperties, sortFields) {
+        const rows = []
+        const metadataPaths = VXApp.sortedMetadataPaths(report.checked, sortFields)
+        const metadataNode = Meta[report.entityType]
+        records.forEach(record => {
+            const row = {}
+            row.columns = []
+            row.subrowCount = 0
+            metadataPaths.forEach((metadataPath, index) => {
+                const definition = VXApp.findDefinition(Meta[report.entityType], metadataPath)
+                const columnProperties = VXApp.makeColumnProperties(report, metadataPath)
+                const pathArray = VXApp.makePathArray(metadataNode, metadataPath, record)
+                const cellArray = VXApp.buildCellArray(metadataNode, metadataPath, record, pathArray, report)
+                const text = VXApp.buildCellText(cellArray)
+                row.subrowCount = Math.max(cellArray.length, row.subrowCount)
+                const cell = { text, cellArray, pathArray, metadataPath, definition, ...rootProperties, ...columnProperties }
+                if (_.findWhere(sortFields, { metadataPath }) || index === 0) {
+                    cell.sort = VXApp.buildCellSort(metadataNode, metadataPath, record, pathArray, report)
+                }
+                row.columns.push(cell)
+            })
+            rows.push(row)
+        })
+        const sortFieldsWithDefault = sortFields
+        if (sortFields.length === 0 && metadataPaths.length > 0) {
+            sortFieldsWithDefault.push({ metadataPath: metadataPaths[0], sort : 1 })
+        }
+        OLog.debug(`vxapp.js makeReportRows preparing to sort rows for report ${report.name} ` +
+            `sortFieldsWithDefault=${OLog.debugString(sortFieldsWithDefault)}`)
+        VXApp.sortReportRows(rows, sortFieldsWithDefault)
+        return rows
+    },
+
+    /**
+     * Given a set of rows, sort the rows based on the sort fields in the cells.
+     *
+     * @param {array} array Array of rows.
+     * @param {object} sortFields Array of sort fields.
+     * @return {array} Array of row objects sorted.
+     */
+    sortReportRows(rows, sortFields) {
+        rows.sort((rowA, rowB) => {
+            for (let index = 0; index < sortFields.length; index++) {
+                const sortObject = sortFields[index]
+                const cellA = _.findWhere(rowA.columns, { metadataPath: sortObject.metadataPath })
+                const cellB = _.findWhere(rowB.columns, { metadataPath: sortObject.metadataPath })
+                const result = VXApp.sortReportRowsCompare(cellA.sort, cellB.sort)
+                if (result !== 0) {
+                    return result
+                }
+            }
+            return 0
+        })
+    },
+
+    /**
+     * Compare two values of unknown type.
+     *
+     * @param {?} valueA Value A.
+     * @param {?} valueB Value B.
+     * @return {number} Either -1, 0, 1.
+     */
+    sortReportRowsCompare(valueA, valueB) {
+        if (Util.isNullish(valueA) && Util.isNullish(valueB)) return 0
+        if (Util.isNullish(valueA) && !Util.isNullish(valueB)) return -1
+        if (!Util.isNullish(valueA) && Util.isNullish(valueB)) return +1
+        if (_.isString(valueA) && _.isString(valueB)) {
+            return Util.safeCompare(valueA, valueB)
+        }
+        if (_.isNumber(valueA) && _.isNumber(valueB)) {
+            const moneyA = Math.floor(valueA * 100)
+            const moneyB = Math.floor(valueB * 100)
+            if (moneyA < moneyB) return -1
+            if (moneyA > moneyB) return +1
+            return 0
+        }
+        if (_.isDate(valueA) && _.isDate(valueB)) {
+            const timeA = valueA.getTime()
+            const timeB = valueB.getTime()
+            if (timeA < timeB) return -1
+            if (timeA > timeB) return +1
+            return 0
+        }
+        if (_.isBoolean(valueA) && _.isBoolean(valueB)) {
+            if (valueA === valueB) return 0
+            if (valueA && !valueB) return -1
+            if (!valueA && valueB) return 1
+            return 0
+        }
+        return 0
+    },
+
+    /**
+     * Return a list of metadata paths sorted in order such that any checked columns used as sort criteria
+     * appear in the leftmost columns.  This makes the sort order more intuitive. Note that sorted columns
+     * must appear in the report.
+     *
+     * @param {array} checked Array of metadata paths of checked properties in report tree.
+     * @param {array} sortFields Array of field objects that user chose as sort criteria.
+     * @return {array} Metadata paths in order for report.
+     */
+    sortedMetadataPaths(checked, sortFields) {
+        const metadataPaths = []
+        sortFields.forEach(field => {
+            metadataPaths.push(field.metadataPath)
+        })
+        checked?.forEach(metadataPath => {
+            if (!metadataPaths.includes(metadataPath)) {
+                metadataPaths.push(metadataPath)
+            }
+        })
+        return metadataPaths
+    },
+
+    /**
+     * Given a report record, return root properties.
+     *
+     * @param {object} report Report record.
+     * @return {object} Root properties.
+     */
+    makeRootProperties(report) {
+        const rootProperties = {}
+        rootProperties.padding = VXApp.findReportField(report, "ROOT", "padding") || "10px"
+        rootProperties.limit = VXApp.findReportField(report, "ROOT", "limit") || 1000
+        return rootProperties
+    },
+
+    /**
+     * Given a report record and metadata path, return column properties.
+     *
+     * @param {object} report Report record.
+     * @param {string} metadataPath Metadata path.
+     * @return {object} Column properties.
+     */
+    makeColumnProperties(report, metadataPath) {
+        const columnProperties = {}
+        columnProperties.metadataPath = metadataPath
+        columnProperties.alignment = VXApp.findReportField(report, metadataPath, "alignment")?.toLowerCase() || "left"
+        columnProperties.width = VXApp.findReportField(report, metadataPath, "width") || "auto"
+        columnProperties.overflow = VXApp.findReportField(report, metadataPath, "overflow") || "TRUNCATE"
+        columnProperties.overflowStyle = VXApp.makeOverflowStyle(columnProperties.overflow)
+        return columnProperties
+    },
+
+    /**
+     * Return the style specification for given overflow setting.
+     *
+     * @param {string} overflow Overflow setting (e.g., WRAP, TRUNCATE).
+     * @return {string} Overflow style.
+     */
+    makeOverflowStyle(overflow) {
+        switch (overflow) {
+        case "WRAP" : return "white-space: normal; word-wrap: break-word;"
+        case "TRUNCATE" : return "white-space: nowrap; text-overflow:ellipsis; overflow: hidden;"
+        }
+        return "white-space: normal; word-wrap: break-word;"
+    },
+
+    /**
+     * Fetch report rows.
+     *
+     * @param {object} report Report record.
+     * @return {array} Array of records.
+     */
+    fetchReportRecords(report) {
+        const fetchParameters = VXApp.makeFetchParameters(report)
+        const collection = VXApp.entityCollection(report.entityType)
+        OLog.debug(`vxapp.js fetchReportRecords name=${report.name} fetchParameters=${OLog.debugString(fetchParameters)}`)
+        return collection.find(fetchParameters.criteria, fetchParameters.options).fetch()
+    },
+
+    /**
+     * Make fetch parameters object that defines the selection parameters and sorting of records.
+     * This is done by analyzing the supplied report and building a result object consisting of
+     * criteria, options, regex filter and post-fetch sort.
+     *
+     * @param {object} report Report record.
+     * @return {array} Fetch parameters object.
+     */
+    makeFetchParameters(report) {
+        const entityTypeObject = Util.getCodeObject("entityType", report.entityType)
+        const fetchParameters = {}
+        fetchParameters.criteria = {}
+        if (entityTypeObject.domainPath) {
+            fetchParameters.criteria[entityTypeObject.domainPath] = report.domain
+        }
+        if (entityTypeObject.retirePath) {
+            fetchParameters.criteria[entityTypeObject.retirePath] = { $exists: false }
+        }
+        fetchParameters.options = {}
+        const limit = VXApp.findReportField(report, "ROOT", "limit")
+        if (Util.isNullish(limit)) {
+            fetchParameters.options.limit = 1000
+        }
+        else if (limit > 0) {
+            fetchParameters.options.limit = limit
+        }
+        fetchParameters.regexFilter = {}
+        report.fields?.forEach(field => {
+            const definition = VXApp.findDefinition(Meta[report.entityType], field.metadataPath)
+            if (!definition) {
+                return
+            }
+            if (!(field.operator === "EXISTS" || (field.operator && field.filter))) {
+                return
+            }
+            let expression
+            if (definition.bindingType === "String") {
+                if (field.operator === "EQUAL") {
+                    expression = {[field.metadataPath]: { $eq : field.filter }}
+                }
+                if (field.operator === "LESS_THAN") {
+                    expression = {[field.metadataPath]: { $lt: field.filter }}
+                }
+                if (field.operator === "GREATER_THAN") {
+                    expression = {[field.metadataPath]: { $gt: field.filter }}
+                }
+                if (field.operator === "CONTAINS") {
+                    const cleanSearchPhrase = field.filter?.replace(/[^a-zA-Z0-9 ]/g, "")
+                    const searchRegex = new RegExp(cleanSearchPhrase, "i")
+                    expression = {[field.metadataPath]: searchRegex}
+                }
+                if (field.operator === "EXISTS") {
+                    expression = this.makeExistsExpression(field)
+                }
+            }
+            if (definition.bindingType === "Integer") {
+                if (field.operator === "EQUAL") {
+                    expression = {[field.metadataPath]: { $eq : field.filter }}
+                }
+                if (field.operator === "LESS_THAN") {
+                    expression = {[field.metadataPath]: { $lt: field.filter }}
+                }
+                if (field.operator === "GREATER_THAN") {
+                    expression = {[field.metadataPath]: { $gt: field.filter }}
+                }
+                if (field.operator === "EXISTS") {
+                    expression = this.makeExistsExpression(field)
+                }
+            }
+            if (definition.bindingType === "Date") {
+                if (field.operator === "EQUAL") {
+                    expression = {[field.metadataPath]: { $eq : field.filter }}
+                }
+                if (field.operator === "LESS_THAN") {
+                    expression = {[field.metadataPath]: { $lt: field.filter }}
+                }
+                if (field.operator === "GREATER_THAN") {
+                    expression = {[field.metadataPath]: { $gt: field.filter }}
+                }
+                if (field.operator === "EXISTS") {
+                    expression = {[field.metadataPath]: { $exists: true }}
+                }
+            }
+            if (definition.bindingType === "Boolean") {
+                if (field.operator === "EQUAL") {
+                    expression = {[field.metadataPath]: { $eq : field.filter }}
+                }
+                if (field.operator === "EXISTS") {
+                    expression = {[field.metadataPath]: { $exists: true }}
+                }
+            }
+            if (expression) {
+                if (field.negation === "NOT") {
+                    expression = { $nor: [expression] }
+                }
+                fetchParameters.criteria.$and = fetchParameters.criteria.$and || []
+                fetchParameters.criteria.$and.push(expression)
+            }
+        })
+        return fetchParameters
+    },
+
+    makeExistsExpression(field) {
+        return {[field.metadataPath]:{ $exists: true }}
+        //return { $and: [ {[field.metadataPath]:{ $exists: true }}, {[field.metadataPath]: { $ne: null }} ] }
+    },
+
+    /**
+     * Given a lodash get-style path specification, convert it to a path into our custom metadata.
+     * This is done by removing array references.
+     *
+     * @param {string} path Path specification.
+     * @return {string} Adjusted path specification to retrieve metadata.
+     */
+    metadataPath(path) {
+        return path.replace(/\[\d+\]/g, "")
+    },
+
+    /**
+     * Given import schema path without array references, retrieve the proper
+     * metadata definition. This is done by breaking the path into segments and then
+     * traversing the metadata to retrive the matching definition.
+     *
+     * @param {object} metadataNode Metadata node (root).
+     * @param {string} metadataPath Metadata path.
+     * @return {object} Metadata definition.
+     */
+    findDefinition(metadataNode, metadataPath) {
+        const metadataPathArray = metadataPath.split(".")
+        for (let segmentIndex = 0; segmentIndex < metadataPathArray.length; segmentIndex++) {
+            const segmentName = metadataPathArray[segmentIndex]
+            metadataNode = metadataNode[segmentName]
+            if (!metadataNode) {
+                OLog.debug(`vxapp.js findDefinition cannot find metadata definition of segmentName=${segmentName}`)
+                return
+            }
+            if (segmentIndex === metadataPathArray.length - 1) {
+                return metadataNode
+            }
+            metadataNode = metadataNode.definition
+            if (!metadataNode) {
+                OLog.error(`vxapp.js findDefinition metadata structure cannot find definition for metadataPath=${metadataPath}`)
+                return
+            }
+        }
+        OLog.error(`vxap.js findDefinition metadata structure error metadataPath=${metadataPath}`)
+        return
+    },
+
+    /**
+     * Find report field using metadata path and field name.
+     *
+     * @param {object} report Report record.
+     * @param {string} metadataPath Metadata path.
+     * @param {string} fieldName Name of field.
+     * @return {?} Field value or null.
+     */
+    findReportField(report, metadataPath, fieldName) {
+        const fieldsObject =  _.findWhere(report.fields, { metadataPath })
+        return fieldsObject ? fieldsObject[fieldName] : null
+    },
+
+    /**
+     * Make a path array consisting of get-friendly paths. The path array contains all combinations
+     * of nested array elements.
+     *
+     * @param {object} metadataNode Metadata node (root).
+     * @param {string} metadataPath Metadata path.
+     * @param {object} record Data record being processed.
+     * @return {object} Parh array.
+     */
+    makePathArray(metadataNode, metadataPath, record) {
+        const pathIndex = 0
+        const pathStem = null
+        const pathArray = []
+        VXApp.mutatePathArrayRecursive(metadataNode, metadataPath, record, pathIndex, pathStem, pathArray)
+        return pathArray
+    },
+
+    /**
+     * Recursive part of the process to mutuate the path array in place.
+     *
+     * @param {object} metadataNode Metadata node (root).
+     * @param {string} metadataPath Metadata path.
+     * @param {object} record Data record being processed.
+     * @param {number} pathIndex Index of segment being processed.
+     * @param {string} pathStem Path stem.
+     * @param {array} pathArray Path array.
+     */
+    mutatePathArrayRecursive(metadataNode, metadataPath, record,
+        pathIndex, pathStem, pathArray) {
+        const metadataPathArray = metadataPath.split(".")
+        const metadataPathTemp = metadataPathArray.slice(0, pathIndex + 1).join(".")
+        const metadataNodeTemp = VXApp.findDefinition(metadataNode, metadataPathTemp)
+        if (!metadataNodeTemp) {
+            OLog.error(`vxapp.js mutatePathArrayRecursive cannot find metadata definition of metadataPathTemp=${metadataPathTemp}`)
+            return
+        }
+        const segmentPath = metadataPathArray[pathIndex]
+        pathStem = Util.isNullish(pathStem) ? segmentPath : `${pathStem}.${segmentPath}`
+        if (metadataNodeTemp.bindingType !== "Array") {
+            if (pathIndex === metadataPathArray.length - 1) {
+                pathArray.push(pathStem)
+                return
+            }
+            pathIndex++
+            VXApp.mutatePathArrayRecursive(metadataNode, metadataPath, record,
+                pathIndex, pathStem, pathArray)
+            return
+        }
+        // If at any level an array is missing, pretend like there is one element.
+        // This makes a placeholder so that data "lines up" on the report.
+        const recordArray = get(record, pathStem) || [ null ]
+        pathIndex++
+        for (let recordIndex = 0; recordIndex < recordArray.length; recordIndex++) {
+            const pathStemWithIndex = `${pathStem}[${recordIndex}]`
+            VXApp.mutatePathArrayRecursive(metadataNode, metadataPath, record,
+                pathIndex, pathStemWithIndex, pathArray)
+        }
+    },
+
+    /**
+     * Build the cell array consisting of raw values.
+     *
+     * @param {object} metadataNode Metadata node (root).
+     * @param {string} metadataPath Metadata path.
+     * @param {object} record Data record being processed.
+     * @param {array} pathArray Path array.
+     * @param {object} report Report record.
+     * @return {array} Cell array consisting of raw values.
+     */
+    buildCellArray(metadataNode, metadataPath, record, pathArray, report) {
+        const definition = VXApp.findDefinition(metadataNode, metadataPath)
+        const cellArray = []
+        pathArray.forEach(path => {
+            const value = VXApp.transformText(definition, report.domain, get(record, path))
+            const count = VXApp.countRowsNeeded(metadataNode, metadataPath, record, path, report)
+            _.times(count, ()=> {
+                cellArray.push(value)
+            })
+        })
+        return cellArray
+    },
+
+    /**
+     * Build the cell text including line breaks to separate sub-rows.
+     *
+     * @param {object} cellArray Array of raw data.
+     * @return {string} Cell text.
+     */
+    buildCellText(cellArray) {
+        const textArray = cellArray.map(value => Util.isNullish(value) ? "&nbsp;" : value)
+        return textArray.join("<br/>")
+    },
+
+    /**
+     * Compute the count of sub-rows used as a repeat count for the current value.
+     * This is to create a report where certain values are repeated to make a
+     * "cartesian product" much like a relation. This makes "child" values line up
+     * on the
+     *
+     * @param {object} metadataNode Metadata node (root).
+     * @param {string} metadataPath Metadata path.
+     * @param {object} record Data record being processed.
+     * @param {string} path Record path (get format).
+     * @param {object} report Report record.
+     * @return {number} Count of necessary rows.
+     */
+    countRowsNeeded(metadataNode, metadataPath, record, path, report) {
+        const topLevel = !metadataPath.includes(".")
+        if (topLevel) {
+            return 1
+        }
+        const parentMetadataPath = Util.removeToken(metadataPath, ".")
+        const containerPath = Util.removeToken(path, ".")
+        const containerObject = get(record, containerPath)
+        if (!containerObject) {
+            return 1
+        }
+        const pathIndex = metadataPath.split(".").length - 1
+        const count = VXApp.countRowsNeededRecursive(metadataNode, record, report, parentMetadataPath, containerObject, pathIndex)
+        return count
+    },
+
+    countRowsNeededRecursive(metadataNode, record, report, parentMetadataPath, containerObject, pathIndex) {
+        let count = 0
+        const metadataPathsChildren = []
+        _.each(report.checked, metadataPath => {
+            if (metadataPath.startsWith(parentMetadataPath)) {
+                const reportCheckedArray = metadataPath.split(".")
+                if (reportCheckedArray.length >= pathIndex) {
+                    const metadataPathTemp = reportCheckedArray.slice(0, pathIndex + 1).join(".")
+                    metadataPathsChildren.push(metadataPathTemp)
+                }
+            }
+        })
+        const metadataPathsChildrenUnique = _.uniq(metadataPathsChildren)
+        let nestedArray = false
+        metadataPathsChildrenUnique.forEach(metadataPath => {
+            const definition = VXApp.findDefinition(metadataNode, metadataPath)
+            if (definition.bindingType === "Array") {
+                const segment = Util.lastToken(metadataPath, ".")
+                const childMetadataPath = `${parentMetadataPath}.${segment}`
+                const theArray = containerObject[segment]
+                theArray?.forEach(childContainerObject => {
+                    nestedArray = true
+                    const result = VXApp.countRowsNeededRecursive(metadataNode, record, report, childMetadataPath,
+                        childContainerObject, pathIndex + 1)
+                    count += result
+                })
+            }
+        })
+        return nestedArray ? count : 1
+    },
+
+    /**
+     * Transform a record property into cell text using metadata definition.
+     *
+     * @param {object} definition Metadata definition.
+     * @param {string} domainId Domain ID (needed for date to get timezone).
+     * @param {?} value Value to transform.
+     * @param {boolean} lookupOnly True to transform lookups only.
+     * @return {string} Transformed property.
+     */
+    transformText(definition, domainId, value, lookupOnly)   {
+        if (!value) {
+            return value
+        }
+        if (definition.renderFunction) {
+            return definition.renderFunction(value)
+        }
+        if (definition.list) {
+            return Util.localizeCode(definition.list, value)
+        }
+        if (definition.codeArrayFunction) {
+            const codeArray = definition.codeArrayFunction(domainId)
+            return Util.getCodeLocalizedFromArray(codeArray, value)
+        }
+        if (lookupOnly) {
+            return value
+        }
+        if (definition.format) {
+            return definition.format.render(value, "US")
+        }
+        if (definition.bindingType === "Date") {
+            return Util.formatDate(value, Util.fetchDomainTimezone(domainId), definition.dateFormat)
+        }
+        return value
+    },
+
+    /**
+     * Build the cell sort value.
+     *
+     * @param {object} metadataNode Metadata node (root).
+     * @param {string} metadataPath Metadata path.
+     * @param {object} record Data record being processed.
+     * @param {array} pathArray Path array.
+     * @param {object} report Report record.
+     * @return {?} Cell sort value.
+     */
+    buildCellSort(metadataNode, metadataPath, record, pathArray, report) {
+        const definition = VXApp.findDefinition(metadataNode, metadataPath)
+        const value = get(record, pathArray[0])
+        if (!value) {
+            return value
+        }
+        return VXApp.transformText(definition, report.domain, value, true)
+    },
+
+    /**
+     * For definitions that have the lookup attribute, lookup and return the effective value
+     * from another record. In such instances,the value is a key to a record in another collection.
+     *
+     * @param {object} definition Metadata definition record.
+     * @param {string} value MongoDB ID.
+     * @return {?} Value looked up from record.
+     */
+    fetchLookupValue(definition, value) {
+        const coll = Util.getCollection(definition.collection)
+        const record = coll.findOne(value)
+        return record ? record[definition.returnProperty] : null
+    },
+
+    /**
+     * Render report and data objects into HTML.
+     *
+     * @param {object} report Report object.
+     * @param {object} reportData Data object.
+     * @param {boolean} showHeading True to include heading.
+     * @param {boolean} email True to make report for email.
+     * @return {string} HTML rendered.
+     */
+    makeReportHtml(report, reportData, showHeading, email) {
+        const template = email ? VXApp.reportTemplate(showHeading) : VXApp.reportBodyTemplate(showHeading)
+        const bodyTemplate = Handlebars.compile(template)
+        return bodyTemplate(reportData)
+    },
+
+    /**
+     * Make array of reports suituable for dropdown list.
+     *
+     * @param {string} domainId Optional domain ID.
+     * @return {array} Code array of reports.
+     */
+    makeReportArray(domainId) {
+        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        const codeArray = Reports.find({ dateRetired: { $exists: false }, domain : domainId}).map(report => {
+            return { code : report._id, localized : report.name }
+        })
+        codeArray.sort((recordA, recordB) => {
+            return Util.safeCompare(recordA.localized, recordB.localized)
+        })
+        return codeArray
     }
 }}
-

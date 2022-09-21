@@ -81,7 +81,6 @@ export default class FunctionEditRight extends Component {
                                     <div className="col-sm-6">
                                         <VXInput id="name"
                                             label={Util.i18n("common.label_function_name")}
-                                            required={true}
                                             value={this.props.funktion.name}/>
                                     </div>
                                     <div className="col-sm-6">

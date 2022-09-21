@@ -26,8 +26,14 @@ Meteor.methods({
         return PkgCloud.putImage(filename, content)
     },
 
-    sendReport(userId, reportType, reportParameters) {
-        return Reporter.sendReport(userId, reportType, reportParameters)
+    fetchReportData(reportId) {
+        this.unblock()
+        return VXApp.fetchReportData(reportId)
+    },
+
+    fetchReportSpreadsheet(reportId) {
+        this.unblock()
+        return VXApp.fetchReportSpreadsheet(reportId)
     },
 
     setPassword(newPassword) {
@@ -74,6 +80,10 @@ Meteor.methods({
         return VXApp.retireFunction(functionId, comment)
     },
 
+    retireReport(reportId, comment) {
+        return VXApp.retireReport(reportId, comment)
+    },
+
     sendEnrollmentEmail(userId) {
         return VXApp.sendEnrollmentEmail(userId)
     },
@@ -112,6 +122,10 @@ Meteor.methods({
 
     serverExecute(functionName, ...args) {
         return VXApp.serverExecute(functionName, ...args)
+    },
+
+    serverExecuteFunction(functionName, ...args) {
+        return VXApp.serverExecuteFunction(functionName, ...args)
     },
 
     undo(collectionName, doc) {
@@ -160,6 +174,10 @@ Meteor.methods({
 
     toDataUrl(url) {
         return VXApp.toDataUrl(url)
+    },
+
+    sendReportEmail(reportId, emails, attachments) {
+        return VXApp.sendReportEmail(reportId, emails, attachments)
     },
 
     performanceSetCapture(capture) {

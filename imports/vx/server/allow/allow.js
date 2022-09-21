@@ -256,6 +256,20 @@ Functions.allow({
     fetch: ["domain"]
 })
 
+Reports.allow({
+    insert(userId, doc) {
+        return Serv.isUserDomain(userId, doc.domain, "Reports.allow insert")
+    },
+    update(userId, doc) {
+        return Serv.isUserDomain(userId, doc.domain, "Reports.allow update")
+    },
+    remove(userId) {
+        OLog.error(`allow.js Reports.allow remove *denied* userId=${userId}`)
+        return false
+    },
+    fetch: ["domain"]
+})
+
 UploadStats.allow({
     insert: function() {
         return true

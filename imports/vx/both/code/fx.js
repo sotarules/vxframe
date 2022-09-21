@@ -19,6 +19,9 @@ FX.integer = {
     },
     render(internal) {
         return internal
+    },
+    spreadsheetFormat() {
+        return "0"
     }
 }
 
@@ -56,6 +59,33 @@ FX.phoneUS = {
         const extension = inputArray.length > 1 ? inputArray[1] : null
         return phone.replace(CX.REGEX_PHONE_RENDER1, CX.REGEX_PHONE_RENDER2) +
             (extension ? ` X${extension}` : "")
+    },
+    spreadsheetFormat() {
+        return "(###) ###-####"
+    }
+}
+
+FX.zipUS = {
+    strip(zip) {
+        if (Util.isNullish(zip)) {
+            return null
+        }
+        return zip.trim().replace(CX.REGEX_NUMERIC_STRIP1, CX.REGEX_NUMERIC_STRIP2)
+    },
+    render(zip) {
+        if (Util.isNullish(zip)) {
+            return null
+        }
+        if (zip.length === 5) {
+            return zip
+        }
+        if (zip.length === 9) {
+            return zip.replace(CX.REGEX_ZIP_RENDER1, CX.REGEX_ZIP_RENDER2)
+        }
+        return zip
+    },
+    spreadsheetFormat() {
+        return "[<=99999]00000;00000-0000"
     }
 }
 
@@ -71,6 +101,9 @@ FX.money = {
             return null
         }
         return Util.formatMoney(money)
+    },
+    spreadsheetFormat() {
+        return "$#,##0.00"
     }
 }
 
@@ -110,6 +143,9 @@ FX.balance = {
             return null
         }
         return Util.formatMoney(balance)
+    },
+    spreadsheetFormat() {
+        return "$#,##0.00"
     }
 }
 

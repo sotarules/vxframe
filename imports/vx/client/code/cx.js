@@ -126,5 +126,15 @@ CX.IOS_BUTTON_DEFAULTS = {
         iconClass : "fa-check-square-o",
         title : "common.popup_menu_done_editing",
         position : "right"
-    }
+    },
+    "ios-button-send" : {
+        iconClass : "fa-paper-plane-o",
+        title : "common.popup_menu_send",
+        position : "right"
+    },
+    "ios-button-download" : {
+        iconClass : "fa-cloud-download",
+        title : "common.popup_menu_download",
+        position : "right"
+    },
 }

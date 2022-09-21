@@ -1,132 +1,94 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
-import VXButton from "/imports/vx/client/VXButton"
-import VXCheck from "/imports/vx/client/VXCheck"
+import VXRow from "/imports/vx/client/VXRow"
 import VXSelect from "/imports/vx/client/VXSelect"
-import ProfileReportsModal from "/imports/profile/client/ProfileReportsModal"
+import VXTextArea from "/imports/vx/client/VXTextArea"
+import VXCheck from "/imports/vx/client/VXCheck"
 
 export default class ProfileReportsRow extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
-        user : PropTypes.object.isRequired,
-        reportType : PropTypes.string.isRequired,
-        description : PropTypes.string.isRequired,
-        reportFrequencies : PropTypes.array.isRequired,
-        timeUnits : PropTypes.array.isRequired,
-    }
-
-    constructor(props) {
-        super(props)
-        let isCheckedSendEmail = this.isCheckedSendEmail()
-        let selectedFrequency = UX.chooseFirstIfBlank(this.selectedReportFrequency(), this.props.reportFrequencies)
-        let selectedTimeUnit = UX.chooseFirstIfBlank(this.selectedTimeUnit(), this.props.timeUnits)
-        let timeOptions = Util.makeTimeOptionsArray(selectedTimeUnit)
-        let selectedTimeOption = UX.chooseFirstIfBlank(this.selectedTimeOption(), timeOptions)
-        this.state = {
-            isCheckedSendEmail : isCheckedSendEmail,
-            selectedFrequency : selectedFrequency,
-            selectedTimeUnit : selectedTimeUnit,
-            selectedTimeOption : selectedTimeOption,
-            timeOptions : timeOptions
-        }
+        row : PropTypes.object.isRequired,
+        reports : PropTypes.array.isRequired
     }
 
     render() {
         return (
-            <li id={this.props.id} className="list-group-item report-control-container">
-                <div className="report-container-small">
-                    <table className="report-table">
-                        <tbody>
-                            <tr>
-                                <td className="report-list-description">
-                                    <div className="report-text">{this.props.description}</div>
-                                </td>
-                                <td className="report-list-right">
-                                    <div className="report-list-right-set">
-                                        <div className="report-list-button">
-                                            <VXButton id={`button-send-now-${this.props.reportType}`}
-                                                className="button-send-now btn btn-default btn-block"
-                                                tooltip={Util.i18n("profile.tooltip_send_now")}
-                                                iconClass="fa fa-lg fa-paper-plane-o"
-                                                onClick={this.handleClickSendReport.bind(this)}>
-                                            </VXButton>
-                                        </div>
-                                        <VXCheck id={`sendEmail-${this.props.reportType}`}
-                                            className="report-list-checkbox hidden-sm hidden-xs"
-                                            label={Util.i18n("profile.label_send_email")}
-                                            labelClass="notificationprefs-mode-label"
-                                            checked={this.state.isCheckedSendEmail}
-                                            onChange={this.handleChangeSendEmail.bind(this)}/>
-                                        <VXSelect id={`reportFrequency-${this.props.reportType}`}
-                                            groupClass="report-list-dropdown hidden-sm hidden-xs"
-                                            className="report-list-select-frequency"
-                                            codeArray={this.props.reportFrequencies}
-                                            value={this.stateSelectedFrequency}
-                                            onChange={this.handleChangeFrequency.bind(this)}/>
-                                        <VXSelect id={`timeUnit-${this.props.reportType}`}
-                                            groupClass="report-list-dropdown hidden-sm hidden-xs"
-                                            className="report-list-select-timeunit"
-                                            codeArray={this.props.timeUnits}
-                                            value={this.state.selectedTimeUnit}
-                                            onChange={this.handleChangeTimeUnit.bind(this)}/>
-                                        <VXSelect id={`timeOption-${this.props.reportType}`}
-                                            groupClass="report-list-dropdown hidden-sm hidden-xs"
-                                            className="report-list-select-timeoption"
-                                            codeArray={this.state.timeOptions}
-                                            value={this.state.selectedTimeOption}
-                                            onChange={this.handleChangeTimeOption.bind(this)}/>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <VXRow id={this.props.id}
+                editable={true}
+                standardPadding={false}
+                itemId={this.props.row.id}>
+                <div className="row">
+                    <div className="col-sm-3">
+                        <VXSelect id={`${this.props.id}-report`}
+                            label={Util.i18n("profile.label_report")}
+                            codeArray={UX.addBlankSelection(this.props.reports)}
+                            value={this.props.row.reportId}
+                            dbName="reportId"/>
+                    </div>
+                    <div className="col-sm-3">
+                        <VXSelect id={`${this.props.id}-frequency`}
+                            label={Util.i18n("profile.label_frequency")}
+                            codeArray={UX.addBlankSelection(UX.makeCodeArray("reportFrequency"))}
+                            value={this.props.row.reportFrequency}
+                            dbName="reportFrequency"/>
+                    </div>
+                    <div className="col-sm-3">
+                        <VXSelect id={`${this.props.id}-time-unit`}
+                            label={Util.i18n("profile.label_time_unit")}
+                            codeArray={UX.addBlankSelection(UX.makeCodeArray("timeUnit"))}
+                            value={this.props.row.timeUnit}
+                            dbName="timeUnit"/>
+                    </div>
+                    <div className="col-sm-3">
+                        <VXSelect id={`${this.props.id}-time-option`}
+                            label={Util.i18n("profile.label_time_option")}
+                            codeArray={UX.addBlankSelection(Util.makeTimeOptionsArray(this.props.row.timeUnit))}
+                            value={this.props.row.timeOption}
+                            dbName="timeOption"/>
+                    </div>
                 </div>
-            </li>
+                <div className="row margin-top-5">
+                    <div className="col-sm-3">
+                        <VXCheck id={`${this.props.id}-custom-distribution`}
+                            label={Util.i18n("common.label_attachments")}
+                            checked={this.props.row.attachments}
+                            dbName="attachments"/>
+                    </div>
+                    <div className="col-sm-3">
+                        <VXCheck id={`${this.props.id}-attachments`}
+                            label={Util.i18n("common.label_custom_distribution")}
+                            checked={this.props.row.customDistribution}
+                            dbName="customDistribution"/>
+                    </div>
+                </div>
+                <div className="row margin-bottom-10">
+                    {!this.props.row.customDistribution ? (
+                        <div className="col-sm-12">
+                            <VXTextArea id={`${this.props.id}-recipients`}
+                                groupClass="form-group-first"
+                                label={Util.i18n("common.label_send_report_recipients")}
+                                className="text-area-resize"
+                                rows={6}
+                                rule={VX.common.emailDistributionList}
+                                value={this.props.row.recipients}
+                                dbName="recipients"/>
+                        </div>
+                    ) : (
+                        <div className="col-sm-3">
+                            <VXSelect id={`${this.props.id}-distribution-function`}
+                                codeArray={UX.addBlankSelection(VXApp.makeFunctionArray(Util.getCurrentDomainId(),
+                                    "EMAIL_DISTRIBUTION"))}
+                                groupClass="form-group-first"
+                                label={Util.i18n("common.label_distribution_function")}
+                                value={this.props.row.distributionFunctionId}
+                                dbName="distributionFunctionId">
+                            </VXSelect>
+                        </div>
+                    )}
+                </div>
+            </VXRow>
         )
-    }
-
-    isCheckedSendEmail() {
-        return !!Util.fetchReportPreferenceValue(this.props.user, this.props.reportType, "reportType")
-    }
-
-    selectedReportFrequency() {
-        return Util.fetchReportPreferenceValue(this.props.user, this.props.reportType, "reportFrequency")
-    }
-
-    selectedTimeUnit() {
-        return Util.fetchReportPreferenceValue(this.props.user, this.props.reportType, "timeUnit")
-    }
-
-    selectedTimeOption() {
-        return Util.fetchReportPreferenceValue(this.props.user, this.props.reportType, "timeOption")
-    }
-
-    handleChangeSendEmail(event) {
-        this.setState({ isCheckedSendEmail : !!event.target.checked })
-    }
-
-    handleChangeFrequency(event) {
-        this.setState({ selectedFrequency : event.target.value })
-    }
-
-    handleChangeTimeUnit(event) {
-        let codeArray = Util.makeTimeOptionsArray(event.target.value)
-        this.setState({ selectedTimeUnit : event.target.value, timeOptions : codeArray, selectedTimeOption : codeArray[0].code })
-    }
-
-    handleChangeTimeOption(event) {
-        this.setState({ selectedTimeOption : event.target.value })
-    }
-
-    handleClickSendReport(callback) {
-        OLog.debug("ProfileReportsRow.jsx handleClickSendReport reportType=" + this.props.reportType)
-        callback()
-        if (Util.isReportParameterDefinitions(this.props.reportType)) {
-            UX.showModal(<ProfileReportsModal user={this.props.user}
-                reportType={this.props.reportType}/>)
-            return
-        }
-        Util.sendReport(this.props.reportType, Util.reportParameterDefaults(this.props.reportType))
     }
 }

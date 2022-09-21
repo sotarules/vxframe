@@ -399,7 +399,7 @@ RecordImporter = {
             const uploadTypeObject = Util.getCodeObject("uploadType", uploadStats.uploadType)
             if (uploadTypeObject.validateHeaders && headerArray.length === 0) {
                 Array.prototype.push.apply(headerArray, rowArray[0].row)
-                const valid = VXApp.validatePaths(ImportSchemas[uploadStats.uploadType], headerArray,
+                const valid = VXApp.validatePaths(Meta[uploadStats.uploadType], headerArray,
                     messages, "common.header_path_specification")
                 if (!valid) {
                     OLog.debug("recordimporter.js prepareGeneric *abort* header has invalid path one or more invalid paths")
@@ -508,7 +508,7 @@ RecordImporter = {
     prepareGeneric(uploadStats, uploadTypeObject, headerArray, commandColumnIndex,
         row, index, rowIndex, messages, insertArray) {
         const fieldIdKey = "common.field_id_path_specification"
-        const importSchema = ImportSchemas[uploadStats.uploadType]
+        const metadataRoot = Meta[uploadStats.uploadType]
         const keypathIndex = headerArray.indexOf(uploadTypeObject.keypath)
         const command = row[commandColumnIndex]
         const valid = VXApp.validateCommand(command, index, messages, fieldIdKey, { rowIndex: rowIndex,  path: "command" })
@@ -527,7 +527,7 @@ RecordImporter = {
             results.record.dateCreated = new Date()
             results.record.userCreated = uploadStats.userId
             results.record.domain = uploadStats.domain
-            RecordImporter.processRow(uploadStats, importSchema, headerArray, row, index, rowIndex,
+            RecordImporter.processRow(uploadStats, metadataRoot, headerArray, row, index, rowIndex,
                 messages, fieldIdKey, results, insertArray)
             return
         }
@@ -541,7 +541,7 @@ RecordImporter = {
                     { rowIndex: rowIndex,  path: uploadTypeObject.keypath }, value)
                 return
             }
-            RecordImporter.processRow(uploadStats, importSchema, headerArray, row, index, rowIndex,
+            RecordImporter.processRow(uploadStats, metadataRoot, headerArray, row, index, rowIndex,
                 messages, fieldIdKey, results, insertArray)
             return
         }
@@ -568,7 +568,7 @@ RecordImporter = {
     /**
      * Process the entire row copying cells into results.record.
      */
-    processRow(uploadStats, importSchema, headerArray, row, index, rowIndex, messages,
+    processRow(uploadStats, metadataRoot, headerArray, row, index, rowIndex, messages,
         fieldIdKey, results, insertArray) {
         results.record.dateModified = new Date()
         results.record.userModified = uploadStats.userId
@@ -578,8 +578,8 @@ RecordImporter = {
                 return
             }
             const fieldIdVariables = { rowIndex: rowIndex,  path: path }
-            const importSchemaPath = RecordImporter.importSchemaPath(path)
-            const definition = get(importSchema, importSchemaPath)
+            const metadataPath = VXApp.metadataPath(path)
+            const definition = VXApp.findDefinition(metadataRoot, metadataPath)
             let value = FX.trim.strip(row[columnIndex])
             let valid = true
             if (definition.required) {
@@ -606,7 +606,7 @@ RecordImporter = {
                 value = VXApp.lookupCode(definition, value, codeArray, index, messages, fieldIdKey, fieldIdVariables)
             }
             if (definition.codeArrayFunction) {
-                const codeArray = definition.codeArrayFunction()
+                const codeArray = definition.codeArrayFunction(uploadStats.userId)
                 value = VXApp.lookupCode(definition, value, codeArray, index, messages, fieldIdKey, fieldIdVariables)
             }
             if (definition.rule) {
@@ -616,7 +616,7 @@ RecordImporter = {
                 allValid = false
                 return
             }
-            const peerGuidPath = RecordImporter.peerGuidPath(importSchema, path)
+            const peerGuidPath = RecordImporter.peerGuidPath(metadataRoot, path)
             if (peerGuidPath) {
                 const existingGuid = get(results.record, peerGuidPath)
                 if (!existingGuid) {
@@ -626,7 +626,7 @@ RecordImporter = {
             const convertedValue = RecordImporter.convertValue(uploadStats, definition, value)
             set(results.record, path, convertedValue)
         })
-        RecordImporter.postProcess(importSchema, results.record)
+        RecordImporter.postProcess(metadataRoot, results.record)
         if (allValid) {
             insertArray.push(results)
             return
@@ -637,39 +637,84 @@ RecordImporter = {
     },
 
     /**
-     * Post-process the results eliminating incomplete array elements.
+     * Post-process the results eliminating incomplete array elements, or elements with missing
+     * required properties.
      *
-     * @param {object} importSchema Import schema root.
+     * @param {object} metadataRoot Metadata root node.
      * @param {object} record Record to be post-processed.
      */
-    postProcess(importSchema, record) {
-        Object.keys(importSchema).forEach(schemaKey => {
-            const dataNode = get(record, schemaKey)
-            if (_.isArray(dataNode)) {
-                for (let dataNodeIndex = dataNode.length - 1; dataNodeIndex >= 0; dataNodeIndex--) {
-                    // Null array elements are not allowed, just remove them. This can occur if the
-                    // on input has gaps in the array indices:
-                    if (!dataNode[dataNodeIndex]) {
-                        dataNode.splice(dataNodeIndex, 1)
-                        continue
-                    }
-                    // For each array element, ensure that any fields that are required in the occurrence
-                    // are present. There is no guarantee that the spreadsheet contains enough information
-                    // to resolve foreign key references, such references cannot null:
-                    const schemaNodeParent = get(importSchema, schemaKey)
-                    for (let propertyKey of Object.keys(schemaNodeParent)) {
-                        const schemaNode = schemaNodeParent[propertyKey]
-                        if (schemaNode.requiredInOccurrence) {
-                            const value = dataNode[dataNodeIndex][propertyKey]
-                            if (!value) {
-                                dataNode.splice(dataNodeIndex, 1)
-                                break
-                            }
-                        }
-                    }
-                }
-            }
+    postProcess(metadataRoot, record) {
+        Util.removeNullsFromArrays(record)
+        const pathArray = RecordImporter.pathArrayToRequiredProperties(metadataRoot, [], [])
+        pathArray.forEach(path => {
+            const segments = path.split(".")
+            RecordImporter.removeInvalidNodes(record, segments, 0, "")
         })
+    },
+
+    /**
+     * Create and return an array of metadata paths to any metadata node where
+     * requiredInOccurrence is set.
+     *
+     * @param {object} metadataParent Metadata node.
+     * @return {array} Metadata path array.
+     */
+    pathArrayToRequiredProperties(metadataParent, pathStack, pathArray) {
+        Object.keys(metadataParent).forEach(key => {
+            pathStack.push(key)
+            const metadataNode = metadataParent[key]
+            if (metadataNode.requiredInOccurrence) {
+                const path = pathStack.join(".")
+                pathArray.push(path)
+            }
+            if (metadataNode.definition) {
+                RecordImporter.pathArrayToRequiredProperties(metadataNode.definition, pathStack, pathArray)
+            }
+            pathStack.pop()
+        })
+        return pathArray
+    },
+
+    /**
+     * Remove invalid properties.
+     *
+     * @param {object} node To-level record or node within record to be processed.
+     * @param {array} segments Path segments array.
+     * @param {number} segmentIndex Current segment index.
+     * @param {string} stem Path stem.
+     * @param {number} currentArray Current array being processed.
+     * @param {number} currentIndex Current array index being processed.
+     */
+    removeInvalidNodes(node, segments, segmentIndex, stem, currentArray, currentIndex) {
+        const segmentName = segments[segmentIndex]
+        const property = get(node, segmentName)
+        if (segmentIndex === segments.length - 1) {
+            if (!currentArray || Util.isNullish(currentIndex)) {
+                OLog.error(`recordimporter.js removeInvalidNodes stem=${stem} segmentName=${segmentName} ` +
+                    "currentArray and/or currentIndex are not properly initialized")
+                return
+            }
+            if (Util.isNullish(property)) {
+                OLog.debug(`recordimporter.js removeInvalidNodes stem=${stem} ` +
+                    `currentIndex=${currentIndex} will be removed because it lacks required field ${segmentName}`)
+                currentArray.splice(currentIndex, 1)
+            }
+            return
+        }
+        if (_.isArray(property)) {
+            for (let arrayIndex = 0; arrayIndex < property.length; arrayIndex++) {
+                const path = (stem ? `${stem}.` : "") + `${segmentName}[${arrayIndex}]`
+                segmentIndex++
+                RecordImporter.removeInvalidNodes(get(node, path), segments, segmentIndex, path, property, arrayIndex)
+            }
+            return
+        }
+        if (_.isObject(property)) {
+            const path = `${stem}.${segmentName}`
+            segmentIndex++
+            RecordImporter.removeInvalidNodes(get(node, path), segments, segmentIndex, path)
+            return
+        }
     },
 
     /**
@@ -862,17 +907,6 @@ RecordImporter = {
     },
 
     /**
-     * Given a lodash get-style path specification, convert it to a path into our import
-     * template schema. This is done by removing array references.
-     *
-     * @param {string} path Path specification.
-     * @return {string} Adjusted path specification to retrieve import metadata.
-     */
-    importSchemaPath(path) {
-        return path.replace(/\[\d+\]/g, "")
-    },
-
-    /**
      * Convert a value from string to its proper storage representation.
      *
      * @param {object} uploadStats Upload stats object.
@@ -898,19 +932,31 @@ RecordImporter = {
     /**
      * Find the path to a peer GUID if any.
      *
-     * @param {object] importSchema Import schemas root.
+     * @param {object] metadataRoot Import schemas root.
      * @param {string} path Lodash-style get/set path.
      * @return {string} Lodash-style get/set path to peer-level GUID.
      */
-    peerGuidPath(importSchema, path) {
-        const importSchemaPathOfParent = RecordImporter.removeLast(RecordImporter.importSchemaPath(path))
-        const parent = get(importSchema, importSchemaPathOfParent)
-        for (const propertyName in parent) {
-            const peerDefinition = parent[propertyName]
+    peerGuidPath(metadataRoot, path) {
+        const metadataPathOfParent = RecordImporter.removeLast(VXApp.metadataPath(path))
+        if (!metadataPathOfParent) {
+            return null
+        }
+        const metadataParent = VXApp.findDefinition(metadataRoot, metadataPathOfParent)
+        if (!metadataParent) {
+            OLog.error(`recordimporter.js peerGuidPath unable to find metadataParent using metadataPathOfParent=${metadataPathOfParent}`)
+            return null
+        }
+        if (!metadataParent.definition) {
+            OLog.error(`recordimporter.js peerGuidPath metadataParent has no definition metadataPathOfParent=${metadataPathOfParent}`)
+            return null
+        }
+        for (const propertyName in metadataParent.definition) {
+            const peerDefinition = metadataParent.definition[propertyName]
             if (peerDefinition.guid) {
                 return `${RecordImporter.removeLast(path)}.${propertyName}`
             }
         }
+        return null
     },
 
     /**
