@@ -40,7 +40,7 @@ PkgCloud = {
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error(`pkgcloud.js putImage unexpected error=${error}`)
+            OLog.error(`pkgcloud.js putImage unexpected error=${OLog.errorError(error)}`)
             return { success : false, type : "ERROR", icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     }

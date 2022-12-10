@@ -96,8 +96,9 @@ export default class VXTextEditor extends Component {
     UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
             if (this.state.value !== newProps.value) {
-                OLog.debug("VXTextEditor.jsx UNSAFE_componentWillReceiveProps value has changed updating summernote")
-                this.setState({value: newProps.value }, () => {
+                OLog.warn(`VXTextEditor.jsx UNSAFE_componentWillReceiveProps ${this.props.id} ` +
+                    `this.state.value=${this.state.value} newProps.value=${newProps.value}`)
+                this.setState({ value: newProps.value }, () => {
                     $(`#${this.props.id}`).summernote("code", newProps.value ? newProps.value : null)
                 })
             }
@@ -134,12 +135,8 @@ export default class VXTextEditor extends Component {
     }
 
     handleChange(contents) {
-        if (contents != this.state.value) {
-            this.setState({value: contents }, () => {
-                if (this.props.onChange) {
-                    this.props.onChange(this.getValue(), this)
-                }
-            })
+        if (this.props.onChange) {
+            this.props.onChange(contents, this)
         }
     }
 
@@ -159,12 +156,17 @@ export default class VXTextEditor extends Component {
     handleBlur(event) {
         const $editor = $(event.relatedTarget).parents(`#${this.props.id}-editor`)
         if (!$editor.exists()) {
-            OLog.debug(`VXTextEditor.jsx handleBlur component losing focus value=${this.state.value}`)
-            this.doUpdate()
-            if (this.props.onBlur) {
-                this.props.onBlur(event, this.getValue(), this)
-            }
+            const value = $(`#${this.props.id}`).summernote("code")
+            this.setState({value}, () => {
+                OLog.warn(`VXTextEditor.jsx handleBlur focus outside of editor *update* state value=${this.state.value}`)
+                this.doUpdate()
+                if (this.props.onBlur) {
+                    this.props.onBlur(event, this.getValue(), this)
+                }
+                return
+            })
         }
+        OLog.warn("VXTextEditor.jsx handleBlur focus inside editor *ignore*")
     }
 
     doUpdate() {

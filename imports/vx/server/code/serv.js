@@ -50,18 +50,12 @@ Serv = {
         return false
     },
 
-    isUserAdmin(userId, tenantId, operation) {
-        if (!tenantId) {
-            OLog.error(`serv.js isUserAdmin ${operation} *denied* missing tenantId`)
-            return false
-        }
-        if (Util.isUserAdmin(userId, tenantId)) {
-            OLog.debug(`serv.js isUserAdmin ${operation} *granted* userId=${userId} is administrator ` +
-                `for tenantId=${tenantId}`)
+    isUserAdmin(userId, operation) {
+        if (Util.isUserAdmin(userId)) {
+            OLog.debug(`serv.js isUserAdmin ${operation} *granted* userId=${userId} is administrator`)
             return true
         }
-        OLog.error(`serv.js isUserAdmin ${operation} *denied* userId=${userId} is *not* administrator for ` +
-            `tenantId=${tenantId}`)
+        OLog.error(`serv.js isUserAdmin ${operation} *denied* userId=${userId} is *not* administrator`)
         return false
     },
 

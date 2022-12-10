@@ -1,5 +1,5 @@
 import {get, set} from "lodash"
-import UploadModalContainer from "/imports/vx/client/UploadModalContainer"
+import UploadModal from "/imports/vx/client/UploadModal"
 import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
 import ReportSendModal from "/imports/reports/client/ReportSendModal"
 import {
@@ -9,7 +9,7 @@ import {
     setCurrentReportRecord,
     setCurrentUserId,
     setFunctionUpdateTimestamp,
-    setListImportLastPercent,
+    setImportLastPercent,
     setPublishAuthoringDomain,
     setPublishAuthoringFunction,
     setPublishAuthoringReport,
@@ -95,7 +95,7 @@ VXApp = { ...VXApp, ...{
         }
         catch (error) {
             UX.createAlertLegacy("alert-danger", "login.forgot_password_error", { error : error.reason })
-            OLog.error(`vxapp.js handleForgotPassword exception=${error}`)
+            OLog.error(`vxapp.js handleForgotPassword exception=${OLog.errorError(error)}`)
         }
     },
 
@@ -196,7 +196,7 @@ VXApp = { ...VXApp, ...{
             }
         }
         catch (error) {
-            OLog.error(`vxapp.js routeElement unexpected error=${error}`)
+            OLog.error(`vxapp.js routeElement unexpected error=${OLog.errorError(error)}`)
         }
     },
 
@@ -237,6 +237,9 @@ VXApp = { ...VXApp, ...{
      * @return {boolean} True if the current user is authorized for the current route.
      */
     isAuthorizedRoute() {
+        if (!Meteor.user()) {
+            return false
+        }
         const meteorUserId = window.localStorage.getItem("Meteor.userId")
         if (VXApp.isAppAuthorizedRoute && VXApp.isAppAuthorizedRoute(meteorUserId)) {
             return !!meteorUserId
@@ -560,6 +563,18 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
+     * Make a simple publishing Request with just a record ID.
+     *
+     * @param {string} _id MongnDB ID.
+     * @return {object} Simple publishing request.
+     */
+    simplePublishingRequest(_id) {
+        const publishRequest = {}
+        publishRequest.criteria = { _id }
+        return publishRequest
+    },
+
+    /**
      * Conditionally set a redux property, which contains the publishing criteria for a
      * single record, to arbitrarily select the first record in a list. This is nececessary
      * to initialize the redux store the first time a route is rendered.
@@ -579,11 +594,11 @@ VXApp = { ...VXApp, ...{
         if (!!_.findWhere(array, { _id })) {
             return
         }
-        publish.criteria = { _id: array[0]._id }
-        publish.options = {}
+        const firstRecord = array[0]
+        const publishRequest = VXApp.simplePublishingRequest(firstRecord._id)
         OLog.debug(`vxapp.js selectFirstRecord reduxPropertyName=${reduxPropertyName} _id=${_id} ` +
-            `*overriding* new publish=${OLog.debugString(publish)}`)
-        Store.dispatch(setAction(publish))
+            `*overriding* publishRequest=${OLog.debugString(publishRequest)}`)
+        Store.dispatch(setAction(publishRequest))
     },
 
     /**
@@ -623,7 +638,7 @@ VXApp = { ...VXApp, ...{
             UXState.previousBefore = null
             Meteor.logout(error => {
                 if (error) {
-                    OLog.error(`vxapp.js logout function returned unexpected error=${error}`)
+                    OLog.error(`vxapp.js logout function returned unexpected error=${OLog.errorError(error)}`)
                     return
                 }
                 OLog.debug("vxapp.js logout was successful")
@@ -710,22 +725,23 @@ VXApp = { ...VXApp, ...{
     /**
      * Return a list of tenants.
      *
-     * @param {string} userId Optional user ID to filter tenants.
+     * @param {?} userOrId User object or ID.
      * @return {array} Array of tenants.
      */
-    findTenantList(userId) {
-        let publishCurrentTenants = Store.getState().publishCurrentTenants
-        if (!publishCurrentTenants) {
+    findUserTenantList(userOrId) {
+        userOrId = userOrId || Meteor.userId()
+        const user = Util.user(userOrId, { "profile.tenants": 1 } )
+        if (!user) {
+            OLog.error(`util.js findUserTenantList unable to find userOrId=${userOrId}`)
             return
         }
-        userId = userId || Meteor.userId()
-        let tenantIds = Util.getTenantIds(userId)
-        const criteria = { ...publishCurrentTenants.criteria }
+        const tenantIds = Util.getTenantIds(user)
+        const criteria = {}
         criteria._id = { $in: tenantIds }
-        OLog.debug(`vxapp.js findTenantList adjusted criteria=${OLog.debugString(criteria)}`)
-        return _.filter(Tenants.find(publishCurrentTenants.criteria, publishCurrentTenants.options).fetch(), tenant => {
-            return Util.isTenantActive(tenant._id)
+        const tenants = _.filter(Tenants.find(criteria).fetch(), tenant => {
+            return Util.isTenantActive(tenant)
         })
+        return tenants
     },
 
     /**
@@ -734,18 +750,17 @@ VXApp = { ...VXApp, ...{
      * @return {array} Array of domains.
      */
     findDomainList() {
-        let publishCurrentDomains = Store.getState().publishCurrentDomains
+        const publishCurrentDomains = Store.getState().publishCurrentDomains
         if (!publishCurrentDomains) {
             return
         }
-        let domainIdsVisible = Util.getDomainIds(Meteor.userId())
-        let domainArray = []
+        const domainIdsVisible = Util.getDomainIds(Meteor.userId())
+        const domainArray = []
         Domains.find(publishCurrentDomains.criteria, publishCurrentDomains.options).forEach(domain => {
             if (!Util.isDomainActive(domain._id)) {
                 return
             }
             if (!Util.isPreference("ALL_MEMBERS_AND_DOMAINS")) {
-                // Hide domains that we don't have access to:
                 if (!_.contains(domainIdsVisible, domain._id)) {
                     return
                 }
@@ -756,128 +771,131 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
-     * Return the list of currently-published users.
+     * Return the list of users that are visible to the current user.
      *
      * @return {array} Array of users.
      */
     findUserList() {
-        let publishCurrentUsers = Store.getState().publishCurrentUsers
-        if (!publishCurrentUsers) {
-            return
-        }
-        // Do not include retired records:
-        publishCurrentUsers.criteria["profile.dateRetired"] = { $exists: false }
-        //OLog.debug("vxapp.js findUserList adjusted publishCurrentUsers=" + OLog.debugString(publishCurrentUsers))
-        return Meteor.users.find(publishCurrentUsers.criteria, publishCurrentUsers.options).fetch()
+        const domainIdsVisible = Util.getDomainIds(Meteor.userId())
+        const users = Meteor.users.find( { "profile.dateRetired": { $exists: false },
+            "profile.domains.domainId": { $in : domainIdsVisible }}).fetch()
+        return VXApp.sortUserList(users)
     },
 
     /**
-     * Find the list of domain objects associated with a supplied user ID.
+     * Find the list of domain objects associated with a supplied user record. The list is limited
+     * to only those domains that the administrator user is allowed to see.
      *
-     * @param {object} userId User ID whose domains are to be returned.
-     * @param {string} tenantId Optional tenant ID to filter results.
-     * @return {array} Array of domain objects augmented with domain.
+     * @param {object} user User record.
+     * @return {array} Array of domain objects.
      */
-    findUserDomainList(userId, tenantId) {
-        let user = Meteor.users.findOne(userId)
-        if (!user) {
-            OLog.error("vxapp.js findUserDomainList unable to find userId=" + userId)
-            return
-        }
-        if (!tenantId && !Util.isPreference("ALL_MEMBERS_AND_DOMAINS")) {
-            tenantId = Util.getCurrentTenantId(Meteor.userId())
-        }
-        let tenantIdsVisible = Util.getTenantIds(Meteor.userId())
-        let domainIdsVisible = Util.getDomainIds(Meteor.userId())
-        let domainArray = []
+    findUserDomainList(user) {
+        const tenantIdsVisible = Util.getTenantIds(Meteor.userId())
+        const domainIdsVisible = Util.getDomainIds(Meteor.userId())
+        const domains = []
         user.profile.domains.forEach(userDomain => {
-            if (!Util.isPreference("ALL_MEMBERS_AND_DOMAINS")) {
-                // Hide domains that we don't have access to:
-                if (!_.contains(domainIdsVisible, userDomain.domainId)) {
-                    return
-                }
-            }
-            userDomain.domain = Domains.findOne( { _id : userDomain.domainId } )
-            if (!userDomain.domain) {
-                //OLog.error("vxapp.js findUserDomainList email=" + Util.getUserEmail(user._id) + " has reference to non-existent domainId=" + userDomain.domainId)
+            const domain = Domains.findOne(userDomain.domainId)
+            if (!domain) {
                 return
             }
-            if (!Util.isDomainActive(userDomain.domain)) {
-                return
-            }
-            // If a tenant ID as supplied, us it to filter the results:
-            if (tenantId && userDomain.domain.tenant !== tenantId) {
+            if (!Util.isDomainActive(domain)) {
                 return
             }
             if (!Util.isPreference("ALL_MEMBERS_AND_DOMAINS")) {
-                // Hide domains from foreign teams:
-                if (!_.contains(tenantIdsVisible, userDomain.domain.tenant)) {
+                if (!_.contains(tenantIdsVisible, domain.tenant) &&
+                    _.contains(domainIdsVisible, userDomain.domainId)) {
                     return
                 }
             }
-            domainArray.push(userDomain)
+            domains.push(domain)
         })
-
-        return domainArray
+        return domains
     },
 
     /**
      * Find the list of user objects associated with a supplied domain record.
      *
-     * @param {object} domain Context object.
+     * @param {object} domain Domain record.
      * @return {array} Array of user objects.
      */
     findDomainUserList(domain) {
-        return Meteor.users.find( { "profile.dateRetired": { $exists: false }, "profile.domains": { $elemMatch : { domainId : domain._id } } }, { sort: { "profile.lastName": 1, dateCreated: 1 } } ).fetch()
+        const users = Meteor.users.find( { "profile.dateRetired": { $exists: false }, "profile.domains.domainId": domain._id }).fetch()
+        return VXApp.sortUserList(users)
     },
 
-    handleDropUserDomain(dropInfo, user) {
-        VXApp.handleDropMulti(Meteor.users, user, "profile.domains", "domainId", dropInfo, VXApp.userDomainNewItemHandler)
+    /**
+     * Sort a user list based on name or email.
+     *
+     * @param {array} users List of users.
+     * @return {array] Sorted list.
+     */
+    sortUserList(users) {
+        users.forEach(user => {
+            user.name = Util.fetchLastName(user) || Util.getUserEmail(user)
+        })
+        users.sort((userA, userB) => {
+            return Util.safeCompare(userA.name, userB.name)
+        })
+        return users
     },
 
-    userDomainNewItemHandler(item, index, parameters) {
-        const user = parameters.targetRecord
-        const domainId = item["data-item-id"]
-        if (_.findWhere(user.profile.domains, { domainId : domainId })) {
-            OLog.debug(`vxapp.js userDomainNewItemHandler userId=${user._id} domainId=${domainId} ` +
-                " already exists *bypass*")
-            return
-        }
-        const newRow = {}
-        newRow.domainId = domainId
-        newRow.roles = []
-        return newRow
-    },
-
-    handleDropDomainUser(dropInfo, domain, users) {
+    /**
+     * When editing a user, handle drop of one or multiple domains.
+     *
+     * @param {object} dropInfo Standard drop information.
+     * @param {object} user User being edited.
+     * @param {array} domains List of all users (drag source).
+     */
+    handleDropUserDomains(dropInfo, user, domains) {
         dropInfo.items.forEach(item => {
-            const userId = item["data-item-id"]
-            const user = _.findWhere(users, { _id: userId })
-            VXApp.updateDomainUser(domain, user)
+            const domainId = item["data-item-id"]
+            const domain = _.findWhere(domains, { _id: domainId })
+            VXApp.addUserDomain(user, domain)
         })
     },
 
-    updateDomainUser(domain, user) {
+    /**
+     * When editing a domain, handle drop of one or multiple users.
+     *
+     * @param {object} dropInfo Standard drop information.
+     * @param {object} domain Domain being edited.
+     * @param {array} users List of all users (drag source).
+     */
+    handleDropDomainUsers(dropInfo, domain, users) {
+        dropInfo.items.forEach(item => {
+            const userId = item["data-item-id"]
+            const user = _.findWhere(users, { _id: userId })
+            VXApp.addUserDomain(user, domain)
+        })
+    },
+
+    /**
+     * Generalized method of adding a user domain.
+     *
+     * @param {object} user User to be updated.
+     * @param {object} domain Domain to add.
+     */
+    addUserDomain(user, domain) {
         const tenants = user.profile.tenants || []
         const domains = user.profile.domains || []
         if (_.findWhere(domains, { domainId: domain._id })) {
-            OLog.debug(`vxapp.js updateDomainUser ${Util.fetchFullName(user._id)} ` +
+            OLog.debug(`vxapp.js addUserDomain ${Util.fetchFullName(user._id)} ` +
                 `already has domain ${Util.fetchDomainName(domain._id)} duplicates suppressed`)
             return
         }
         const modifier = {}
         modifier.$push = {}
         modifier.$push["profile.domains"] = { $each: [ { domainId : domain._id, roles : [ ] } ] }
-        OLog.debug(`vxapp.js updateDomainUser add domain ${Util.fetchDomainName(domain._id)} to ${Util.fetchFullName(user)}`)
+        OLog.debug(`vxapp.js addUserDomain add domain ${Util.fetchDomainName(domain._id)} to ${Util.fetchFullName(user)}`)
         if (!_.findWhere(tenants, { tenantId: domain.tenant })) {
-            OLog.debug(`vxapp.js updateDomainUser add tenant ${Util.fetchTenantName(domain.tenant)} ` +
+            OLog.debug(`vxapp.js addUserDomain add tenant ${Util.fetchTenantName(domain.tenant)} ` +
                 `to ${Util.fetchFullName(user._id)}`)
             modifier.$push["profile.tenants"] = { tenantId: domain.tenant, roles : [ ]  }
         }
-        OLog.debug(`vxapp.js updateDomainUser modifier=${OLog.debugString(modifier)}`)
-        Meteor.users.update( { _id: user._id }, modifier, error => {
+        OLog.debug(`vxapp.js addUserDomain modifier=${OLog.debugString(modifier)}`)
+        Meteor.users.update(user._id, modifier, error => {
             if (error) {
-                OLog.error(`vxapp.js updateDomainUser error returned from MongoDB update=${error}`)
+                OLog.error(`vxapp.js addUserDomain error returned from MongoDB update=${OLog.errorError(error)}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
@@ -920,7 +938,7 @@ VXApp = { ...VXApp, ...{
             }
         })
         OLog.debug(`vxapp.js deleteUserDomain for user ${Util.fetchFullName(userId)} deleting ` +
-            `domain ${Util.fetchDomainName(domainIdDeleted)}`)
+            `domain ${Util.fetchDomainName(domainIdDeleted)} tenantStillUsed=${tenantStillUsed}`)
         if (!tenantStillUsed) {
             OLog.debug(`vxapp.js deleteUserDomain deleting domain ${Util.fetchDomainName(domainIdDeleted)} ` +
                 `tenant ${Util.fetchTenantName(tenantId)} will no longer be required and will be removed`)
@@ -938,7 +956,7 @@ VXApp = { ...VXApp, ...{
         OLog.debug(`vxapp.js deleteUserDomain for user ${Util.fetchFullName(userId)} modifier=${OLog.debugString(modifier)}`)
         Meteor.users.update(user._id, modifier, error => {
             if (error) {
-                OLog.error(`vxapp.js deleteUserDomain error returned from MongoDB update=${error}`)
+                OLog.error(`vxapp.js deleteUserDomain error returned from MongoDB update=${OLog.errorError(error)}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
@@ -982,13 +1000,9 @@ VXApp = { ...VXApp, ...{
             if (error || (result && !result.success)) {
                 return
             }
-            let publishCurrentTenant = {}
-            publishCurrentTenant.criteria = { _id : result.tenantId }
-            Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
-            let publishCurrentDomain = {}
-            publishCurrentDomain.criteria = { _id : result.domainId }
-            Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
-            UX.iosMajorPush(null, null, "/tenant/" + result.tenantId, "RIGHT", "crossfade")
+            Store.dispatch(setPublishCurrentTenant(VXApp.simplePublishingRequest(result.tenantId)))
+            Store.dispatch(setPublishCurrentDomain(VXApp.simplePublishingRequest(result.domainId)))
+            UX.iosMajorPush(null, null, "/tenant", "RIGHT", "crossfade")
         })
     },
 
@@ -1044,14 +1058,12 @@ VXApp = { ...VXApp, ...{
         delete template.subsystemStatus
         Templates.insert(template, (error, templateId) => {
             if (error) {
-                OLog.error(`vxapp.js error attempting to clone templateId=${templateId} error=${error}`)
+                OLog.error(`vxapp.js error attempting to clone templateId=${templateId} error=${OLog.errorError(error)}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
-            const publishAuthoringTemplate = {}
-            publishAuthoringTemplate.criteria = { _id: templateId }
-            Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
-            UX.iosMajorPush(null, null, `/template/${templateId}`, "RIGHT", "crossfade")
+            Store.dispatch(setPublishAuthoringTemplate(VXApp.simplePublishingRequest(templateId)))
+            UX.iosMajorPush(null, null, "/template", "RIGHT", "crossfade")
         })
     },
 
@@ -1071,14 +1083,12 @@ VXApp = { ...VXApp, ...{
         delete funktion.userCreated
         Functions.insert(funktion, (error, functionId) => {
             if (error) {
-                OLog.error(`vxapp.js error attempting to clone functionId=${functionId} error=${error}`)
+                OLog.error(`vxapp.js error attempting to clone functionId=${functionId} error=${OLog.errorError(error)}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
-            const publishAuthoringFunction = {}
-            publishAuthoringFunction.criteria = { _id: functionId }
-            Store.dispatch(setPublishAuthoringFunction(publishAuthoringFunction))
-            UX.iosMajorPush(null, null, `/function/${functionId}`, "RIGHT", "crossfade")
+            Store.dispatch(setPublishAuthoringFunction(VXApp.simplePublishingRequest(functionId)))
+            UX.iosMajorPush(null, null, "/function", "RIGHT", "crossfade")
         })
     },
 
@@ -1098,14 +1108,12 @@ VXApp = { ...VXApp, ...{
         delete report.userCreated
         Reports.insert(report, (error, reportId) => {
             if (error) {
-                OLog.error(`vxapp.js error attempting to clone reportId=${reportId} error=${error}`)
+                OLog.error(`vxapp.js error attempting to clone reportId=${reportId} error=${OLog.errorError(error)}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
-            const publishAuthoringReport = {}
-            publishAuthoringReport.criteria = { _id: reportId }
-            Store.dispatch(setPublishAuthoringReport(publishAuthoringReport))
-            UX.iosMajorPush(null, null, `/report/${reportId}`, "RIGHT", "crossfade")
+            Store.dispatch(setPublishAuthoringReport(VXApp.simplePublishingRequest(reportId)))
+            UX.iosMajorPush(null, null, "/report", "RIGHT", "crossfade")
         })
     },
 
@@ -1171,6 +1179,23 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
+     * Make an array of tenants for a drop-down list.
+     *
+     * @param {string} excludeTenantId Tenant ID to be excluded (if any).
+     * @return {array} Array of tenants (code and localized).
+     */
+    makeTenantArray(excludeTenantId) {
+        const tenants = VXApp.findUserTenantList()
+        const codeArray = _.reject(tenants, tenant => tenant._id === excludeTenantId).map(tenant => {
+            return { code: tenant._id, localized: tenant.name }
+        })
+        codeArray.sort((recordA, recordB) => {
+            return Util.safeCompare(recordA.localized, recordB.localized)
+        })
+        return codeArray
+    },
+
+    /**
      * Make an array of domains for a drop-down list.
      *
      * @param {string} excludeDomainId Domain ID to be excluded (if any).
@@ -1188,6 +1213,23 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
+     * Make a domain array based on a supplied tenant ID.
+     *
+     * @param {string} tenantId Tenant ID.
+     * @return {array} Array of domains (code and localized).
+     */
+    makeDomainArrayForTenant(tenantId) {
+        const domains = Util.getDomainsOfTenant(tenantId)
+        const codeArray = domains.map(domain => {
+            return { code: domain._id, localized: Util.fetchDomainName(domain._id) }
+        })
+        codeArray.sort((recordA, recordB) => {
+            return Util.safeCompare(recordA.localized, recordB.localized)
+        })
+        return codeArray
+    },
+
+    /**
      * Make an array of functions for a drop-down list.  The code is the function ID
      * and the localization is the "friendly" function description.
      *
@@ -1195,7 +1237,7 @@ VXApp = { ...VXApp, ...{
      * @return {array} Array of functions (code and localized).
      */
     makeFunctionArray(domainId, functionType) {
-        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        domainId = domainId || Util.getCurrentDomainId()
         const criteria = {}
         criteria.dateRetired = { $exists: false }
         criteria.domain = domainId
@@ -1279,7 +1321,7 @@ VXApp = { ...VXApp, ...{
             await UX.call("createEvent", eventType, eventData, variables, notificationScope)
         }
         catch (error) {
-            OLog.error(`vxapp.js createEvent error=${error}`)
+            OLog.error(`vxapp.js createEvent error=${OLog.errorError(error)}`)
             return
         }
     },
@@ -1828,7 +1870,7 @@ VXApp = { ...VXApp, ...{
             }
         }
         catch (error) {
-            OLog.error(`vxapp.js addFunction unexpected error ${error}`)
+            OLog.error(`vxapp.js addFunction unexpected error ${OLog.errorError(error)}`)
         }
     },
 
@@ -1867,7 +1909,7 @@ VXApp = { ...VXApp, ...{
             }
         }
         catch (error) {
-            OLog.error(`vxapp.js changeFunction unexpected error ${error}`)
+            OLog.error(`vxapp.js changeFunction unexpected error ${OLog.errorError(error)}`)
         }
     },
 
@@ -1888,7 +1930,7 @@ VXApp = { ...VXApp, ...{
             }
         }
         catch (error) {
-            OLog.error(`vxapp.js removeFunction unexpected error ${error}`)
+            OLog.error(`vxapp.js removeFunction unexpected error ${OLog.errorError(error)}`)
         }
     },
 
@@ -1913,7 +1955,7 @@ VXApp = { ...VXApp, ...{
                     VXApp.setUploadStatus(uploadType, "CLEARED")
                     return
                 }
-                Meteor.call("createImportEvent", "LIST_IMPORT_START", uploadType, (error, result) => {
+                Meteor.call("createImportEvent", "IMPORT_START", uploadType, (error, result) => {
                     if (!result.success) {
                         UX.createNotificationForResult(result)
                         VXApp.setUploadStatus(uploadType, "CLEARED")
@@ -1924,7 +1966,7 @@ VXApp = { ...VXApp, ...{
             })
         }
         catch (error) {
-            OLog.error(`vxapp.js uploadFile unexpected error=${error}`)
+            OLog.error(`vxapp.js uploadFile unexpected error=${OLog.errorError(error)}`)
             UX.createNotificationForResult({ success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString() } })
             VXApp.setUploadStatus(uploadType, "CLEARED")
@@ -1952,7 +1994,7 @@ VXApp = { ...VXApp, ...{
             // We upload only one file, in case multiple files were selected:
             const upload = Uploads.insert({ file : file, transport: "ddp", chunkSize: "dynamic" }, false)
             upload.on("start", function() {
-                Store.dispatch(setListImportLastPercent(0))
+                Store.dispatch(setImportLastPercent(0))
                 currentUpload.set(this)
             })
             upload.on("end", function(error, fileObject) {
@@ -1962,7 +2004,7 @@ VXApp = { ...VXApp, ...{
                 }
                 if (error) {
                     OLog.error(`vxapp.js uploadTransmit domainId=${uploadStats.domain} ` +
-                        `uploadType=${uploadStats.uploadType} error=${error}`)
+                        `uploadType=${uploadStats.uploadType} error=${OLog.errorError(error)}`)
                     UX.createNotificationForResult({ success: false, icon: "UPLOAD", key: "common.alert_upload_error",
                         variables: { errorMessage: error.toString() } })
                     currentUpload.set(false)
@@ -1997,11 +2039,11 @@ VXApp = { ...VXApp, ...{
                     OLog.error("vxapp.js uploadTransmit autorun FileUpload is not present")
                     return
                 }
-                const oldPercent = Store.getState().listImportLastPercent || 0
+                const oldPercent = Store.getState().importLastPercent || 0
                 const newPercent = fileUpload.progress ? fileUpload.progress.get() : 0
                 if (newPercent > oldPercent) {
                     OLog.debug(`vxapp.js uploadTransmit oldPercent=${oldPercent} newPercent=${newPercent}`)
-                    Store.dispatch(setListImportLastPercent(newPercent))
+                    Store.dispatch(setImportLastPercent(newPercent))
                     if (VXApp.isUploadStatus(uploadType, "TRANSMITTING")) {
                         UploadStats.update(uploadStats._id, { $set: { processed: newPercent } })
                     }
@@ -2009,7 +2051,7 @@ VXApp = { ...VXApp, ...{
             })
         }
         catch (error) {
-            OLog.error(`vxapp.js uploadTransmit unexpected error=${error}`)
+            OLog.error(`vxapp.js uploadTransmit unexpected error=${OLog.errorError(error)}`)
             UX.createNotificationForResult({ success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString() } })
             VXApp.setUploadStatus(uploadType, "FAILED")
@@ -2038,7 +2080,7 @@ VXApp = { ...VXApp, ...{
                     if (fileUpload) {
                         fileUpload.abort()
                     }
-                    Meteor.call("createImportEvent", "LIST_IMPORT_STOP", uploadType, (error, result) => {
+                    Meteor.call("createImportEvent", "IMPORT_STOP", uploadType, (error, result) => {
                         if (!result.success) {
                             UX.createNotificationForResult(result)
                         }
@@ -2060,7 +2102,7 @@ VXApp = { ...VXApp, ...{
             }, 1000)
         }
         catch (error) {
-            OLog.error(`vxapp.js uploadStop unexpected error=${error}`)
+            OLog.error(`vxapp.js uploadStop unexpected error=${OLog.errorError(error)}`)
             UX.createNotificationForResult({ success : false, icon : "BUG", key : "common.alert_unexpected_error",
                 variables : { error: error.toString() } })
             callback()
@@ -2085,7 +2127,9 @@ VXApp = { ...VXApp, ...{
             return 0
         })
         const messagesLocalized = _.map(uploadStats.messages, message => {
-            return Util.i18n("common.message_import_validation", {
+            const key = message.value ? "common.message_import_validation_with_value" :
+                "common.message_import_validation_without_value"
+            return Util.i18n(key, {
                 fieldIdentifier: Util.i18n(message.fieldIdKey, message.fieldIdVariables),
                 value : message.value,
                 text: Util.i18n(message.result.key, message.result.variables)
@@ -2095,17 +2139,16 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
-     * Client support for importing templates.
+     * Client support for showing import modal.
      *
      * @param {object} event Event object.
      */
-    handleClickImportTemplates(event) {
-        OLog.debug(`vxapp.js handleClickImportTemplates user=${Util.getUserEmail()}`)
+    handleClickImport(event) {
+        OLog.debug(`vxapp.js handleClickImport user=${Util.getUserEmail()}`)
         event.preventDefault()
         Meteor.setTimeout(() => {
-            UX.showModal(<UploadModalContainer id="template-upload-modal"
-                uploadType="TEMPLATE"
-                heading={Util.i18n("common.label_import_templates")}/>)
+            UX.showModal(<UploadModal id="upload-modal"
+                heading={Util.i18n("common.label_import")}/>)
         }, 300)
         UX.toggleNav()
     },
@@ -2210,7 +2253,7 @@ VXApp = { ...VXApp, ...{
         const treeNodes = []
         Object.keys(metadataNode).forEach(key => {
             const metadataChild = metadataNode[key]
-            if (metadataChild.guid) {
+            if (metadataChild.hidden) {
                 return
             }
             if (metadataChild.usedIndicator) {
@@ -2332,10 +2375,9 @@ VXApp = { ...VXApp, ...{
         VXApp.updateRow(collection, record, rowsPath, rowId, component, value, extra)
     },
 
-    handlePrintReport(callback, report) {
+    handlePrintReport(callback) {
         callback()
-        UX.iosMajorPush(null, null, `/reportpreview/${report._id}`,
-            "RIGHT", "crossfade")
+        UX.iosMajorPush(null, null, "/reportpreview", "RIGHT", "crossfade")
     },
 
     handleSendReport(callback, report) {

@@ -6,6 +6,7 @@ import DomainView from "/imports/domains/client/DomainView"
 import EventsContainer from "/imports/events/client/EventsContainer"
 import LayoutDiagContainer from "/imports/layout/client/LayoutDiagContainer"
 import LayoutNoneContainer from "/imports/layout/client/LayoutNoneContainer"
+import LayoutNotFoundContainer from "/imports/layout/client/LayoutNotFoundContainer"
 import LayoutStandardContainer from "/imports/layout/client/LayoutStandardContainer"
 import NotFoundPage from "/imports/notfound/client/NotFoundPage"
 import ProfileContainer from "/imports/profile/client/ProfileContainer"
@@ -37,19 +38,19 @@ Routes = {
             { path: "/profile", layoutName: "LayoutStandardContainer", component: ProfileContainer },
             { path: "/users-domains", layoutName: "LayoutStandardContainer", component: UserDomainView },
             { path: "/domains-users", layoutName: "LayoutStandardContainer", component: DomainUserView },
-            { path: "/user/:_id", layoutName: "LayoutStandardContainer", component: UserEdit },
-            { path: "/domain/:_id", layoutName: "LayoutStandardContainer", component: DomainEdit },
+            { path: "/user", layoutName: "LayoutStandardContainer", component: UserEdit },
+            { path: "/domain", layoutName: "LayoutStandardContainer", component: DomainEdit },
             { path: "/tenants", layoutName: "LayoutStandardContainer", component: TenantView },
-            { path: "/tenant/:_id", layoutName: "LayoutStandardContainer", component: TenantEdit },
+            { path: "/tenant", layoutName: "LayoutStandardContainer", component: TenantEdit },
             { path: "/domains", layoutName: "LayoutStandardContainer", component: DomainView },
             { path: "/system-settings", layoutName: "LayoutStandardContainer", component: SettingsContainer },
             { path: "/templates", layoutName: "LayoutStandardContainer", component: TemplateView },
-            { path: "/template/:_id", layoutName: "LayoutStandardContainer", component: TemplateEdit },
+            { path: "/template", layoutName: "LayoutStandardContainer", component: TemplateEdit },
             { path: "/functions", layoutName: "LayoutStandardContainer", component: FunctionView },
-            { path: "/function/:_id", layoutName: "LayoutStandardContainer", component: FunctionEdit },
+            { path: "/function", layoutName: "LayoutStandardContainer", component: FunctionEdit },
             { path: "/reports", layoutName: "LayoutStandardContainer", component: ReportView },
-            { path: "/report/:_id", layoutName: "LayoutStandardContainer", component: ReportEdit },
-            { path: "/reportpreview/:_id", layoutName: "LayoutStandardContainer", component: ReportPreviewContainer }
+            { path: "/report", layoutName: "LayoutStandardContainer", component: ReportEdit },
+            { path: "/reportpreview", layoutName: "LayoutStandardContainer", component: ReportPreviewContainer }
         ])
     },
 
@@ -80,9 +81,9 @@ Routes = {
                     <Route exact path={Routes.pathArrayFor("LayoutStandardContainer")}
                         render={Routes.renderStandardLayout}/>
                     <Route>
-                        <LayoutNoneContainer>
+                        <LayoutNotFoundContainer>
                             <NotFoundPage />
-                        </LayoutNoneContainer>
+                        </LayoutNotFoundContainer>
                     </Route>
                 </Switch>
             </Router>

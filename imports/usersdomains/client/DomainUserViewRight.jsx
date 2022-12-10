@@ -118,7 +118,7 @@ export default class UserDomainViewRight extends Component {
     handleEdit(callback) {
         OLog.debug("DomainUserViewRight.jsx handleEdit")
         callback()
-        UX.iosMajorPush(null, null, "/domain/" + this.props.domain._id, "RIGHT", "crossfade")
+        UX.iosMajorPush(null, null, "/domain", "RIGHT", "crossfade")
     }
 
     handleClone(callback) {
@@ -126,10 +126,8 @@ export default class UserDomainViewRight extends Component {
         UX.setLocked(["domain-user-view-left"], true)
         Meteor.call("cloneDomain", this.props.domain._id, (error, result) => {
             UX.notify(result, error)
-            const publishAuthoringDomain = {}
-            publishAuthoringDomain.criteria = { _id: result.domainId }
-            Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
-            UX.iosMajorPush(null, null, `/domain/${result.domainId}`, "RIGHT", "crossfade")
+            Store.dispatch(setPublishAuthoringDomain(VXApp.simplePublishingRequest(result.domainId)))
+            UX.iosMajorPush(null, null, "/domain", "RIGHT", "crossfade")
         })
     }
 

@@ -95,7 +95,7 @@ export default class Signin extends Component {
         }
         catch (error) {
             UX.createAlertLegacy("alert-danger", "login.login_error", { error : error.reason })
-            OLog.error(`Signin.jsx handleClickSignin exception=${error}`)
+            OLog.error(`Signin.jsx handleClickSignin exception=${OLog.errorError(error)}`)
         }
     }
 

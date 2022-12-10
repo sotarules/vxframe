@@ -40,7 +40,7 @@ Service = {
             return { success : true }
         }
         catch (error) {
-            OLog.error(`service.js sendEmail *error* domainId=${domainId} error=${error}`)
+            OLog.error(`service.js sendEmail *error* domainId=${domainId} error=${OLog.errorError(error)}`)
             VXApp.setSubsystemStatus("MAILGUN", domain, "RED", "common.status_mailgun_error",
                 { errorString: error.toString() } )
             return { success: false, error }
@@ -91,7 +91,7 @@ Service = {
             return { success : true, result : result }
         }
         catch (error) {
-            OLog.error(`service.js sendSms *error* domainId=${domainId} error=${error}`)
+            OLog.error(`service.js sendSms *error* domainId=${domainId} error=${OLog.errorError(error)}`)
             VXApp.setSubsystemStatus("TWILIO", domain, "RED", "common.status_twilio_error", { errorString: error.toString() } )
             return { success: false, error: error }
         }

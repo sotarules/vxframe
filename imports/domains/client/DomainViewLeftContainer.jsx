@@ -2,15 +2,11 @@ import { withTracker } from "meteor/react-meteor-data"
 import DomainViewLeft from "/imports/domains/client/DomainViewLeft"
 
 export default withTracker(( ) => {
-
-    let domains, currentDomainId
-
-    domains = VXApp.findDomainList()
-    currentDomainId = Util.getCurrentDomainId(Meteor.userId())
-
+    const tenantId = VXApp.criteriaId(Store.getState().publishCurrentTenant)
+    const domains = Util.findUserDomainsInTenant(Meteor.userId(), tenantId, false)
+    const currentDomainId = Util.getCurrentDomainId()
     return {
         domains,
         currentDomainId
     }
-
 })(DomainViewLeft)

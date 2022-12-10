@@ -22,7 +22,7 @@ UX = {
             BrowserHistory.push(path)
         }
         catch (error) {
-            OLog.error(`ux.js go unexpected error=${error}`)
+            OLog.error(`ux.js go unexpected error=${OLog.errorError(error)}`)
             return
         }
     },
@@ -60,7 +60,7 @@ UX = {
      */
     notify(result, error, nomessage) {
         if (error) {
-            OLog.error(`ux.js notify error=${error}`)
+            OLog.error(`ux.js notify error=${OLog.errorError(error)}`)
             UX.notifyForError(error)
             return
         }
@@ -219,7 +219,7 @@ UX = {
      */
     armTouchClick(event) {
         UXState.touchStartEvent = event
-        console.log("ux.js armTouchClick touch click armed timestamp=" + event.timeStamp)
+        console.log(`ux.js armTouchClick touch click armed timestamp=${event.timeStamp}`)
     },
 
     /**
@@ -1725,9 +1725,8 @@ UX = {
                 }
                 if (component.constructor.displayName === "VXImage") {
                     suppressCallback = true
-                    UX.updateImage(component, () => {
-                        UX.saveFormAlertAndCallback(null, { success : true }, callback, nomessage, userCallback)
-                    })
+                    UX.updateImage(component)
+                    UX.saveFormAlertAndCallback(null, { success : true }, callback, nomessage, userCallback)
                 }
             })
             if (!suppressCallback) {
@@ -1749,8 +1748,8 @@ UX = {
     saveFormAlertAndCallback(error, result, callback, nomessage, userCallback) {
         Meteor.defer(() => {
             if (error) {
-                OLog.error(`ux.js saveFormAlertAndCallback error=${error}`)
-                UX.notifyForDatabaseError(error)
+                OLog.error(`ux.js saveFormAlertAndCallback error=${OLog.errorError(error)}`)
+                UX.notifyForError(error)
             }
             if (!nomessage) {
                 UX.notify({ success : true, icon : "SAVE", key: "common.alert_save_succeeded" })
@@ -1856,62 +1855,67 @@ UX = {
     },
 
     /**
-     * Given an instance of VXImage, push a photo in DataURL format to the storage provide and update MongoDB
-     * with the image URL.  Alternatively, remove existing image. Finally, when adding a new image, this function
-     * will transform the DataURL into an actual URL, seamlessly "pointing" the thumbnail image at the uploaded image.
+     * Given an instance of VXImage, push a photo in DataURL format to the storage provd and update MongoDB
+     * with the image URL. When adding a new image, transform the DataURL into an actual URL, seamlessly
+     * "pointing" the thumbnail image at the uploaded image.
      *
      * @param {object} component Instance of VXImage.
-     * @param {function} callback After image update callback.
      */
-    updateImage(component, callback) {
+    updateImage(component) {
+        const dbName = component.props.dbName || component.props.id
         const content = component.getValue()
         const formProps = UX.getFormProps(component)
-        // If this is an HTTP URL something is wrong, it means that Jasny File Input has not replaced the standard URL
-        // with a Data URL.  This may be caused by the event listener being called twice after the Data URL has already
-        // been replaced with the permanent URL.
-        if (Util.isHttpUrl(content)) {
-            OLog.debug(`ux.js updateImage HTTP URL content detected, no further action will be taken, content=${content}`)
-            callback(null, { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" })
-            return
-        }
-        OLog.debug("ux.js updateImage non-HTTP content detected, continuing")
-        let $set = {}
-        let dbName = component.props.dbName || component.props.id
-        // If there is no content, the user has likely removed an existing image:
         if (!content) {
             OLog.debug("ux.js updateImage new content is not specified, image will be removed")
-            $set[dbName] = null
-            UX.updateImageUrl(formProps.collection, formProps._id, $set)
+            UX.updateImageUrl(formProps.collection, formProps._id, dbName, null)
             UX.fixHolder()
-            callback(null, { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" })
             return
         }
-        // If this is a data URL, the user has changed the image, time to update the storage system:
+        if (Util.isHttpUrl(content)) {
+            OLog.debug(`ux.js updateImage HTTP URL content detected, no further action will be taken, content=${content}`)
+            return
+        }
         if (Util.isDataUrl(content)) {
-            let filename = Util.makeImageFilename(component.props.imageType, content)
-            $set[dbName] = `${CX.CLOUDFILES_PREFIX}/${filename}`
-            OLog.debug(`ux.js updateImage data URL detected, user has changed image, calling putImage, $set[dbName]=${$set[dbName]}`)
-            Meteor.call("putImage", filename, content, (error, result) => {
-                if (!error && result && result.success) {
-                    UX.updateImageUrl(formProps.collection, formProps._id, $set)
+            OLog.debug(`ux.js updateImage Data URL content detected, continuing content length=${content.length}`)
+            const imagePath = Util.makeImagePath(component.props.imageType, content)
+            const url = `${CX.CLOUDFILES_PREFIX}/${imagePath}`
+            OLog.debug(`ux.js updateImage data URL detected collection=${formProps.collection._name} ` +
+                `_id=${formProps._id} url=${url}`)
+            Meteor.call("putImage", imagePath, content, error => {
+                if (error) {
+                    OLog.error(`ux.js updateImage collection=${formProps.collection._name} ` +
+                        `_id=${formProps._id} url=${url} error=${OLog.errorError(error)}`)
+                    return
                 }
-                callback(error, result)
+                UX.updateImageUrl(formProps.collection, formProps._id, dbName, url)
+                component.setValue(url)
+                return
             })
         }
     },
 
     /**
-     * Update the image URL in MongoDB.
+     * Update an image URL in MongoDB.
      *
      * @param {object} collection Collection to update.
-     * @param {string} _id MongoDB ID field.
-     * @param {object} $set Set object for MongoDB update function.
+     * @param {string} _id MongoDB record ID.
+     * @param {string} dbName Database field name.
+     * @param {string} url Image URL.
      */
-    updateImageUrl(collection, _id, $set) {
-        OLog.debug("ux.js updateImageUrl " + collection._name + " $set=" + OLog.debugString($set))
-        collection.update(_id, { $set: $set }, error => {
+    updateImageUrl(collection, _id, dbName, url) {
+        const modifier = {}
+        if (url) {
+            modifier.$set = {}
+            modifier.$set[dbName] = url
+        }
+        else {
+            modifier.$unset = {}
+            modifier.$unset[dbName] = null
+        }
+        OLog.debug(`ux.js updateImageUrl ${collection._name} _id=${_id} modifier=${OLog.debugString(modifier)}`)
+        collection.update(_id, modifier, error => {
             if (error) {
-                OLog.error("ux.js updateImageUrl MongoDB update error=" + error)
+                OLog.error(`ux.js updateImageUrl MongoDB update error=${OLog.errorError(error)}`)
                 return
             }
         })
@@ -2293,7 +2297,7 @@ UX = {
         let formProps = UX.getFormProps(component)
         if (!formProps) {
             //OLog.error("ux.js isFormReceiveProps unable to find form of component id=" + component.props.id)
-            return false
+            return true
         }
         return formProps.receiveProps
     },
@@ -2427,7 +2431,12 @@ UX = {
         $(anchorSelector).append(`<div id="${modalContainerId}"></div>`)
         const clonedElement = React.cloneElement(element, { id, anchorSelector })
         OLog.debug(`ux.js mountModal id=${clonedElement.props.id} anchorSelector=${anchorSelector}`)
-        UXState[modalContainerId] = createRoot($(`#${modalContainerId}`)[0])
+        const $containerElement = $(`#${modalContainerId}`)
+        if (!$containerElement.exists()) {
+            OLog.error(`ux.js mountModal unable to mount modal container not found modalContainerId=${modalContainerId}`)
+            return
+        }
+        UXState[modalContainerId] = createRoot($containerElement[0])
         return UXState[modalContainerId].render(clonedElement)
     },
 
@@ -2641,7 +2650,7 @@ UX = {
     },
 
     /**
-     * Nav menu on on click menu item
+     * Nav menu on click menu item.
      *
      * @param {object} event Event.
      */
@@ -2678,6 +2687,17 @@ UX = {
     },
 
     /**
+     * Nav menu on close event handler.
+     *
+     * @param {object} event Event.
+     */
+    onClickCloseMenu(event) {
+        OLog.debug(`ux.js onClickCloseMenu user=${Util.getUserEmail()}`)
+        event.preventDefault()
+        UX.toggleNav()
+    },
+
+    /**
      * Nav menu on click deployment.
      *
      * @param {object} event Event.
@@ -2688,7 +2708,7 @@ UX = {
         event.preventDefault()
         Meteor.setTimeout(() => {
             UX.showModal(modal)
-        }, 300)
+        }, 500)
     },
 
     /**
@@ -2738,7 +2758,7 @@ UX = {
             OLog.debug(`ux.js call *executor* invoking ${method}`)
             Meteor.call(method, ...parameters, (error, result) => {
                 if (error) {
-                    OLog.error(`ux.js call method ${method} *reject* error=${error}`)
+                    OLog.error(`ux.js call method ${method} *reject* error=${OLog.errorError(error)}`)
                     reject(error)
                     return
                 }

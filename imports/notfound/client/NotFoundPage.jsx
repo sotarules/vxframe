@@ -1,9 +1,9 @@
-import { Component } from "react";
+import { Component } from "react"
 
 export default class NotFoundPage extends Component {
 
     componentDidMount() {
-        UX.fireFade();
+        UX.fireFade()
     }
 
     render() {

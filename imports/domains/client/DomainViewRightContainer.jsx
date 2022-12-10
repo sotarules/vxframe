@@ -12,8 +12,8 @@ const MeteorContainer = withTracker(( ) => {
         decorationIconClassName = Util.isDomainCurrent(domain._id) ? "entity-decoration-icon-medium fa fa-lg fa-asterisk" : null
         decorationColor = "blue"
         decorationTooltip = Util.i18n("common.tooltip_domain_decoration_current")
-        users = Util.findUsersInDomain(domain._id).fetch()
-        currentDomainId = Util.getCurrentDomainId(Meteor.userId())
+        users = Util.findUsersInDomain(domain._id)
+        currentDomainId = Util.getCurrentDomainId()
     }
 
     return {

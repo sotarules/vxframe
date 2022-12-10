@@ -1,7 +1,8 @@
 import { withTracker } from "meteor/react-meteor-data"
 import TemplateEditRight from "/imports/templates/client/TemplateEditRight"
+import {connect} from "react-redux"
 
-export default withTracker(( ) => {
+const MeteorContainer =  withTracker(( ) => {
     let template, decorationIconClassName, decorationColor, decorationTooltip
     template = ContextMaker.template()
     if (template) {
@@ -17,3 +18,12 @@ export default withTracker(( ) => {
     }
 })(TemplateEditRight)
 
+const mapStateToProps = state => {
+    return {
+        publishAuthoringTemplate : state.publishAuthoringTemplate
+    }
+}
+
+export default connect(
+    mapStateToProps
+)(MeteorContainer)

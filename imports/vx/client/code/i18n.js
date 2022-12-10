@@ -20,6 +20,11 @@
         rx : "$Please select (click) the row that you wish to remove first$"
     },
 
+    alert_choose_file_type_and_file : {
+        en : "Please select File Type and then press Choose File",
+        rx : "$Please select File Type and then press Choose File$"
+    },
+
     required_fields_incomplete : {
         en : "Please complete all required fields",
         rx : "$Please complete all required fields$"
@@ -320,9 +325,9 @@
         rx : "$Email Templates$"
     },
 
-    label_import_templates : {
-        en : "Import Templates",
-        rx : "$Import Templates$"
+    label_import : {
+        en : "Import",
+        rx : "$Import$"
     },
 
     label_subject : {
@@ -385,14 +390,34 @@
         rx : "$Deployment Action$"
     },
 
+    label_source_tenant : {
+        en : "Source Tenant",
+        rx : "$Source Tenant$"
+    },
+
     label_source_domain : {
         en : "Source Domain",
         rx : "$Source Domain$"
     },
 
+    label_target_tenant : {
+        en : "Target Tenant",
+        rx : "$Target Tenant$"
+    },
+
     label_target_domain : {
         en : "Target Domain",
         rx : "$Target Domain$"
+    },
+
+    label_copy_domain_settings : {
+        en : "Copy Domain Settings",
+        rx : "$Copy Domain Settings$"
+    },
+
+    label_copy_deployment_collections : {
+        en : "Copy Deployment Collections",
+        rx : "$Copy Deployment Collections$"
     },
 
     label_snapshot_to_restore : {
@@ -730,9 +755,19 @@
         rx : "$Select the action to take: copy domain to domain or restore from snapshot.$"
     },
 
+    tooltip_source_tenant : {
+        en : "Select source tenant.",
+        rx : "$Select source tenant.$"
+    },
+
     tooltip_source_domain : {
         en : "Select source domain.",
         rx : "$Select source domain.$"
+    },
+
+    tooltip_target_tenant : {
+        en : "Select target tenant.",
+        rx : "$Select target tenant.$"
     },
 
     tooltip_target_domain : {
@@ -755,6 +790,11 @@ Meteor.i18nMessages.master = _.extend(Meteor.i18nMessages.master || {}, {
 })
 
 Meteor.i18nMessages.navbar = _.extend(Meteor.i18nMessages.navbar || {}, {
+
+    close_menu : {
+        en: "Close Menu",
+        rx: "$Close Menu$"
+    },
 
     system_title: {
         en: "{{system_name}}",
@@ -821,9 +861,9 @@ Meteor.i18nMessages.navbar = _.extend(Meteor.i18nMessages.navbar || {}, {
         rx: "$Deployment$"
     },
 
-    import_templates: {
-        en: "Import Templates",
-        rx: "$Import Templates$"
+    import: {
+        en: "Import",
+        rx: "$Import$"
     }
 })
 
@@ -1024,8 +1064,8 @@ Meteor.i18nMessages.login = _.extend(Meteor.i18nMessages.login || {}, {
     },
 
     invalid_email : {
-        en : "Email address is not valid.",
-        rx : "$Email address is not valid.$"
+        en : "Email address is not valid",
+        rx : "$Email address is not valid$"
     },
 
     invalid_email_mismatch : {

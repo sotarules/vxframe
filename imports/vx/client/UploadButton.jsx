@@ -8,30 +8,30 @@ export default class UploadButton extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         uploadType : PropTypes.string.isRequired,
-        currentUpload : PropTypes.object.isRequired,
-        uploadInProgress : PropTypes.bool,
-        buttonText : PropTypes.string,
-        stopButtonText : PropTypes.string,
-        onChangeFile : PropTypes.func
+        accept : PropTypes.string.isRequired,
+        onChangeFile : PropTypes.func.isRequired,
+        onUploadStop : PropTypes.func.isRequired,
+        uploadInProgress : PropTypes.bool.isRequired
     }
 
     render() {
         if (!this.props.uploadInProgress) {
             return (
-                <VXButton id="button-import-csv"
+                <VXButton id={`${this.props.id}-button-import`}
                     className="btn btn-primary btn-file btn-custom pull-right"
                     fileInput={true}
+                    accept={this.props.accept}
                     minimumDuration={2000}
                     onChangeFile={this.handleChangeFile.bind(this)}>
-                    {Parser(this.props.buttonText || Util.i18n("common.button_choose_file"))}
+                    {Parser(Util.i18n("common.button_choose_file"))}
                 </VXButton>
             )
         }
         return (
-            <VXButton id="button-stop-import"
+            <VXButton id={`${this.props.id}-button-stop-import`}
                 className="btn btn-danger btn-custom pull-right"
                 onClick={this.handleClickStop.bind(this)}>
-                {Parser(this.props.stopButtonText || Util.i18n("common.button_stop_upload"))}
+                {Parser(Util.i18n("common.button_stop_upload"))}
             </VXButton>
         )
     }
@@ -44,12 +44,14 @@ export default class UploadButton extends Component {
             }
         }
         catch (error) {
-            OLog.error(`UploadButton.jsx handleChangeFile error=${error}`)
+            OLog.error(`UploadButton.jsx handleChangeFile error=${OLog.errorError(error)}`)
             return
         }
     }
 
     handleClickStop(callback) {
-        VXApp.uploadStop(this.props.uploadType, this.props.currentUpload, callback)
+        if (this.props.onUploadStop) {
+            this.props.onUploadStop(callback)
+        }
     }
 }

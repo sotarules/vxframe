@@ -66,9 +66,7 @@ export default class DomainUserViewLeft extends Component {
     }
 
     handleSelectDomain(event, component) {
-        const publishAuthoringDomain = {}
-        publishAuthoringDomain.criteria = { _id : component.props.itemId }
-        Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
+        Store.dispatch(setPublishAuthoringDomain(VXApp.simplePublishingRequest(component.props.itemId)))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_domains", "RIGHT");
         }
@@ -81,15 +79,13 @@ export default class DomainUserViewLeft extends Component {
                 if (error) {
                     callback()
                     UX.notifyForDatabaseError(error)
-                    OLog.error(`UserDomainViewLeft.jsx handleClickCreateDomain error attempting to create domain=${error}`)
+                    OLog.error(`UserDomainViewLeft.jsx handleClickCreateDomain error attempting to create domain=${OLog.errorError(error)}`)
                     return
                 }
-                const publishAuthoringDomain = {}
-                publishAuthoringDomain.criteria = { _id : domainId }
-                Store.dispatch(setPublishAuthoringDomain(publishAuthoringDomain))
+                Store.dispatch(setPublishAuthoringDomain(VXApp.simplePublishingRequest(domainId)))
                 VXApp.refreshGlobalSubscriptions(() => {
                     callback()
-                    UX.iosMajorPush(null, null, `/domain/${domainId}`, "RIGHT", "crossfade")
+                    UX.iosMajorPush(null, null, "/domain", "RIGHT", "crossfade")
                 })
             })
         })

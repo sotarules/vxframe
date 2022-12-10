@@ -147,7 +147,8 @@ Meta.UserProfile = {
             rx: "$Date Created$"
         },
         bindingType: "Date",
-        dateFormat: "MM/DD/YYYY HH:mm:ss"
+        dateFormat: "MM/DD/YYYY HH:mm:ss",
+        onCreate: VXApp.makeImportDate
     },
     userCreated: {
         localized: {
@@ -155,13 +156,13 @@ Meta.UserProfile = {
             rx: "$User Created$"
         },
         bindingType: "String",
-        lookup: true,
         collection: "users",
         keyPropertyName: "username",
         retiredDatePath: "profile.dateRetired",
         returnProperty: "_id",
         renderFunction: Util.fetchFullName,
-        codeArrayFunction: Util.makeUserArray
+        codeArrayFunction: Util.makeUserArray,
+        onCreate: VXApp.makeImportUser
     },
     dateModified: {
         localized: {
@@ -169,7 +170,8 @@ Meta.UserProfile = {
             rx: "$Date Modified$"
         },
         bindingType: "Date",
-        dateFormat: "MM/DD/YYYY HH:mm:ss"
+        dateFormat: "MM/DD/YYYY HH:mm:ss",
+        onModify: VXApp.makeImportDate
     },
     userModified: {
         localized: {
@@ -177,13 +179,13 @@ Meta.UserProfile = {
             rx: "$User Modified$"
         },
         bindingType: "String",
-        lookup: true,
         collection: "users",
         keyPropertyName: "username",
         retiredDatePath: "profile.dateRetired",
         returnProperty: "_id",
         renderFunction: Util.fetchFullName,
-        codeArrayFunction: Util.makeUserArray
+        codeArrayFunction: Util.makeUserArray,
+        onModify: VXApp.makeImportUser
     }
 }
 
@@ -202,6 +204,86 @@ Meta.USER = {
         },
         bindingType: "Object",
         definition: Meta.UserProfile
+    }
+}
+
+Meta.FUNCTION = {
+    name : {
+        localized: {
+            en: "Name",
+            rx: "$Name$"
+        },
+        bindingType: "String"
+    },
+    description : {
+        localized: {
+            en: "Description",
+            rx: "$Description$"
+        },
+        bindingType: "String"
+    },
+    functionType : {
+        localized: {
+            en: "Function Type",
+            rx: "$Function Type$"
+        },
+        bindingType: "String",
+        list: "functionType"
+    },
+    value : {
+        localized: {
+            en: "Function Code",
+            rx: "$Function Code$"
+        },
+        bindingType: "String"
+    },
+    dateCreated: {
+        localized: {
+            en: "Date Created",
+            rx: "$Date Created$"
+        },
+        bindingType: "Date",
+        rule: VX.common.date,
+        dateFormat: "MM/DD/YYYY HH:mm:ss",
+        onCreate: VXApp.makeImportDate
+    },
+    userCreated: {
+        localized: {
+            en: "User Created",
+            rx: "$User Created$"
+        },
+        bindingType: "String",
+        collection: "users",
+        keyPropertyName: "username",
+        retiredDatePath: "profile.dateRetired",
+        returnProperty: "_id",
+        renderFunction: Util.fetchFullName,
+        codeArrayFunction: Util.makeUserArray,
+        onCreate: VXApp.makeImportUser
+    },
+    dateModified: {
+        localized: {
+            en: "Date Modified",
+            rx: "$Date Modified$"
+        },
+        bindingType: "Date",
+        rule: VX.common.date,
+        dateFormat: "MM/DD/YYYY HH:mm:ss",
+        onModify: VXApp.makeImportDate
+    },
+    userModified: {
+        localized: {
+            en: "User Modified",
+            rx: "$User Modified$"
+        },
+        bindingType: "String",
+        collection: "users",
+        keyPropertyName: "username",
+        retiredDatePath: "profile.dateRetired",
+        returnProperty: "_id",
+        renderFunction: Util.fetchFullName,
+        codeArrayFunction: Util.makeUserArray,
+        onModify: VXApp.makeImportUser
     }
 }
 

@@ -52,7 +52,7 @@ Accounts.onCreateUser((options, user) => {
         return user
     }
     catch (error) {
-        OLog.error(`accounts.js Accounts.onCreateUser user=${OLog.errorString(user)} error=${error}`)
+        OLog.error(`accounts.js Accounts.onCreateUser user=${OLog.errorString(user)} error=${OLog.errorError(error)}`)
     }
 })
 

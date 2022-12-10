@@ -34,7 +34,7 @@ export default class SlidePair extends Component {
         return (
             <SlidePanel id="both-panels"
                 key="both-panels"
-                className="animation-panel not-selectable flexi-grow"
+                className="animation-panel flexi-grow"
                 getAnimation={this.getAnimation.bind(this)}>
                 <IOSButtonBarContainer/>
                 <div className="row conserve-space fill">
@@ -58,7 +58,7 @@ export default class SlidePair extends Component {
             return (
                 <SlidePanel key="left-panel"
                     id="left-panel"
-                    className="animation-panel not-selectable flexi-grow"
+                    className="animation-panel flexi-grow"
                     getAnimation={this.getAnimation.bind(this)}>
                     <IOSButtonBarContainer/>
                     {this.props.leftPanel}
@@ -69,7 +69,7 @@ export default class SlidePair extends Component {
             return (
                 <SlidePanel key="right-panel"
                     id="right-panel"
-                    className="animation-panel not-selectable flexi-grow"
+                    className="animation-panel flexi-grow"
                     getAnimation={this.getAnimation.bind(this)}>
                     <IOSButtonBarContainer/>
                     {this.props.rightPanel}

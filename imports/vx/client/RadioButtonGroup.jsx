@@ -37,8 +37,6 @@ export default class RadioButtonGroup extends Component {
 
     UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            OLog.debug(`RadioButtonGroup.jsx UNSAFE_componentWillReceiveProps componentId=${this.props.id} `  +
-                `value=${newProps.value} *update*`)
             this.setState( { value : newProps.value })
         }
     }

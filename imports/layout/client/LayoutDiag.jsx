@@ -18,15 +18,12 @@ export default class LayoutDiag extends Component {
         if (this.props.loading) {
             return (<LoadingSpinner/>)
         }
-        if (!(this.props.exemptRoute || this.props.authorizedRoute)) {
-            return (<NotAuthorizedPage/>)
-        }
         return (
             <div className="background-black flexi-grow">
                 <OffCanvasNavContainer/>
                 <TopBar/>
                 <div className="nav-canvas notification-container diag-container flexi-grow">
-                    {this.props.children}
+                    {this.props.authorizedRoute ? this.props.children : (<NotAuthorizedPage/>)}
                 </div>
                 <VXAnchor/>
             </div>

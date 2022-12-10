@@ -51,10 +51,7 @@ export default class DomainViewLeft extends Component {
     }
 
     handleSelectDomain(event, component) {
-        let publishCurrentDomain = {}
-        publishCurrentDomain.criteria = { _id : component.props.itemId }
-        OLog.debug("DomainViewLeft.jsx handleSelect will select new domain publishCurrentDomain=" + OLog.debugString(publishCurrentDomain))
-        Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
+        Store.dispatch(setPublishCurrentDomain(VXApp.simplePublishingRequest(component.props.itemId)))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_my_domains", "RIGHT")
         }

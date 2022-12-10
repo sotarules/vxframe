@@ -171,7 +171,7 @@ Schema.Tenants = new SimpleSchema({
     },
     iconUrl : {
         type: String,
-        regEx: SimpleSchema.RegEx.Url,
+        regEx: () => CX.REGEX_URL,
         optional: true
     },
     country : {
@@ -876,7 +876,7 @@ Schema.UserProfile = new SimpleSchema({
     photoUrl : {
         type : String,
         optional : true,
-        regEx: SimpleSchema.RegEx.Url
+        regEx: () => CX.REGEX_URL
     },
     notificationPreferences : {
         type : Array,
@@ -908,7 +908,7 @@ Schema.UserStatusLastLogin = new SimpleSchema({
     ipAddr: {
         type: String,
         optional: true,
-        regEx: SimpleSchema.RegEx.IP
+        regEx: () => CX.REGEX_IP_ADDRESS
     },
     userAgent: {
         type: String,

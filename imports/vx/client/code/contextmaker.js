@@ -31,9 +31,8 @@ ContextMaker = {
     },
 
     user() {
-        const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js route user criteria=${OLog.debugString(criteria)}`)
-        return Meteor.users.findOne(criteria)
+        const userId = VXApp.criteriaId(Store.getState().publishAuthoringUser)
+        return Meteor.users.findOne(userId)
     },
 
     "domains-usersBeforeRender"() {
@@ -57,13 +56,12 @@ ContextMaker = {
     },
 
     domain() {
-        const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js route domain criteria=${OLog.debugString(criteria)}`)
-        return Domains.findOne(criteria)
+        const domainId = VXApp.criteriaId(Store.getState().publishAuthoringDomain)
+        return Domains.findOne(domainId)
     },
 
     tenantsBeforeRender() {
-        VXApp.selectFirstRecord("publishCurrentTenant", setPublishCurrentTenant, VXApp.findTenantList)
+        VXApp.selectFirstRecord("publishCurrentTenant", setPublishCurrentTenant, VXApp.findUserTenantList)
     },
 
     tenants() {
@@ -83,37 +81,20 @@ ContextMaker = {
     },
 
     tenant() {
-        const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js route tenant criteria=${OLog.debugString(criteria)}`)
-        return Tenants.findOne(criteria)
+        const tenantId = VXApp.criteriaId(Store.getState().publishCurrentTenant)
+        return Tenants.findOne(tenantId)
     },
 
     domainsBeforeRender() {
-        let publishCurrentTenant = Store.getState().publishCurrentTenant
+        const publishCurrentTenant = Store.getState().publishCurrentTenant
         if (!publishCurrentTenant) {
-            publishCurrentTenant = {}
-            publishCurrentTenant.criteria = { _id: Util.getCurrentTenantId(Meteor.userId()) }
-            publishCurrentTenant.options = {}
-            OLog.debug("contextmaker.js domainsBeforeRender tenant *overriding* " +
-                `publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
-            Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
+            const tenantId = Util.getCurrentTenantId()
+            Store.dispatch(setPublishCurrentTenant(VXApp.simplePublishingRequest(tenantId)))
         }
-        else {
-            OLog.debug("contextmaker.js domainsBeforeRender tenant redux already intialized " +
-                `publishCurrentTenant=${OLog.debugString(publishCurrentTenant)}`)
-        }
-        let publishCurrentDomain = Store.getState().publishCurrentDomain
+        const publishCurrentDomain = Store.getState().publishCurrentDomain
         if (!publishCurrentDomain) {
-            publishCurrentDomain = {}
-            publishCurrentDomain.criteria = { _id: Util.getCurrentDomainId(Meteor.userId()) }
-            publishCurrentDomain.options = {}
-            OLog.debug("contextmaker.js domainsBeforeRender domain *overriding* " +
-                `publishCurrentDomain=${OLog.debugString(publishCurrentDomain)}`)
-            Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
-        }
-        else {
-            OLog.debug("contextmaker.js domainsBeforeRender domain redux already intialized " +
-                `publishCurrentDomain=${OLog.debugString(publishCurrentDomain)}`)
+            const domainId = Util.getCurrentDomainId()
+            Store.dispatch(setPublishCurrentDomain(VXApp.simplePublishingRequest(domainId)))
         }
     },
 
@@ -168,9 +149,8 @@ ContextMaker = {
     },
 
     template() {
-        const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js  template criteria=${OLog.debugString(criteria)}`)
-        return Templates.findOne(criteria)
+        const templateId = VXApp.criteriaId(Store.getState().publishAuthoringTemplate)
+        return Templates.findOne(templateId)
     },
 
     functionsBeforeRender() {
@@ -194,9 +174,8 @@ ContextMaker = {
     },
 
     funktion() {
-        const criteria = { _id : UX.lastSegment() }
-        OLog.debug(`contextmaker.js function criteria=${OLog.debugString(criteria)}`)
-        return Functions.findOne(criteria)
+        const functionId = VXApp.criteriaId(Store.getState().publishAuthoringFunction)
+        return Functions.findOne(functionId)
     },
 
     reportsBeforeRender() {
@@ -220,7 +199,7 @@ ContextMaker = {
     },
 
     report() {
-        const criteria = { _id : UX.lastSegment() }
-        return Reports.findOne(criteria)
+        const reportId = VXApp.criteriaId(Store.getState().publishAuthoringReport)
+        return Reports.findOne(reportId)
     },
 }

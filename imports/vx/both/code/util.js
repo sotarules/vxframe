@@ -191,7 +191,7 @@ Util = {
      * @return {array} Array of users for select element.
      */
     makeUserArray(domainId, roleNames, includeRetired) {
-        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        domainId = domainId || Util.getCurrentDomainId()
         const criteria = {}
         if (!includeRetired) {
             criteria["profile.dateRetired"] = { $exists: false }
@@ -212,11 +212,12 @@ Util = {
             }
             if (qualified) {
                 const localized = Util.fetchFullName(user._id)
-                codeArray.push( { code : user._id, localized : localized } )
+                const name = Util.fetchLastName(user) || Util.getUserEmail(user)
+                codeArray.push( { code : user._id, localized, name } )
             }
         })
         codeArray.sort((userA, userB) => {
-            return Util.safeCompare(userA.localized, userB.localized)
+            return Util.safeCompare(userA.name, userB.name)
         })
         return codeArray
     },
@@ -448,27 +449,26 @@ Util = {
     },
 
     /**
-     * Return an image filename.
+     * Return an image path.
      *
-     * @param {string} type Type of upload (e.g., "profile")
+     * @param {string} type Type of upload (e.g., "profile").
      * @param {string} content Content in Data URI form (needed to infer file extension).
-     * @return {string} File name.
+     * @return {string} Image path.
      */
-    makeImageFilename(type, content) {
-        // User must be logged in:
-        let userId = Meteor.userId()
+    makeImagePath(type, content) {
+        const userId = Meteor.userId()
         if (!userId) {
-            OLog.error("util.js makeImageFilename invalid state user must be logged in")
+            OLog.error("util.js makeImagePath invalid state user must be logged in")
             return
         }
-        let guid = Util.getGuid()
-        let mimeType = Util.getMimeType(content)
-        let extension = CX.IMAGE_MIME_EXTENSION_MAP[mimeType]
+        const guid = Util.getGuid()
+        const mimeType = Util.getMimeType(content)
+        const extension = CX.IMAGE_MIME_EXTENSION_MAP[mimeType]
         if (!extension) {
-            OLog.error("util.js makeImageFilename illegal argument error, unsupported image type=" + mimeType)
+            OLog.error(`util.js makeImagePath illegal argument error, unsupported image type=${mimeType}`)
             return
         }
-        return CX.URL_IMAGE_PREFIX + "/" + type + "/" + userId + "/" + guid + "." + extension
+        return `${CX.URL_IMAGE_PREFIX}/${type}/${userId}/${guid}.${extension}`
     },
 
     /**
@@ -538,7 +538,7 @@ Util = {
         const modifier = {}
         modifier[op] = {}
         modifier[op][`profile.${prop}`] = value
-        Meteor.users.update(Util.userId(userOrId), modifier)
+        Meteor.users.update(Util.recordId(userOrId), modifier)
     },
 
     /**
@@ -551,13 +551,13 @@ Util = {
     getUserEmail(userOrId) {
         userOrId = userOrId || Meteor.userId()
         const user = Util.user(userOrId)
-        if (!(user && user.username)) {
+        if (!user) {
             return
         }
         if (user.profile.dateRetired) {
             return user.username.substring(0, user.username.lastIndexOf("-"))
         }
-        return user.username
+        return user.emails && user.emails.length > 0 ? user.emails[0].address : null
     },
 
     /**
@@ -594,21 +594,16 @@ Util = {
      * @return {string} Full name of user if available, otherwise email address.
      */
     fetchFullName(userOrId) {
-        let user
-        if (!userOrId) {
+        userOrId = userOrId || Meteor.userId()
+        if (Util.getSystemUserId() === userOrId) {
+            return Util.i18n("common.system_user_name")
+        }
+        const user = Util.user(userOrId, { "profile.firstName": 1, "profile.middleName": 1, "profile.lastName": 1 } )
+        if (!user) {
+            OLog.error(`util.js fetchFullName unable to find userOrId=${userOrId}`)
             return
         }
-        if (_.isObject(userOrId)) {
-            user = userOrId
-        }
-        else {
-            user = Meteor.users.findOne({ _id: userOrId }, { fields: { "profile.firstName": 1, "profile.middleName": 1, "profile.lastName": 1 } })
-            if (!user) {
-                OLog.error("util.js fetchFullName unable to find userOrId=" + userOrId)
-                return
-            }
-        }
-        let formattedName = Util.formatFullName(user.profile.firstName, user.profile.middleName, user.profile.lastName)
+        const formattedName = Util.formatFullName(user.profile.firstName, user.profile.middleName, user.profile.lastName)
         if (formattedName) {
             return formattedName
         }
@@ -674,10 +669,12 @@ Util = {
      * Fetch a user record limiting the fields to only the profile.
      *
      * @param {string} selector Mongo selector.
+     * @param {object} fields Optional MongoDB fields specification.
      * @return {object} User object (limited).
      */
-    fetchUserLimited(selector) {
-        return Meteor.users.findOne(selector, { fields: CX.USER_LIMITED_FIELDS })
+    fetchUserLimited(selector, fields) {
+        fields = fields || CX.USER_LIMITED_FIELDS
+        return Meteor.users.findOne(selector, { fields })
     },
 
     /**
@@ -715,7 +712,7 @@ Util = {
         const modifier = {}
         modifier[op] = {}
         modifier[op][mongoPath] = value
-        const userId = Util.userId(userOrId)
+        const userId = Util.recordId(userOrId)
         OLog.debug(`util.js updateUserDomainField userId=${userId} domainId=${domainId} fieldName=${fieldName} ` +
             `index=${index} mongoPath=${mongoPath} value=${OLog.debugString(value)} op=${op} ` +
             `modifier=${OLog.debugString(modifier)}`)
@@ -750,7 +747,7 @@ Util = {
             criteria["profile.domains"] = { $elemMatch: { domainId : { $in: Util.getDomainIdsOfCurrentTenant() } } }
         }
         else {
-            criteria["profile.domains"] = { $elemMatch: { domainId : Util.getCurrentDomainId(Meteor.userId()) } }
+            criteria["profile.domains"] = { $elemMatch: { domainId : Util.getCurrentDomainId() } }
         }
         let userArray = []
         Meteor.users.find(criteria).forEach(user => {
@@ -1022,23 +1019,20 @@ Util = {
      * @return {boolean} True if the current route path begins with the specified string.
      */
     isRoutePath(stringOrArray) {
-        let path = Util.routePath()
-        if (!stringOrArray || !path) {
+        const routePath = Util.routePath()
+        if (!stringOrArray || !routePath) {
             return false
         }
+        const routeFirstSegment = Util.routeFirstSegment(routePath)
         if (_.isString(stringOrArray)) {
-            return path.indexOf(stringOrArray) === 0
+            return stringOrArray === routeFirstSegment
         }
         if (_.isArray(stringOrArray)) {
-            let found = false
-            _.every(stringOrArray, routePrefix => {
-                if (path.indexOf(routePrefix) === 0) {
-                    found = true
-                    return false
+            for (let index = 0; index < stringOrArray.length; index++) {
+                if (stringOrArray[index] === routeFirstSegment) {
+                    return true
                 }
-                return true
-            })
-            return found
+            }
         }
         return false
     },
@@ -1682,7 +1676,7 @@ Util = {
      * @return {boolean} True if the user has the specified role name.
      */
     isUserRole(userId, roleName, domainId) {
-        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        domainId = domainId || Util.getCurrentDomainId()
         let tenantOrDomainId = Util.getTenantOrDomainId(roleName, domainId)
         switch (roleName) {
         case "SUPERADMIN":
@@ -1833,24 +1827,31 @@ Util = {
     },
 
     /**
-     * Return domain timezone.
+     * Return the timezone from the tenant associated with the supplied domain.
      *
-     * @param {string} domainId Domain ID.
-     * @return {string} Domain timezone.
+     * @param {?} domainOrId Domain or ID.
+     * @return {string} Applicable timezone.
      */
-    fetchDomainTimezone(domainId) {
-        const tenantId = Util.getTenantId(domainId)
-        return Util.fetchTenantField(tenantId, "timezone")
+    fetchDomainTimezone(domainOrId) {
+        const tenant = Util.getTenant(domainOrId, { timezone: 1 })
+        if (!tenant) {
+            return
+        }
+        return tenant.timezone
     },
 
     /**
      * Return tenant timezone.
      *
-     * @param {string} tenantId Tenant ID.
+     * @param {?} tenantOrId Tenant or ID.
      * @return {string} Tenant timezone.
      */
-    fetchTenantTimezone(tenantId) {
-        return Util.fetchTenantField(tenantId, "timezone")
+    fetchTenantTimezone(tenantOrId) {
+        const tenant = Util.tenant(tenantOrId, { timezone: 1 })
+        if (!tenant) {
+            return
+        }
+        return tenant.timezone
     },
 
     /**
@@ -1905,11 +1906,12 @@ Util = {
      * @return {string} Domain ID or undefined.
      */
     getCurrentTenantId(userId) {
-        let domainId = Util.getCurrentDomainId(userId)
+        userId = userId || Meteor.userId()
+        const domainId = Util.getCurrentDomainId(userId)
         if (!domainId) {
             return
         }
-        let domain = Domains.findOne(domainId, { fields: { tenant: 1 } })
+        const domain = Util.domain(domainId, { tenant: 1 })
         return domain && domain.tenant
     },
 
@@ -1968,25 +1970,19 @@ Util = {
     /**
      * Return an array of all tenant IDs associated with the specified user ID.
      *
-     * @param {string} userId User ID.
+     * @param {?} userOrId User object or ID.
      * @param {boolean} includeRetiredTenants True to include retired tenants.
-     * @param {boolean} excludeBaseTenants True to exclude base tenants.
      * @return {array} Array of tenant IDs.
      */
-    getTenantIds(userId, includeRetiredTenants, excludeBaseTenants) {
-        if (!userId) {
-            return []
-        }
-        let user = Meteor.users.findOne(userId, { fields: { "profile.tenants": 1 } })
+    getTenantIds(userOrId, includeRetiredTenants) {
+        userOrId = userOrId || Meteor.userId()
+        const user = Util.user(userOrId, { "profile.tenants": 1 } )
         if (!user) {
-            OLog.error("util.js getTenantIds unable to find userId=" + userId)
-            return []
+            OLog.error(`util.js getTenantIds unable to find userOrId=${OLog.errorString(userOrId)}`)
+            return
         }
         return _.filter(_.pluck(user.profile.tenants, "tenantId"), tenantId => {
             if (!includeRetiredTenants && !Util.isTenantActive(tenantId)) {
-                return false
-            }
-            if (excludeBaseTenants && Util.isTenantBase(tenantId)) {
                 return false
             }
             return true
@@ -1996,19 +1992,17 @@ Util = {
     /**
      * Return an array of all domain IDs associated with the specified user ID.
      *
-     * @param {string} userId User ID.
+     * @param {?} userOrId User object or ID.
      * @param {string} tenantId Optional Tenant ID to filter.
      * @param {string} includeRetiredDomains True to include retired domains.
      * @return {array} Array of domain IDs.
      */
-    getDomainIds(userId, tenantId, includeRetiredDomains) {
-        if (!userId) {
-            return []
-        }
-        let user = Meteor.users.findOne(userId, { fields: { "profile.domains": 1 } })
+    getDomainIds(userOrId, tenantId, includeRetiredDomains) {
+        userOrId = userOrId || Meteor.userId()
+        const user = Util.user(userOrId, { "profile.domains": 1 } )
         if (!user) {
-            OLog.error("util.js getDomainIds unable to find userId=" + userId)
-            return []
+            OLog.error(`util.js getDomainIds unable to find userOrId=${OLog.errorString(userOrId)}`)
+            return
         }
         return _.filter(_.pluck(user.profile.domains, "domainId"), domainId => {
             if (!includeRetiredDomains && !Util.isDomainActive(domainId)) {
@@ -2031,7 +2025,7 @@ Util = {
     getDomainIdsOfCurrentTenant(userId, includeRetiredDomains) {
         userId = userId || Meteor.userId()
         let tenantId = Util.getCurrentTenantId(userId)
-        return Util.findDomainsInTenant(userId, tenantId, includeRetiredDomains).map(domain => domain._id)
+        return Util.findUserDomainsInTenant(userId, tenantId, includeRetiredDomains).map(domain => domain._id)
     },
 
     /**
@@ -2042,9 +2036,9 @@ Util = {
      * @param {string} includeRetiredDomains True to include retired domains.
      * @return {array} Array of domains in the tenant.
      */
-    findDomainsInTenant(userId, tenantId, includeRetiredDomains) {
-        let domainIds = Util.getDomainIds(userId, tenantId, includeRetiredDomains)
-        let criteria = {}
+    findUserDomainsInTenant(userId, tenantId, includeRetiredDomains) {
+        const domainIds = Util.getDomainIds(userId, tenantId, includeRetiredDomains)
+        const criteria = {}
         criteria._id = { $in: domainIds }
         return Domains.find(criteria).fetch()
     },
@@ -2111,14 +2105,11 @@ Util = {
     /**
      * Determine whether the specified tenant is active (i.e., not retired).
      *
-     * @param {string} tenandId Tenant ID.
+     * @param {?} tenantOrId Tenant or ID.
      * @return {boolean} True if tenant is active.
      */
-    isTenantActive(tenantId) {
-        if (!tenantId) {
-            return false
-        }
-        let tenant = Tenants.findOne(tenantId, { fields: { dateRetired: 1 }})
+    isTenantActive(tenantOrId) {
+        const tenant = Util.tenant(tenantOrId, { dateRetired: 1 })
         if (!tenant) {
             return false
         }
@@ -2129,14 +2120,11 @@ Util = {
      * Determine whether the specified domain is active (i.e., not retired).
      * This is a compound condition that takes into account the state of the tenant.
      *
-     * @param {string} domainId Domain ID.
+     * @param {?} domainOrId Domain or ID.
      * @return {boolean} True if both domain and tenant are active.
      */
-    isDomainActive(domainId) {
-        if (!domainId) {
-            return false
-        }
-        let domain = Domains.findOne(domainId, { fields: { tenant: 1, dateRetired: 1 }})
+    isDomainActive(domainOrId) {
+        const domain = Util.domain(domainOrId, { tenant: 1, dateRetired: 1})
         if (!domain) {
             return false
         }
@@ -2144,19 +2132,32 @@ Util = {
     },
 
     /**
-     * Given a domain ID return the tenant ID.
+     * Given a domain return the tenant ID.
      *
-     * @param {string} domainId Domain ID.
+     * @param {?} domainOrId Domain or ID.
      * @return {string} Tenant ID.
      */
-    getTenantId(domainId) {
-        let domain = Domains.findOne(domainId, { fields: { tenant: 1 } })
-        if (!domain) {
-            //OLog.error("util.js getTenantId unable to find domainId="+domainId)
+    getTenantId(domainOrId) {
+        const tenant = Util.getTenant(domainOrId, { _id: 1})
+        if (!tenant) {
             return
         }
+        return tenant._id
+    },
 
-        return domain.tenant
+    /**
+     * Given a domain return the tenant.
+     *
+     * @param {?} domainOrId Domain or ID.
+     * @param {object} fields Optional MongoDB fields specification.
+     * @return {string} Tenant record.
+     */
+    getTenant(domainOrId, fields) {
+        const domain = Util.domain(domainOrId, { tenant: 1 })
+        if (!domain) {
+            return
+        }
+        return Util.tenant(domain.tenant, fields)
     },
 
     /**
@@ -2171,7 +2172,7 @@ Util = {
         if (!Util.isTenantRole(roleName)) {
             return domainId
         }
-        let domain = Domains.findOne(domainId, { fields: { tenant: 1 } })
+        let domain = Domains.findOne(domainId, { tenant: 1 })
         if (!domain) {
             OLog.error("util.js getTenantOrDomainId cannot find domainId=" + domainId)
             return
@@ -2188,21 +2189,21 @@ Util = {
      * @return {string} Tenant ID.
      */
     getTenantIdFromPath(user, path, tenant) {
-        let index = Util.getIndexFromPath(path, 2)
+        const index = Util.getIndexFromPath(path, 2)
         if (tenant) {
             if (index >= user.profile.tenants.length) {
                 return
             }
             let tenantId = user.profile.tenants[index].tenantId
-            OLog.debug("vxapp.js getTenantIdFromPath userId=" + user._id + " path=" + path + " index=" + index + " tenant=" + tenantId)
+            OLog.debug(`vxapp.js getTenantIdFromPath userId=${user._id} path=${path} index=${index} tenant=${tenantId}`)
             return tenantId
         }
         if (index >= user.profile.domains.length) {
             return
         }
-        let domainId = user.profile.domains[index].domainId
-        let tenantId = Util.getTenantId(domainId)
-        OLog.debug("vxapp.js getTenantIdFromPath userId=" + user._id + " path=" + path + " index=" + index + " domainId=" + domainId + " tenant=" + tenantId)
+        const domainId = user.profile.domains[index].domainId
+        const tenantId = Util.getTenantId(domainId)
+        OLog.debug(`vxapp.js getTenantIdFromPath userId=${user._id} path=${path} index=${index} domainId=${domainId} tenant=${tenantId}`)
         return tenantId
     },
 
@@ -2224,38 +2225,16 @@ Util = {
     },
 
     /**
-     * Count the tenant administrators in the specified tenant.
-     *
-     * @param {string} includeRetiredUsers True to include retired users.
-     * @param {string} includeRetiredDomains True to include retired domains.
-     * @param {string} domainIdIgnore Optional domain ID to be ignored.
-     * @return {number} Count of system administrators in tenant.
-     */
-    countTenantAdmin(tenantId, includeRetiredUsers, includeRetiredDomains, domainIdIgnore) {
-        let userArray = Util.findUsersInTenant(tenantId, includeRetiredUsers, includeRetiredDomains, domainIdIgnore)
-        let count = 0
-        userArray.forEach(user => {
-            if (Util.isUserTenantAdmin(user._id, tenantId)) {
-                count++
-            }
-        })
-        return count
-    },
-
-    /**
      * Find the non-retired users in the specified tenant.
      *
      * @param {string} tenantId Tenant ID.
      * @param {string} includeRetiredUsers True to include retired users.
      * @param {string} includeRetiredDomains True to include inactive domains.
-     * @param {string} domainIdIgnore Optional domain ID to be ignored.
      * @return {array} Cursor of users in the tenant.
      */
-    findUsersInTenant(tenantId, includeRetiredUsers, includeRetiredDomains, domainIdIgnore) {
-        let domainIds = Util.getDomainIdsOfTenant(tenantId, includeRetiredDomains)
-        if (domainIdIgnore) {
-            domainIds = _.without(domainIds, domainIdIgnore)
-        }
+    findUsersInTenant(tenantId, includeRetiredUsers, includeRetiredDomains) {
+        const domains = Util.getDomainsOfTenant(tenantId, includeRetiredDomains)
+        const domainIds = _.pluck(domains, "_id")
         let criteria = {}
         criteria["profile.domains"] = { $elemMatch: { domainId: { $in: domainIds } } }
         if (!includeRetiredUsers) {
@@ -2277,7 +2256,7 @@ Util = {
         if (!includeRetiredUsers) {
             criteria["profile.dateRetired"] = { $exists : false }
         }
-        return Meteor.users.find(criteria)
+        return Meteor.users.find(criteria).fetch()
     },
 
     /**
@@ -2285,16 +2264,15 @@ Util = {
      *
      * @param {string} tenantId Tenant ID.
      * @param {string} includeRetiredDomains True to include retired domains.
-     * @return {array} Array of domain IDs.
+     * @return {array} Array of domains records.
      */
-    getDomainIdsOfTenant(tenantId, includeRetiredDomains) {
+    getDomainsOfTenant(tenantId, includeRetiredDomains) {
         let selector = {}
         selector.tenant = tenantId
         if (!includeRetiredDomains) {
             selector.dateRetired = { $exists: false }
         }
-        let domains = Domains.find(selector, { fields : { _id: 1 } }).fetch()
-        return _.pluck(domains, "_id")
+        return Domains.find(selector).fetch()
     },
 
     /**
@@ -2311,7 +2289,7 @@ Util = {
             let eventTypeTemp = Meteor.i18nMessages.codes.eventType[eventType]
             let eventTypeObject = {}
             eventTypeObject.eventType = eventType
-            eventTypeObject.description = Util.i18n("codes.eventType." + eventType)
+            eventTypeObject.description = Util.i18n(`codes.eventType.${eventType}`)
             eventTypeObject.roles = eventTypeTemp.roles
             eventTypes.push(eventTypeObject)
         }
@@ -2610,34 +2588,67 @@ Util = {
     },
 
     /**
-     * Convenience method to always return user record given either user record
-     * or user ID.
+     * Convenience method to always return user record given either user record or user ID.
      *
      * @param {?} userOrId User object or ID.
-     * @return {object} User record or undefnied.
+     * @param {object} fields Optional MongoDB fields specification.
+     * @return {object} User record or undefined.
      */
-    user(userOrId) {
+    user(userOrId, fields) {
         if (!userOrId) {
             return null
         }
         if (_.isObject(userOrId)) {
             return userOrId
         }
-        return Util.fetchUserLimited(userOrId)
+        return Util.fetchUserLimited(userOrId, fields)
     },
 
     /**
-     * Convenience method to always return user ID given user record or user ID.
-     * or user ID.
+     * Convenience method to always return tenant record given either tenant record or tenant ID.
      *
-     * @param {?} userOrId User object or ID.
-     * @return {string} User ID.
+     * @param {?} tenantOrId Tenant object or ID.
+     * @param {object} fields Optional MongoDB fields specification.
+     * @return {object} Tenant record or undefined.
      */
-    userId(userOrId) {
-        if (_.isObject(userOrId)) {
-            return userOrId._id
+    tenant(tenantOrId, fields) {
+        if (!tenantOrId) {
+            return null
         }
-        return userOrId
+        if (_.isObject(tenantOrId)) {
+            return tenantOrId
+        }
+        return Tenants.findOne(tenantOrId, { fields })
+    },
+
+    /**
+     * Convenience method to always return domain record given either domain record or domain ID.
+     *
+     * @param {?} domainOrId Domain object or ID.
+     * @param {object} fields Optional MongoDB fields specification.
+     * @return {object} Domain record or undefined.
+     */
+    domain(domainOrId, fields) {
+        if (!domainOrId) {
+            return null
+        }
+        if (_.isObject(domainOrId)) {
+            return domainOrId
+        }
+        return Domains.findOne(domainOrId, { fields })
+    },
+
+    /**
+     * Convenience method to always return record ID given a record or ID.
+     *
+     * @param {?} recordOrId Record or ID.
+     * @return {string} Record ID.
+     */
+    recordId(recordOrId) {
+        if (_.isObject(recordOrId)) {
+            return recordOrId._id
+        }
+        return recordOrId
     },
 
     /**
@@ -2883,6 +2894,21 @@ Util = {
         const index = array.length + offset
         array.splice(index, 1)
         return array.join(splitCharacter)
+    },
+
+    /**
+     * Return a subset of a string that contains zero or more split characters
+     * by specifying the index of the last segment desired.
+     *
+     * @param {string} input Input string.
+     * @param {string} splitCharacter Character to use to split.
+     * @param {string} index Index of last segment desired or negative for relative offset.
+     * @return {string} Subset of string.
+     */
+    tokens(input, splitCharacter, index) {
+        const inputArray = input.split(splitCharacter)
+        const sliceEnd = index >= 0 ? index + 1 : inputArray.length + index
+        return inputArray.slice(0, sliceEnd).join(".")
     },
 
     /**

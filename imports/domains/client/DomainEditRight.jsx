@@ -122,7 +122,7 @@ export default class DomainEditRight extends Component {
                                 className: "fa-times",
                                 onClick: this.handleClickDelete.bind(this)
                             }]}
-                            onDrop={this.handleDropDomainUser.bind(this)}/>
+                            onDrop={this.handleDropDomainUsers.bind(this)}/>
                     </RightPanel>
                 ) : (
                     <EmptyRightPanel emptyMessage={Util.i18n("common.empty_edit_record_missing")}/>
@@ -142,8 +142,8 @@ export default class DomainEditRight extends Component {
         VXApp.updateTenantOrDomainRole(userId, this.props.domain._id, userRole, false, value)
     }
 
-    handleDropDomainUser(dropInfo) {
-        VXApp.handleDropDomainUser(dropInfo, this.props.domain, this.props.users)
+    handleDropDomainUsers(dropInfo) {
+        VXApp.handleDropDomainUsers(dropInfo, this.props.domain, this.props.users)
     }
 
     handleClickDelete(event, component) {

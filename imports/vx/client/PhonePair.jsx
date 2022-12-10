@@ -22,26 +22,32 @@ export default class PhonePair extends Component {
 
     constructor(props) {
         super(props)
-        const phoneArray = this.phoneArray()
-        const type = phoneArray.length > 0 ? phoneArray[0].type : "MAIN"
+        const type = this.firstType()
         this.state = { type }
     }
 
+    UNSAFE_componentWillReceiveProps() {
+        const phoneObject = this.phoneObject()
+        if (!phoneObject) {
+            const type = this.firstType()
+            this.setState({ type })
+        }
+    }
+
     render() {
-        const phoneArray = this.phoneArray()
-        const phoneObject = _.findWhere(phoneArray, { type: this.state.type }) || { type: "MAIN" }
+        const phoneObject = this.phoneObject() || { type: "MAIN" }
         return (
             <>
-               <div className="col-sm-3">
-                   <VXSelect id={`${this.props.id}-type`}
-                       codeArray={UX.makeCodeArray("phoneType")}
-                       label={Util.i18n("common.label_phone_type")}
-                       tooltip={this.tooltip()}
-                       value={this.state.type}
-                       dbName="type"
-                       updateHandler={() => false}
-                       onChange={this.handleChangeType.bind(this)}/>
-               </div>
+                <div className="col-sm-3">
+                    <VXSelect id={`${this.props.id}-type`}
+                        codeArray={UX.makeCodeArray("phoneType")}
+                        label={Util.i18n("common.label_phone_type")}
+                        tooltip={this.tooltip()}
+                        value={this.state.type}
+                        dbName="type"
+                        updateHandler={() => false}
+                        onChange={this.handleChangeType.bind(this)}/>
+                </div>
                 <div className="col-sm-3">
                     {this.props.editable ? (
                         <VXInput id={`${this.props.id}-number`}
@@ -63,6 +69,7 @@ export default class PhonePair extends Component {
             </>
         )
     }
+
 
     tooltip() {
         const phoneArray = this.phoneArray()
@@ -98,6 +105,16 @@ export default class PhonePair extends Component {
             phoneArray.push(newPhoneObject)
         }
         this.performUpdate(component, phoneArray)
+    }
+
+    firstType() {
+        const phoneArray = this.phoneArray()
+        return phoneArray.length > 0 ? phoneArray[0].type : "MAIN"
+    }
+
+    phoneObject() {
+        const phoneArray = this.phoneArray()
+        return _.findWhere(phoneArray, { type: this.state.type })
     }
 
     phoneArray() {

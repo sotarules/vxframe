@@ -1,7 +1,7 @@
 .not-found-image {
     max-width: 205px;
     width: 100%;
-    height: auto;	
+    height: auto;
 }
 
 .not-found-centered {
@@ -9,20 +9,23 @@
 }
 
 .not-found-wrapper {
-    margin: 20px;
+    margin-top: 20px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
     background-image: url("@{rs}/img/system/yosemite.jpg");
     .background-size(cover);
     .img-responsive;
     .border-radius(10px);
-    padding: 20px; 
+    padding: 20px;
     .justify-content(center);
-    .align-items(center); 
+    .align-items(center);
     display : flex;
 }
 
 .not-found-glass {
     padding: 20px;
-    background-color: rgba(0, 0, 0, 0.3) !important;    
+    background-color: rgba(0, 0, 0, 0.3) !important;
     border-style: solid;
     border-color: #E0E0E0;
     border-width: thin;
@@ -32,11 +35,11 @@
 }
 
 .not-found-pitch {
-    vertical-align: middle;  
+    vertical-align: middle;
     text-align: center;
     color: #FFFFFF;
     .justify-content(center);
-    .align-items(center);      
+    .align-items(center);
 }
 
 .not-found-cube {
@@ -47,7 +50,7 @@
 .not-found-heading {
     text-align: center;
     letter-spacing: -2px;
-    font-size: 40px;
+    font-size: 70px;
     font-weight: normal;
     line-height: 1;
 }
@@ -55,40 +58,17 @@
 .not-found-subheading {
     color: #FFFFFF;
     text-align: center;
-    font-size: 24px;
+    font-size: 44px;
     letter-spacing: -1px;
     line-height: 1.25;
 }
 
-/* Phone */
-@media (max-width : @screen-xs-min) {
-    .not-found-cube {
-        width: 75px;
-    }
-    .not-found-wrapper {
-        margin: 0px;
-        .border-radius(0px);        
-    }
-    .not-found-heading {
-        font-size: 36px;
-    }
-    .not-found-subheading {
-        font-size: 16px;
-    }    
-}
-
-/* Tablet */
-@media (min-width : @screen-sm-min) {
-    .not-found-heading {
-        font-size: 50px;
-    }
-    .not-found-subheading {
-        font-size: 24px;
-    }
-}
-
 /* Small Desktop */
-@media (min-width : @screen-md-min) {
+@media (max-width : @screen-md-min) {
+    .not-found-wrapper {
+        margin-top: 20px;
+        .border-radius(0px);
+    }
     .not-found-heading {
         font-size: 60px;
     }
@@ -97,12 +77,33 @@
     }
 }
 
-/* Large Desktop */
-@media (min-width : @screen-lg-min) {
+/* Tablet */
+@media (max-width : @screen-sm-min) {
+    .not-found-wrapper {
+        margin-top: 5px;
+        .border-radius(0px);
+    }
     .not-found-heading {
-        font-size: 70px;
+        font-size: 50px;
     }
     .not-found-subheading {
-        font-size: 44px;
+        font-size: 24px;
+    }
+}
+
+/* Phone */
+@media (max-width : @screen-xs-min) {
+    .not-found-cube {
+        width: 75px;
+    }
+    .not-found-wrapper {
+        margin-top: 5px;
+        .border-radius(0px);
+    }
+    .not-found-heading {
+        font-size: 36px;
+    }
+    .not-found-subheading {
+        font-size: 16px;
     }
 }

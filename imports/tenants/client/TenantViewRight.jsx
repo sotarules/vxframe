@@ -1,16 +1,12 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
 import RightHeader from "/imports/vx/client/RightHeader"
-import VXForm from "/imports/vx/client/VXForm"
-import VXFieldBox from "/imports/vx/client/VXFieldBox"
-import VXCheck from "/imports/vx/client/VXCheck"
 import EntityListHeader from "/imports/vx/client/EntityListHeader"
 import DomainEntityList from "/imports/vx/client/DomainEntityList"
 import RetireModal from "/imports/vx/client/RetireModal"
-import { setPublishCurrentTenant } from "/imports/vx/client/code/actions"
-import { setPublishCurrentDomain } from "/imports/vx/client/code/actions"
+import {setPublishCurrentDomain, setPublishCurrentTenant} from "/imports/vx/client/code/actions"
 
 export default class TenantViewRight extends Component {
 
@@ -20,8 +16,6 @@ export default class TenantViewRight extends Component {
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["blue"]),
         decorationTooltip : PropTypes.string,
-        userEmail : PropTypes.string,
-        isUserTenantAdmin : PropTypes.bool,
         domains : PropTypes.array,
         domainRolesChecked : PropTypes.object,
         currentDomainId : PropTypes.string
@@ -72,23 +66,6 @@ export default class TenantViewRight extends Component {
                             decorationIconClassName={this.props.decorationIconClassName}
                             decorationColor={this.props.decorationColor}
                             decorationTooltip={this.props.decorationTooltip}>
-                            <VXForm id="tenant-view-right-form"
-                                ref={(form) => { this.form = form }}
-                                className="right-panel-form flexi-fixed">
-                                <div className="row">
-                                    <div className="col-xs-6">
-                                        <VXFieldBox label={Util.i18n("common.label_your_email_address")}
-                                            value={this.props.userEmail}/>
-                                    </div>
-                                    <div className="col-xs-6">
-                                        <VXCheck id="role-tenant-admin"
-                                            className="checkbox-vertical-middle"
-                                            label={Util.i18n("common.label_tenant_admin")}
-                                            checked={this.props.isUserTenantAdmin}
-                                            disabled={true}/>
-                                    </div>
-                                </div>
-                            </VXForm>
                         </RightHeader>
                         <EntityListHeader label={Util.i18n("my_tenants.label_domains_header")}/>
                         <DomainEntityList id="tenant-view-right-list"
@@ -112,7 +89,7 @@ export default class TenantViewRight extends Component {
     handleEdit(callback) {
         OLog.debug("TenantViewRight.jsx handleEdit")
         callback()
-        UX.iosMajorPush(null, null, "/tenant/" + this.props.tenant._id, "RIGHT", "crossfade")
+        UX.iosMajorPush(null, null, "/tenant", "RIGHT", "crossfade")
     }
 
     handleDelete(callback) {
@@ -127,10 +104,7 @@ export default class TenantViewRight extends Component {
 
     handleSelectDomain(event, component) {
         OLog.debug(`TenantViewRight.jsx handleSelectDomain componentId=${component.props.itemId}`)
-        const publishCurrentDomain = {}
-        publishCurrentDomain.criteria = { _id : component.props.itemId }
-        OLog.debug(`TenantViewRight.jsx handleSelectDomain will select domain publishCurrentDomain=${OLog.debugString(publishCurrentDomain)}`)
-        Store.dispatch(setPublishCurrentDomain(publishCurrentDomain))
+        Store.dispatch(setPublishCurrentDomain(VXApp.simplePublishingRequest(component.props.itemId)))
         UX.iosMajorPush("common.button_my_tenants", "common.button_my_tenant", "/domains", "RIGHT")
     }
 }

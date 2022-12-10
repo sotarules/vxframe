@@ -66,9 +66,7 @@ export default class UserDomainViewLeft extends Component {
     }
 
     handleSelectUser(event, component) {
-        const publishAuthoringUser = {}
-        publishAuthoringUser.criteria = { _id : component.props.itemId }
-        Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
+        Store.dispatch(setPublishAuthoringUser(VXApp.simplePublishingRequest(component.props.itemId)))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_users", "RIGHT");
         }
@@ -79,14 +77,12 @@ export default class UserDomainViewLeft extends Component {
         UX.setLocked(["user-domain-view-left", "user-domain-view-right"], true)
         Meteor.call("createUserDefault", (error, userId) => {
             if (error) {
-                OLog.error(`UserDomainViewLeft.jsx handleClickCreateUser error attempting to create user=${error}`)
+                OLog.error(`UserDomainViewLeft.jsx handleClickCreateUser error attempting to create user=${OLog.errorError(error)}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
-            const publishAuthoringUser = {}
-            publishAuthoringUser.criteria = { _id : userId }
-            Store.dispatch(setPublishAuthoringUser(publishAuthoringUser))
-            UX.iosMajorPush(null, null, `/user/${userId}`, "RIGHT", "crossfade")
+            Store.dispatch(setPublishAuthoringUser(VXApp.simplePublishingRequest(userId)))
+            UX.iosMajorPush(null, null, "/user", "RIGHT", "crossfade")
         })
     }
 }

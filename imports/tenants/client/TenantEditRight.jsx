@@ -1,13 +1,10 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import RightPanel from "/imports/vx/client/RightPanel"
 import EmptyRightPanel from "/imports/vx/client/EmptyRightPanel"
-import RightHeaderBasic from "/imports/vx/client/RightHeaderBasic"
-import VXForm from "/imports/vx/client/VXForm"
-import VXImage from "/imports/vx/client/VXImage"
-import VXInput from "/imports/vx/client/VXInput"
 import EntityListHeader from "/imports/vx/client/EntityListHeader"
 import DomainEntityList from "/imports/vx/client/DomainEntityList"
+import RightHeaderEdit from "/imports/vx/client/RightHeaderEdit"
 
 export default class TenantEditRight extends Component {
 
@@ -17,8 +14,6 @@ export default class TenantEditRight extends Component {
         decorationIconClassName : PropTypes.string,
         decorationColor : PropTypes.oneOf(["blue"]),
         decorationTooltip : PropTypes.string,
-        userEmail : PropTypes.string,
-        isUserTenantAdmin : PropTypes.bool,
         domains : PropTypes.array,
         currentDomainId : PropTypes.string
     }
@@ -50,7 +45,7 @@ export default class TenantEditRight extends Component {
 
     registerDelegates() {
         UX.unregisterIosButtonDelegates()
-        if (this.props.tenant) {
+        if (this.props.tenant && Util.isUserSuperAdmin()) {
             UX.registerIosButtonDelegate("ios-button-done-editing", this.handleDoneEditing.bind(this))
         }
     }
@@ -61,40 +56,15 @@ export default class TenantEditRight extends Component {
                 className="flexi-grow lock-exiting-component">
                 {this.props.tenant ? (
                     <RightPanel>
-                        <RightHeaderBasic>
-                            <VXForm id="tenant-edit-right-form"
-                                ref={(form) => { this.form = form }}
-                                className="right-panel-form flexi-fixed"
-                                dynamic={true}
-                                collection={Tenants}
-                                _id={this.props.tenant._id}>
-                                <div className="row">
-                                    <div className="col-sm-12">
-                                        <table className="top-table">
-                                            <tbody>
-                                                <tr>
-                                                    <td className="top-left">
-                                                        <VXImage id="iconUrl"
-                                                            size="small"
-                                                            imageType="tenant"
-                                                            value={this.props.tenant.iconUrl}/>
-                                                    </td>
-                                                    <td className="top-center">
-                                                        <div className="top-input">
-                                                            <VXInput id="name"
-                                                                required={true}
-                                                                value={this.props.tenant.name}/>
-                                                            <VXInput id="description"
-                                                                value={this.props.tenant.description}/>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </VXForm>
-                        </RightHeaderBasic>
+                        <RightHeaderEdit id={`${this.props.id}-right-header`}
+                            record={this.props.tenant}
+                            collection={Tenants}
+                            imageType="tenant"
+                            iconUrlDbName="iconUrl"
+                            nameDbName="name"
+                            namePlaceholder={Util.i18n("common.label_name")}
+                            descriptionDbName="description"
+                            descriptionPlaceholder={Util.i18n("common.label_description")}/>
                         <EntityListHeader label={Util.i18n("my_tenants.label_domains_header")}/>
                         <DomainEntityList id="tenant-edit-right-list"
                             domains={this.props.domains}

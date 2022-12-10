@@ -115,13 +115,51 @@ OLog = {
         }
     },
 
-    stringify(object) {
+    debugError(object) {
+        if (OLog.logLevel >= OLog.logLevelMap.DEBUG) {
+            return OLog.stackTrace(object)
+        }
+    },
 
+    infoError(object) {
+        if (OLog.logLevel >= OLog.logLevelMap.INFO) {
+            return OLog.stackTrace(object)
+        }
+    },
+
+    warnError(object) {
+        if (OLog.logLevel >= OLog.logLevelMap.WARN) {
+            return OLog.stackTrace(object)
+        }
+    },
+
+    errorError(object) {
+        if (OLog.logLevel >= OLog.logLevelMap.ERROR) {
+            return OLog.stackTrace(object)
+        }
+    },
+
+    fatalError(object) {
+        if (OLog.logLevel >= OLog.logLevelMap.FATAL) {
+            return OLog.stackTrace(object)
+        }
+    },
+
+    stringify(object) {
         try {
             return safestringify(object)
         }
         catch (error) {
-            OLog.error(`olog.js stringify error=${error}`)
+            OLog.error(`olog.js stringify error=${OLog.errorError(error)}`)
+        }
+    },
+
+    stackTrace(error) {
+        try {
+            return `${error} ${error.stack}`
+        }
+        catch (error) {
+            OLog.error(`olog.js stringify error=${OLog.errorError(error)}`)
         }
     }
 }

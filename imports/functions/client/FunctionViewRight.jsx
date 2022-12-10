@@ -81,7 +81,7 @@ export default class FunctionViewRight extends Component {
     handleEdit(callback) {
         OLog.debug("FunctionViewRight.jsx handleEdit")
         callback()
-        UX.iosMajorPush(null, null, "/function/" + this.props.funktion._id, "RIGHT", "crossfade")
+        UX.iosMajorPush(null, null, "/function", "RIGHT", "crossfade")
     }
 
     handleClone(callback) {

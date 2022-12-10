@@ -1,4 +1,4 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import Parser from "html-react-parser"
 import VXSpan from "./VXSpan"
@@ -271,24 +271,26 @@ export default class VXTabFolder extends Component {
     handleClickAddTab(data) {
         if (this.props.onClickAddTab) {
             this.props.onClickAddTab(data)
-            Meteor.setTimeout(() => {
-                const tabId = this.tabId("last")
-                this.setActiveTabId(tabId)
-            })
+            this.selectLastTab()
         }
     }
 
     handleClickRemoveTab(data) {
         if (this.props.onClickRemoveTab) {
             this.props.onClickRemoveTab(data)
-            Meteor.setTimeout(() => {
-                const tabId = this.tabId("first")
-                this.setActiveTabId(tabId)
-            })
+            this.selectLastTab()
         }
     }
 
+    selectLastTab() {
+        Meteor.setTimeout(() => {
+            const tabId = this.tabId("last")
+            this.setActiveTabId(tabId)
+        }, 50)
+    }
+
     handleUpdateTabName(component, value) {
+        value = value || Util.i18n("common.label_variable_undefined")
         this.setTabName(component.props.tabSetIndex, value, ()=> {
             if (this.props.onUpdateTabName) {
                 this.props.onUpdateTabName(component, value, this)

@@ -3,10 +3,10 @@ import Signin from "/imports/signin/client/Signin"
 
 export default withTracker(() => {
     let mode
-    if (Util.isRoutePath("/enroll-account/")) {
+    if (Util.isRoutePath("enroll-account")) {
         mode = "ENROLL"
     }
-    else if (Util.isRoutePath("/reset-password/")) {
+    else if (Util.isRoutePath("reset-password")) {
         mode = "RESET_PASSWORD"
     }
     else {

@@ -97,13 +97,12 @@ export default class ReportViewRight extends Component {
     }
 
     handlePrint(callback) {
-        VXApp.handlePrintReport(callback, this.props.report)
+        VXApp.handlePrintReport(callback)
     }
 
     handleEdit(callback) {
         callback()
-        UX.iosMajorPush(null, null, "/report/" + this.props.report._id,
-            "RIGHT", "crossfade")
+        UX.iosMajorPush(null, null, "/report", "RIGHT", "crossfade")
     }
 
     handleClone(callback) {

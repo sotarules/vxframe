@@ -64,32 +64,36 @@ export default class VXImage extends Component {
         })
     }
 
+    componentWillUnmount() {
+        const selector = `#${this.props.id}`
+        $(selector).off("change.bs.fileinput clear.bs.fileinput")
+        UX.unregister(this)
+    }
+
     selector() {
         return `#${this.props.id}`
     }
 
-    componentWillUnmount() {
-        UX.unregister(this)
+    componentDidUpdate() {
+        const src = $(".fileinput-preview > img").attr("src")
+        if (src != this.state.value) {
+            $(".fileinput-preview > img").attr("src", this.state.value)
+        }
     }
 
     UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
-            //OLog.debug(`VXImage.jsx UNSAFE_componentWillReceiveProps componentId=${this.props.id} value=${newProps.value} *update*`)
             this.setValue(newProps.value)
         }
     }
 
-    componentWillUnmount() {
-        let selector = `#${this.props.id}`
-        $(selector).off("change.bs.fileinput clear.bs.fileinput")
-    }
 
     getValue() {
         return this.state.value
     }
 
-    setValue(value) {
-        this.setState({value: value})
+    setValue(value, callback) {
+        this.setState({value: value}, callback)
     }
 
     render() {
@@ -162,18 +166,13 @@ export default class VXImage extends Component {
     }
 
     handleCrop(content, callback) {
-        this.setValue(content)
-        $(`${this.selector()} > .fileinput-preview > img`).attr("src", content)
-        const form = UX.findForm(this.props.id)
-        if (form.props.dynamic) {
-            UX.updateImage(this, (error, result) => {
-                UX.notify(result, error, true)
-                callback(true)
-                return
-            })
-            return
-        }
-        callback(true)
+        this.setValue(content, () => {
+            const form = UX.findForm(this.props.id)
+            if (form.props.dynamic) {
+                UX.updateImage(this)
+            }
+            callback(true)
+        })
     }
 
     handleClickRemove() {

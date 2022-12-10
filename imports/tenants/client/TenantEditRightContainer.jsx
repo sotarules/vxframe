@@ -1,30 +1,33 @@
 import { withTracker } from "meteor/react-meteor-data"
 import TenantEditRight from "/imports/tenants/client/TenantEditRight"
+import {connect} from "react-redux"
 
-export default withTracker(( ) => {
-
-    let tenant, decorationIconClassName, decorationColor, decorationTooltip, userEmail, isUserTenantAdmin, domains, currentDomainId
+const MeteorContainer = withTracker(( ) => {
+    let tenant, decorationIconClassName, decorationColor, decorationTooltip, domains, currentDomainId
     tenant = ContextMaker.tenant()
     if (tenant) {
         decorationIconClassName = Util.isTenantCurrent(tenant._id) ? "entity-decoration-icon-medium fa fa-lg fa-asterisk" : null
         decorationColor = "blue"
         decorationTooltip = Util.i18n("common.tooltip_tenant_decoration_current")
-        userEmail = Util.getUserEmail(Meteor.userId())
-        isUserTenantAdmin =  Util.isUserTenantAdmin(Meteor.userId(), tenant._id)
-        domains = Util.findDomainsInTenant(Meteor.userId(), tenant._id, false)
-        currentDomainId = Util.getCurrentDomainId(Meteor.userId())
+        domains = Util.findUserDomainsInTenant(Meteor.userId(), tenant._id, false)
+        currentDomainId = Util.getCurrentDomainId()
     }
-
     return {
         tenant,
         decorationIconClassName,
         decorationColor,
         decorationTooltip,
-        userEmail,
-        isUserTenantAdmin,
         domains,
         currentDomainId
     }
-
 })(TenantEditRight)
 
+const mapStateToProps = state => {
+    return {
+        publishCurrentTenant : state.publishCurrentTenant,
+    }
+}
+
+export default connect(
+    mapStateToProps
+)(MeteorContainer)

@@ -10,8 +10,8 @@ export default class RightHeaderEdit extends Component {
         id : PropTypes.string.isRequired,
         record : PropTypes.object.isRequired,
         collection : PropTypes.object.isRequired,
-        nameDbName : PropTypes.string.isRequired,
-        descriptionDbName : PropTypes.string.isRequired,
+        nameDbName : PropTypes.string,
+        descriptionDbName : PropTypes.string,
         namePlaceholder : PropTypes.string,
         descriptionPlaceholder : PropTypes.string,
         editableImage : PropTypes.bool.isRequired,
@@ -54,14 +54,18 @@ export default class RightHeaderEdit extends Component {
                                         </td>
                                         <td className="top-center">
                                             <div className="top-input">
-                                                <VXInput id={`${this.props.id}-name`}
-                                                    value={this.props.record[this.props.nameDbName]}
-                                                    placeholder={this.props.namePlaceholder}
-                                                    dbName={this.props.nameDbName}/>
-                                                <VXInput id={`${this.props.id}-description`}
-                                                    value={this.props.record[this.props.descriptionDbName]}
-                                                    placeholder={this.props.descriptionPlaceholder}
-                                                    dbName={this.props.descriptionDbName}/>
+                                                {this.props.nameDbName &&
+                                                    <VXInput id={`${this.props.id}-name`}
+                                                        value={this.props.record[this.props.nameDbName]}
+                                                        placeholder={this.props.namePlaceholder}
+                                                        dbName={this.props.nameDbName}/>
+                                                }
+                                                {this.props.descriptionDbName &&
+                                                    <VXInput id={`${this.props.id}-description`}
+                                                        value={this.props.record[this.props.descriptionDbName]}
+                                                        placeholder={this.props.descriptionPlaceholder}
+                                                        dbName={this.props.descriptionDbName}/>
+                                                }
                                             </div>
                                         </td>
                                         {this.props.iconUrlRight &&

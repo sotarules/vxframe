@@ -12,7 +12,8 @@ export default class UploadProgressBar extends Component {
         percentComplete : PropTypes.number,
         uploadProgress : PropTypes.string,
         isUploadEnded : PropTypes.bool,
-        uploadErrors : PropTypes.string
+        uploadErrors : PropTypes.string,
+        status : PropTypes.string
     }
 
     render() {
@@ -24,7 +25,7 @@ export default class UploadProgressBar extends Component {
                 <div id="upload-progress-bar" className="progress upload-progress-bar">
                     <div className={this.progressBarClasses()}
                         role="progressbar"
-                        aria-valuenow={this.props.percentComplete}
+                        aria-valuenow={this.percentComplete()}
                         aria-valuemin="0"
                         aria-valuemax="100"
                         style={this.widthComplete()}>
@@ -41,7 +42,11 @@ export default class UploadProgressBar extends Component {
     }
 
     widthComplete() {
-        return { width : this.props.percentComplete + "%" }
+        return { width : `${this.percentComplete()}%` }
+    }
+
+    percentComplete() {
+        return this.props.status === "COMPLETED_WITH_ERRORS" ? 100 : this.props.percentComplete
     }
 
     renderClearControl() {

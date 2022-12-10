@@ -1,5 +1,7 @@
 import { connect } from "react-redux"
-import LayoutStandard from "/imports/layout/client/LayoutStandard"
+import {withTracker} from "meteor/react-meteor-data"
+import LayoutStandard from "./LayoutStandard"
+import {setAuthorizedRoute} from "/imports/vx/client/code/actions"
 
 const mapStateToProps = state => {
     return {
@@ -9,6 +11,13 @@ const mapStateToProps = state => {
         loading : state.loading
     }
 }
-export default connect(
+const ReduxConnect = connect(
     mapStateToProps
 )(LayoutStandard)
+
+export default withTracker(() => {
+    const authorizedRoute = VXApp.isAuthorizedRoute()
+    Store.dispatch(setAuthorizedRoute(authorizedRoute))
+})(ReduxConnect)
+
+

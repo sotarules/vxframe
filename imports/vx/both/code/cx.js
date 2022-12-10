@@ -28,6 +28,7 @@ CX.REGEX_ZIP_RENDER2 = "$1-$2"
 CX.REGEX_PIN = /^([0-9]{4})?$/
 CX.REGEX_URL = /(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp:\/~+#-]*[\w@?^=%&amp\/~+#-])?/
 CX.REGEX_TOKEN = /^\d{6}$/
+CX.REGEX_IP_ADDRESS = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/
 
 CX.URL_IMAGE_PREFIX = "img"
 CX.IMAGE_MIME_EXTENSION_MAP = { "image/gif" : "gif", "image/jpeg" : "jpg", "image/png" : "png" }

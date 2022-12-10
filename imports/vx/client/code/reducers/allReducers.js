@@ -46,7 +46,7 @@ import routePath from "./routePath"
 import exemptRoute from "./exemptRoute"
 import authorizedRoute from "./authorizedRoute"
 import wideRoute from "./wideRoute"
-import listImportLastPercent from "./listImportLastPercent"
+import importLastPercent from "./importLastPercent"
 
 export default {
     functionUpdateTimestamp,
@@ -97,5 +97,5 @@ export default {
     exemptRoute,
     authorizedRoute,
     wideRoute,
-    listImportLastPercent
+    importLastPercent
 }

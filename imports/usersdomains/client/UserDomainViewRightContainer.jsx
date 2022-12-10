@@ -7,7 +7,7 @@ const MeteorContainer = withTracker(() => {
     let user, domains, domainRolesChecked, currentDomainId
     user = ContextMaker["users-domains"]()
     if (user) {
-        domains = _.pluck(VXApp.findUserDomainList(user._id), "domain")
+        domains = VXApp.findUserDomainList(user)
         domainRolesChecked = Util.domainRolesMap(domains, user)
         currentDomainId = Util.getCurrentDomainId(user._id)
     }

@@ -94,8 +94,7 @@ export default class TemplateViewRight extends Component {
     handleEdit(callback) {
         OLog.debug("TemplateViewRight.jsx handleEdit")
         callback()
-        UX.iosMajorPush(null, null, "/template/" + this.props.template._id,
-            "RIGHT", "crossfade")
+        UX.iosMajorPush(null, null, "/template", "RIGHT", "crossfade")
     }
 
     handleClone(callback) {

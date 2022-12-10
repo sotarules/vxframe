@@ -28,28 +28,29 @@ export default class LayoutStandard extends Component {
         if (this.props.loading) {
             return (<LoadingSpinner/>)
         }
-        if (!this.props.authorizedRoute) {
-            return (<NotAuthorizedPage/>)
-        }
         return (
             <div id={this.props.id}
                 className="flexi-grow">
                 <OffCanvasNavContainer/>
                 <TopBar/>
                 <div className={`${this.containerClassName()} nav-canvas flexi-grow`}>
-                    <div className="animation-top flexi-grow">
-                        <div className="animation-container notification-container flexi-grow">
-                            <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
-                                <RouteSlidePanel key={this.slidePanelId()}
-                                    id={this.slidePanelId()}
-                                    location={this.props.location}
-                                    className="animation-panel flexi-grow"
-                                    getAnimation={this.getAnimation.bind(this)}>
-                                    {this.props.children}
-                                </RouteSlidePanel>
-                            </TransitionGroup>
+                    {this.props.authorizedRoute ? (
+                        <div className="animation-top flexi-grow">
+                            <div className="animation-container notification-container flexi-grow">
+                                <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">
+                                    <RouteSlidePanel key={this.slidePanelId()}
+                                        id={this.slidePanelId()}
+                                        location={this.props.location}
+                                        className="animation-panel flexi-grow"
+                                        getAnimation={this.getAnimation.bind(this)}>
+                                        {this.props.children}
+                                    </RouteSlidePanel>
+                                </TransitionGroup>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <NotAuthorizedPage/>
+                    )}
                 </div>
                 <VXAnchor/>
             </div>

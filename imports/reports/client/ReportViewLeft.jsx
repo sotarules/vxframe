@@ -54,9 +54,7 @@ export default class ReportViewLeft extends Component {
     }
 
     handleSelectEntity(event, component) {
-        const publishAuthoringReport = {}
-        publishAuthoringReport.criteria = { _id : component.props.itemId }
-        Store.dispatch(setPublishAuthoringReport(publishAuthoringReport))
+        Store.dispatch(setPublishAuthoringReport(VXApp.simplePublishingRequest(component.props.itemId)))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_reports", "RIGHT")
         }
@@ -67,18 +65,16 @@ export default class ReportViewLeft extends Component {
         UX.setLocked(["report-view-left", "report-view-right"], true)
         Reports.insert({ }, (error, reportId) => {
             if (error) {
-                OLog.error(`ReportViewLeft.jsx error attempting to create report=${error}`)
+                OLog.error(`ReportViewLeft.jsx error attempting to create report=${OLog.errorError(error)}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
-            const publishAuthoringReport = {}
-            publishAuthoringReport.criteria = { _id : reportId }
-            Store.dispatch(setPublishAuthoringReport(publishAuthoringReport))
+            Store.dispatch(setPublishAuthoringReport(VXApp.simplePublishingRequest(reportId)))
             if (UX.isSlideMode()) {
-                UX.iosMajorPush("common.button_reports", "common.button_reports", `/report/${reportId}`, "RIGHT")
+                UX.iosMajorPush("common.button_reports", "common.button_reports", "/report", "RIGHT")
             }
             else {
-                UX.iosMajorPush(null, null, `/report/${reportId}`, "RIGHT", "crossfade")
+                UX.iosMajorPush(null, null, "/report", "RIGHT", "crossfade")
             }
         })
     }

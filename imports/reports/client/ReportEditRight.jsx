@@ -91,7 +91,7 @@ export default class ReportEditRight extends Component {
     }
 
     handlePrint(callback) {
-        VXApp.handlePrintReport(callback, this.props.report)
+        VXApp.handlePrintReport(callback)
     }
 
     handleUndo(callback) {

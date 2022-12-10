@@ -11,7 +11,7 @@ export default class TopBar extends Component {
         const environment = Util.getConfigValue("environment")
         const navbarClass = environment === "development" ? "navbar-custom-development" : "navbar-custom-production"
         return (
-            <div className={`navbar navbar-custom ${navbarClass} navbar-custom-fixed flexi-fixed hidden-print not-selectable`}>
+            <div className={`navbar navbar-custom ${navbarClass} navbar-custom-fixed flexi-fixed hidden-print`}>
                 <table className="nav-table">
                     <tbody>
                         <tr>

@@ -38,7 +38,7 @@ Daemon = {
                 }
                 catch (error) {
                     OLog.error(`daemon.js initDaemonJobs unexpected error jobName=${daemonJob.jobName} ` +
-                        `error=${error}`)
+                        `error=${OLog.errorError(error)}`)
                 }
             }
             DaemonJobs.insert(daemonJob)
@@ -74,7 +74,7 @@ Daemon = {
                     }
                     catch (error) {
                         OLog.error(`daemon.js conditionallyDispatch unexpected error jobName=${daemonJob.jobName} ` +
-                            `error=${error}`)
+                            `error=${OLog.errorError(error)}`)
                     }
                     finally {
                         DaemonJobs.update(daemonJob._id, { $set: { running: false } })
@@ -87,7 +87,7 @@ Daemon = {
             })
         }
         catch (error) {
-            OLog.error(`daemon.js conditionallyDispatch unexpected error=${error}`)
+            OLog.error(`daemon.js conditionallyDispatch unexpected error=${OLog.errorError(error)}`)
         }
     }
 }

@@ -69,7 +69,15 @@ export default class ContextMenuCell extends Component {
         const data = VXApp.makeContextCellData(realEvent)
         const props = { }
         props.data = { ...data, ...this.props.data }
-        contextMenu.show({ id: this.props.contextMenuId, event : realOrFakeEvent, props : props })
+        const position = {}
+        position.x = realEvent.clientX
+        position.y = realEvent.clientY
+        const inModal = $(`#${this.props.id}`).parents(".modal-dialog").exists()
+        if (inModal) {
+            const modalLeft = $(`#${this.props.id}`).parents(".modal-dialog").offset().left
+            position.x = position.x - modalLeft
+        }
+        contextMenu.show({ id: this.props.contextMenuId, event : realOrFakeEvent, props, position })
     }
 
     handleClick(event) {

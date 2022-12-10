@@ -1,10 +1,7 @@
 import initReactFastclick from "react-fastclick"
-import { createBrowserHistory } from "history"
-import { createRoot } from "react-dom/client"
-import { setRoutePath } from "/imports/vx/client/code/actions"
-import { setExemptRoute } from "/imports/vx/client/code/actions"
-import { setAuthorizedRoute } from "/imports/vx/client/code/actions"
-import { setWideRoute } from "/imports/vx/client/code/actions"
+import {createBrowserHistory} from "history"
+import {createRoot} from "react-dom/client"
+import {setExemptRoute, setRoutePath, setWideRoute} from "/imports/vx/client/code/actions"
 
 // This makes it possible to debug even if the user hasn't yet logged in (very helpful for debugging hyperlinks
 // such as sign-off actions):
@@ -54,11 +51,6 @@ const doRoute = () => {
         }
         VXApp.routeAfter()
         return
-    }
-    const authorizedRoute = VXApp.isAuthorizedRoute()
-    console.log(`startup.js doRoute [${Util.routePath()}] userId=${Meteor.userId()} authorizedRoute=${authorizedRoute}`)
-    if (authorizedRoute !== Store.getState().authorizedRoute) {
-        Store.dispatch(setAuthorizedRoute(authorizedRoute))
     }
     if (!Meteor.userId()) {
         console.log(`startup.js doRoute [${Util.routePath()}] *not-logged-in* no subscriptions shall be performed`)
@@ -117,7 +109,7 @@ Meteor.startup(() => {
                     }
                 }
                 catch (error) {
-                    OLog.error(`startup.js Accounts onLogin token check error=${error}`)
+                    OLog.error(`startup.js Accounts onLogin token check error=${OLog.errorError(error)}`)
                 }
             }, 60000)
         })

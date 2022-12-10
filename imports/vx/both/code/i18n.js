@@ -2,6 +2,11 @@
 
 Meteor.i18nMessages.common = {
 
+    system_user_name : {
+        en : "System",
+        rx : "$System$"
+    },
+
     label_date_undefined : {
         en : "Undefined",
         rx : "$Undefined$"
@@ -113,68 +118,68 @@ Meteor.i18nMessages.common = {
     },
 
     invalid_country : {
-        en : "Country is not valid.",
-        rx : "$Country is not valid.$"
+        en : "Country is not valid",
+        rx : "$Country is not valid$"
     },
 
     invalid_locale : {
-        en : "Language is not valid.",
-        rx : "$Language is not valid.$"
+        en : "Language is not valid",
+        rx : "$Language is not valid$"
     },
 
     invalid_name : {
-        en : "Name is not valid.",
-        rx : "$Name is not valid.$"
+        en : "Name is not valid",
+        rx : "$Name is not valid$"
     },
 
     invalid_firstName : {
-        en : "First name is not valid.",
-        rx : "$First name is not valid.$"
+        en : "First name is not valid",
+        rx : "$First name is not valid$"
     },
 
     invalid_middleName : {
-        en : "Middle name or initial is not valid.",
-        rx : "$Middle name or initial is not valid.$"
+        en : "Middle name or initial is not valid",
+        rx : "$Middle name or initial is not valid$"
     },
 
     invalid_lastName : {
-        en : "Last name is not valid.",
-        rx : "$Last name is not valid.$"
+        en : "Last name is not valid",
+        rx : "$Last name is not valid$"
     },
 
     invalid_address1 : {
-        en : "Address is not valid.",
-        rx : "$Address is not valid.$"
+        en : "Address is not valid",
+        rx : "$Address is not valid$"
     },
 
     invalid_address2 : {
-        en : "Address is not valid.",
-        rx : "$Address is not valid.$"
+        en : "Address is not valid",
+        rx : "$Address is not valid$"
     },
 
     invalid_city : {
-        en : "City is not valid.",
-        rx : "$City is not valid.$"
+        en : "City is not valid",
+        rx : "$City is not valid$"
     },
 
     invalid_state : {
-        en : "State is not valid.",
-        rx : "$State is not valid.$"
+        en : "State is not valid",
+        rx : "$State is not valid$"
     },
 
     invalid_zip : {
-        en : "Zip code is not valid.",
-        rx : "$Zip code is not valid.$"
+        en : "Zip code is not valid",
+        rx : "$Zip code is not valid$"
     },
 
     invalid_phone : {
-        en : "Phone number is not valid.",
-        rx : "$Phone number is not valid.$"
+        en : "Phone number is not valid",
+        rx : "$Phone number is not valid$"
     },
 
     invalid_mobile : {
-        en : "Mobile number is not valid.",
-        rx : "$Mobile number is not valid.$"
+        en : "Mobile number is not valid",
+        rx : "$Mobile number is not valid$"
     },
 
     invalid_email : {
@@ -238,13 +243,8 @@ Meteor.i18nMessages.common = {
     },
 
     invalid_code_value : {
-        en: "Invalid code value",
-        fx: "$Invalid code value$"
-    },
-
-    invalid_command : {
-        en: "Invalid command - must be create, update or retire",
-        fx: "$Invalid command - must be create, update or retire$"
+        en: "Unrecognized value",
+        fx: "$Unrecognized value$"
     },
 
     invalid_required_field_missing : {
@@ -252,14 +252,29 @@ Meteor.i18nMessages.common = {
         fx: "$Required field is missing$"
     },
 
-    invalid_header_path: {
-        en: "Invalid schema path in header row",
-        fx: "$Invalid schema path in header row$"
+    invalid_header: {
+        en: "Invalid spreadsheet header cell - cannot match to data",
+        fx: "$Invalid spreadsheet header cell - cannot match to data$"
     },
 
-    invalid_command_column: {
-        en: "No command column was found (at least one column header must be \"command\")",
-        fx: "$No command column was found (at least one column header must be \"command\")$"
+    invalid_header_record_key_missing: {
+        en: "Missing record key, please add spreadsheet column to supply {{recordKey}}",
+        fx: "$Missing record key, please add spreadsheet column to supply {{recordKey}}$"
+    },
+
+    invalid_header_key_missing: {
+        en: "Missing key, please add spreadsheet column to supply {{keyField}}",
+        fx: "$Missing key, please add spreadsheet column to supply {{keyField}}$"
+    },
+
+    invalid_record_key_missing: {
+        en: "Missing or invalid record key field, insufficient information to find and locate record",
+        fx: "$Missing or invalid record key field, insufficient information to find and locate record$"
+    },
+
+    invalid_data_key_missing: {
+        en: "Missing or invalid key field, insufficient information to find and update {{list}}",
+        fx: "$Missing or invalid key field, insufficient information to find and update {{list}}$"
     },
 
     invalid_user_not_found : {
@@ -683,56 +698,51 @@ Meteor.i18nMessages.common = {
     },
 
     alert_upload_success : {
-        en : "CSV file has been uploaded successfully.",
-        rx : "$CSV file has been uploaded successfully.$"
+        en : "Spreadsheet file has been uploaded successfully.",
+        rx : "$Spreadsheet file has been uploaded successfully.$"
     },
 
     alert_upload_stopped : {
-        en : "CSV file import process has been stopped.",
-        rx : "$CSV file import process has been stopped.$"
+        en : "Spreadsheet file import process has been stopped.",
+        rx : "$Spreadsheet file import process has been stopped.$"
     },
 
     alert_upload_stop_request_success : {
-        en : "CSV file import process stop request received, upload will stop shortly.",
-        rx : "$CSV file import process stop request received, upload will stop shortly.$"
-    },
-
-    alert_csv_unexpected_error : {
-        en : "CSV file import unexpected error in stream callback: {{error}}",
-        rx : "$CSV file import unexpected error in stream callback: {{error}}$"
+        en : "Spreadsheet file import process stop request received, upload will stop shortly.",
+        rx : "$Spreadsheet file import process stop request received, upload will stop shortly.$"
     },
 
     alert_upload_error : {
-        en : "Unable to upload CSV file - {{errorMessage}}",
-        rx : "$Unable to upload CSV file - {{errorMessage}}$"
+        en : "Unable to upload spreadsheet file - {{errorMessage}}",
+        rx : "$Unable to upload spreadsheet file - {{errorMessage}}$"
     },
 
     alert_upload_errors_detected : {
-        en : "CSV file has been uploaded with errors detected (see messages).",
-        rx : "$CSV file has been uploaded with errors detected (see messages)$"
+        en : "Spreadsheet file has been uploaded with errors detected (see messages).",
+        rx : "$Spreadsheet file has been uploaded with errors detected (see messages)$"
     },
 
-    alert_list_import_start : {
+    alert_import_start : {
         en : "{{fullName}} has started import of {{originalFileName}} into {{uploadType}}",
         rx : "${{fullName}} has started import of {{originalFileName}} into {{uploadType}}$"
     },
 
-    alert_list_import_finish : {
+    alert_import_finish : {
         en : "Import of {{originalFileName}} into {{uploadType}} has completed",
         rx : "$Import of {{originalFileName}} into {{uploadType}} has completed"
     },
 
-    alert_list_import_stop : {
+    alert_import_stop : {
         en : "{{fullName}} has stopped import of {{originalFileName}} into {{uploadType}}",
         rx : "${{fullName}} has stopped import of {{originalFileName}} into {{uploadType}}$"
     },
 
-    alert_list_import_fail : {
+    alert_import_fail : {
         en : "Import of {{originalFileName}} into {{uploadType}} was not successful",
         rx : "$Import of {{originalFileName}} into {{uploadType}} was not successful$"
     },
 
-    alert_list_import_reset : {
+    alert_import_reset : {
         en : "The system has stopped the in-progress importation of {{originalFileName}} into {{uploadType}}",
         rx : "$The system has stopped the in-progress importation of {{originalFileName}} into {{uploadType}}$"
     },
@@ -747,9 +757,14 @@ Meteor.i18nMessages.common = {
         rx : "$Send *completed* Waiting for import daemon$"
     },
 
-    label_upload_status_inserting : {
-        en : "Inserting {{percentComplete}}%",
-        rx : "$Inserting ${{percentComplete}}%$"
+    label_upload_status_processing : {
+        en : "Processing {{percentComplete}}%",
+        rx : "$Processing ${{percentComplete}}%$"
+    },
+
+    label_upload_status_updating : {
+        en : "Updating the database {{percentComplete}}%",
+        rx : "$Updating the database ${{percentComplete}}%$"
     },
 
     label_upload_status_completed : {
@@ -772,17 +787,22 @@ Meteor.i18nMessages.common = {
         rx : "$Import Stopped$"
     },
 
-    header_path_specification : {
-        en : "{{path}}",
-        rx : "${{path}}$"
+    header_cell : {
+        en : "{{header}}",
+        rx : "${{header}}$"
     },
 
-    field_id_path_specification : {
-        en : "Row {{rowIndex}} {{path}}",
-        rx : "$Row {{rowIndex}} {{path}}$"
+    field_row_and_header : {
+        en : "Row {{index}} {{header}}",
+        rx : "$Row {{index}} {{header}}$"
     },
 
-    message_import_validation : {
+    message_import_validation_without_value : {
+        en : "{{fieldIdentifier}} - {{text}}",
+        rx : "${{fieldIdentifier}} - {{text}}$"
+    },
+
+    message_import_validation_with_value : {
         en : "{{fieldIdentifier}} - [{{value}}] - {{text}}",
         rx : "${{fieldIdentifier}} - [{{value}}] - {{text}}$"
     },

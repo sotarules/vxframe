@@ -67,6 +67,7 @@ export default class VXButton extends Component {
         chevron : PropTypes.bool,
         minimumDuration: PropTypes.number,
         fileInput : PropTypes.bool,
+        accept : PropTypes.string,
         onChangeFile : PropTypes.func,
         // Ladda props
         // eslint-disable-next-line react/no-unused-prop-types
@@ -160,6 +161,7 @@ export default class VXButton extends Component {
                 {this.props.fileInput &&
                     <input id={`${this.props.id}-hidden-file-input`}
                         type="file"
+                        accept={this.props.accept}
                         value=""
                         style={{ visibility: "hidden" }}
                         onChange={this.handleChangeFile.bind(this)}/>

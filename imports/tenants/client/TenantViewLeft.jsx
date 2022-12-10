@@ -10,6 +10,7 @@ export default class TenantViewLeft extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
+        user : PropTypes.object.isRequired,
         tenants : PropTypes.array.isRequired
     }
 
@@ -41,23 +42,23 @@ export default class TenantViewLeft extends Component {
                         value="TENANTS"/>
                 </RadioButtonGroup>
                 <TenantEntityList id="tenant-view-left-list"
+                    user={this.props.user}
                     tenants={this.props.tenants}
                     selectable={true}
                     chevrons={true}
                     onSelect={this.handleSelectTenant.bind(this)}/>
-                <BottomButton id="button-create-tenant"
-                    className="btn-primary"
-                    text={Util.i18n("my_tenants.button_create_tenant")}
-                    onClick={this.handleClickCreate.bind(this)}/>
+                {Util.isUserSuperAdmin() &&
+                    <BottomButton id="button-create-tenant"
+                        className="btn-primary"
+                        text={Util.i18n("my_tenants.button_create_tenant")}
+                        onClick={this.handleClickCreate.bind(this)}/>
+                }
             </div>
         )
     }
 
     handleSelectTenant(event, component) {
-        let publishCurrentTenant = {}
-        publishCurrentTenant.criteria = { _id : component.props.itemId }
-        OLog.debug("TenantViewLeft.jsx handleSelect will select new tenant publishCurrentTenant=" + OLog.debugString(publishCurrentTenant))
-        Store.dispatch(setPublishCurrentTenant(publishCurrentTenant))
+        Store.dispatch(setPublishCurrentTenant(VXApp.simplePublishingRequest(component.props.itemId)))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_my_tenants", "RIGHT")
         }

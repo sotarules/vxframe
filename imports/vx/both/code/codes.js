@@ -1588,8 +1588,8 @@ Meteor.i18nMessages.codes = {
             type: CX.BINDING_TYPE_SWITCH
         },
         ALL_MEMBERS_AND_DOMAINS : {
-            en : "Show all members and fields in Members & Fields view (Super Administrator only)",
-            rx : "$Show all members and fields in Members & Fields view (Super Administrator only)$",
+            en : "Show all users and domains in Users & Domains view (Super Administrator only)",
+            rx : "$Show all users and domains in Users & Domains view (Super Administrator only)$",
             type: CX.BINDING_TYPE_SWITCH,
             roles: ["SUPERADMIN"]
         },
@@ -1732,57 +1732,57 @@ Meteor.i18nMessages.codes = {
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
-        LIST_IMPORT_START : {
-            en : "When list CSV import process is started",
-            rx : "$When list CSV import process is started$",
+        IMPORT_START : {
+            en : "When spreadsheet import process is started",
+            rx : "$When spreadsheet import process is started$",
             notification : {
                 type : "INFO",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_start",
+                key : "common.alert_import_start",
                 scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
-        LIST_IMPORT_FINISH : {
-            en : "When list CSV import process is finished",
-            rx : "$When list CSV import process is finished$",
+        IMPORT_FINISH : {
+            en : "When spreadsheet import process is finished",
+            rx : "$When spreadsheet import process is finished$",
             notification : {
                 type : "INFO",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_finish",
+                key : "common.alert_import_finish",
                 scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
-        LIST_IMPORT_STOP : {
-            en : "When list CSV import process is stopped by the user",
-            rx : "$When list CSV import process is stopped by the user$",
+        IMPORT_STOP : {
+            en : "When spreadsheet import process is stopped by the user",
+            rx : "$When spreadsheet import process is stopped by the user$",
             notification : {
                 type : "INFO",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_stop",
+                key : "common.alert_import_stop",
                 scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
-        LIST_IMPORT_FAIL : {
-            en : "When list CSV import process fails due to error",
-            rx : "$When list CSV import process fails due to error$",
+        IMPORT_FAIL : {
+            en : "When spreadsheet import process fails due to error",
+            rx : "$When spreadsheet import process fails due to error$",
             notification : {
                 type : "ERROR",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_fail",
+                key : "common.alert_import_fail",
                 scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
         },
-        LIST_IMPORT_RESET : {
-            en : "When the import daemon stops CSV import after a system restart",
-            rx : "$When the import daemon stops CSV import after a system restart$",
+        IMPORT_RESET : {
+            en : "When the import daemon stops spreadsheet import after a system restart",
+            rx : "$When the import daemon stops spreadsheet import after a system restart$",
             notification : {
                 type : "ERROR",
                 icon : "UPLOAD",
-                key : "common.alert_list_import_reset",
+                key : "common.alert_import_reset",
                 scope : "ADMIN"
             },
             notificationDefaults : [ "PNOTIFY" ]
@@ -1868,24 +1868,12 @@ Meteor.i18nMessages.codes = {
             execFunctionName: "RecordRemover.removeAllRecords"
         },
         RECORD_IMPORTER: {
-            en : "Import records from CSV files into the system",
-            rx : "$Import records from CSV files into the system$",
+            en : "Import records from spreadsheet files into the system",
+            rx : "$Import records from spreadsheet files into the system$",
             timeInterval: 1,
             timeUnit: "SECOND",
             execFunctionName: "RecordImporter.findImportRequests"
         }
-    },
-
-    uploadType : {
-        TEMPLATE: {
-            en : "Email Templates",
-            rx : "$Email Templates$",
-            prepareFunctionName: "RecordImporter.prepareGeneric",
-            validateHeaders : true,
-            insertMode : "UPSERT",
-            collection : "templates",
-            keypath : "name"
-        },
     },
 
     uploadStatus : {
@@ -1901,9 +1889,13 @@ Meteor.i18nMessages.codes = {
             en : "Active",
             rx : "$Active$"
         },
-        INSERTING : {
-            en : "Inserting records into database",
-            rx : "$Inserting records into database$"
+        PROCESSING : {
+            en : "Processing records from spreadsheet",
+            rx : "$Processing records from spreadsheet$"
+        },
+        UPDATING : {
+            en : "Updating database",
+            rx : "$Updating database$"
         },
         COMPLETED : {
             en : "Completed",
@@ -1956,7 +1948,14 @@ Meteor.i18nMessages.codes = {
             collection : "users",
             domainPath : "profile.domains.domainId",
             retirePath : "profile.dateRetired"
-        }
+        },
+        FUNCTION : {
+            en : "Function",
+            rx : "$Function$",
+            collection : "functions",
+            domainPath : "domain",
+            retirePath : "dateRetired"
+        },
     },
 
     userSource : {

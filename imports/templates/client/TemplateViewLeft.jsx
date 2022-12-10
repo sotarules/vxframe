@@ -54,9 +54,7 @@ export default class TemplateViewLeft extends Component {
     }
 
     handleSelectEntity(event, component) {
-        const publishAuthoringTemplate = {}
-        publishAuthoringTemplate.criteria = { _id : component.props.itemId }
-        Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
+        Store.dispatch(setPublishAuthoringTemplate(VXApp.simplePublishingRequest(component.props.itemId)))
         if (UX.isSlideMode()) {
             UX.iosMinorPush("common.button_templates", "RIGHT")
         }
@@ -67,18 +65,16 @@ export default class TemplateViewLeft extends Component {
         UX.setLocked(["template-view-left", "template-view-right"], true)
         Templates.insert({ }, (error, templateId) => {
             if (error) {
-                OLog.error("TemplateViewLeft.jsx error attempting to create template=" + error)
+                OLog.error(`TemplateViewLeft.jsx error attempting to create template=${OLog.errorError(error)}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
-            const publishAuthoringTemplate = {}
-            publishAuthoringTemplate.criteria = { _id : templateId }
-            Store.dispatch(setPublishAuthoringTemplate(publishAuthoringTemplate))
+            Store.dispatch(setPublishAuthoringTemplate(VXApp.simplePublishingRequest(templateId)))
             if (UX.isSlideMode()) {
-                UX.iosMajorPush("common.button_templates", "common.button_templates", `/template/${templateId}`, "RIGHT")
+                UX.iosMajorPush("common.button_templates", "common.button_templates", "/template", "RIGHT")
             }
             else {
-                UX.iosMajorPush(null, null, `/template/${templateId}`, "RIGHT", "crossfade")
+                UX.iosMajorPush(null, null, "/template", "RIGHT", "crossfade")
             }
         })
     }

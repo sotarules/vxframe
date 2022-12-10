@@ -8,7 +8,7 @@ export default class EntityListRoleCheckboxes extends Component {
     static propTypes = {
         _id : PropTypes.string.isRequired,
         collection : PropTypes.object,
-        rolesChecked : PropTypes.array.isRequired,
+        rolesChecked : PropTypes.array,
         roleCheckboxesDisabled : PropTypes.bool,
         tenantRoles : PropTypes.bool.isRequired,
         updateHandler : PropTypes.func,

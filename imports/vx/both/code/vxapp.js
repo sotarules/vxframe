@@ -36,7 +36,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", subscriptionParameters : subscriptionParameters }
         }
         catch (error) {
-            OLog.error(`vxapp.js getSubscriptionParameters unexpected error=${error}`)
+            OLog.error(`vxapp.js getSubscriptionParameters unexpected error=${OLog.errorError(error)}`)
             return { success : false, type : "ERROR", icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -80,16 +80,16 @@ VXApp = { ...VXApp, ...{
      * @return {string} Publishing mode.
      */
     getPublishingMode(side, subscriptionParameters) {
-        if (Util.isRoutePath("/log") || Util.isRoutePath("/events")) {
+        if (Util.isRoutePath("log") || Util.isRoutePath("events")) {
             return subscriptionParameters.superAdmin && subscriptionParameters.preferenceLogsDefeatTenantFilters ? "DEFEAT" : "TEXAS"
         }
-        if (UX.iosIsRoutePathOnStack("/users-domains") || UX.iosIsRoutePathOnStack("/domains-users") || Util.isRoutePath("/user/") || Util.isRoutePath("/domain/")) {
+        if (UX.iosIsRoutePathOnStack("users-domains") || UX.iosIsRoutePathOnStack("domains-users") || Util.isRoutePath("user") || Util.isRoutePath("domain")) {
             return subscriptionParameters.superAdmin && subscriptionParameters.preferenceAllMembersAndDomains ? "DEFEAT" : "TEAM"
         }
-        if (UX.iosIsRoutePathOnStack("/tenants") || Util.isRoutePath("/tenant/") || Util.isRoutePath("/domains")) {
-            return subscriptionParameters.superAdmin ? "DEFEAT" : "TEAM"
+        if (UX.iosIsRoutePathOnStack("tenants") || Util.isRoutePath("tenant") || Util.isRoutePath("domains")) {
+            return subscriptionParameters.superAdmin ? "DEFEAT" : "TEXAS"
         }
-        if (Util.isRoutePath("/tenants") || Util.isRoutePath("/tenant/") || Util.isRoutePath("/domains")) {
+        if (Util.isRoutePath("tenants") || Util.isRoutePath("tenant") || Util.isRoutePath("domains")) {
             return "TEXAS"
         }
         return "DOMAIN"
@@ -103,17 +103,14 @@ VXApp = { ...VXApp, ...{
      * @param {object} subscriptionParameters Subscription parameters (required on client only).
      */
     adjustPublishingRequest(request, userId, subscriptionParameters) {
-
         if (!userId) {
             OLog.error(`vxapp.js adjustPublishingRequest no userId specified, request=${OLog.errorString(request)}`)
             return request
         }
-
         if (Meteor.isClient && !subscriptionParameters) {
             OLog.error(`vxapp.js adjustPublishingRequest on client subscriptionParameters are required, request=${OLog.errorString(request)}`)
             return request
         }
-
         if (Meteor.isServer) {
             let result = VXApp.getSubscriptionParameters(userId)
             if (!result.success) {
@@ -122,7 +119,6 @@ VXApp = { ...VXApp, ...{
             }
             subscriptionParameters = result.subscriptionParameters
         }
-
         if (request.extra.subscriptionName === "current_tenants") {
             if (request.extra.mode === "DEFEAT")  {
                 request.criteria.dateRetired = { $exists : false }
@@ -194,7 +190,6 @@ VXApp = { ...VXApp, ...{
                 request.criteria.domain = subscriptionParameters.domainId
             }
         }
-
         return request
     },
 
@@ -352,7 +347,7 @@ VXApp = { ...VXApp, ...{
             VXApp.createEvent(eventType, eventData.domainId, eventData, { genericSubject: subject, genericMessage : text } )
         }
         catch (error) {
-            OLog.error(`vxapp.js setSubsystemStatus unexpected error=${error}`)
+            OLog.error(`vxapp.js setSubsystemStatus unexpected error=${OLog.errorError(error)}`)
         }
     },
 
@@ -705,24 +700,9 @@ VXApp = { ...VXApp, ...{
     uploadInProgress(uploadType, domainId) {
         const uploadStats = VXApp.findUploadStats(uploadType, domainId)
         if (!uploadStats) {
-            return false;
-        }
-        return _.contains( [ "ACTIVE", "TRANSMITTING", "WAITING", "INSERTING" ], uploadStats.status)
-    },
-
-    /**
-     * Determine whether upload is inserting.
-     *
-     * @param {string} uploadType Upload type.
-     * @param {string} domainId Optional Domain ID.
-     * @return {boolean} True if upload is inserting.
-     */
-    isUploadInserting : function(uploadType, domainId) {
-        const uploadStats = VXApp.findUploadStats(uploadType, domainId)
-        if (!uploadStats) {
             return false
         }
-        return _.contains( [ "INSERTING" ], uploadStats.status);
+        return _.contains( [ "ACTIVE", "TRANSMITTING", "WAITING", "PROCESSING", "UPDATING" ], uploadStats.status)
     },
 
     /**
@@ -735,7 +715,7 @@ VXApp = { ...VXApp, ...{
     isUploadStats(uploadType, domainId) {
         const uploadStats = VXApp.findUploadStats(uploadType, domainId)
         if (!uploadStats) {
-            return false;
+            return false
         }
         return uploadStats.status !== "CLEARED"
     },
@@ -824,6 +804,10 @@ VXApp = { ...VXApp, ...{
         switch (uploadStats.status) {
         case "TRANSMITTING" :
             return "progress-bar-success"
+        case "PROCESSING" :
+            return "progress-bar-info"
+        case "UPDATING" :
+            return "progress-bar-success"
         case "WAITING" :
             return "progress-bar-success progress-bar-striped"
         case "STOPPED" :
@@ -872,8 +856,11 @@ VXApp = { ...VXApp, ...{
         case "WAITING" : {
             return Util.i18n("common.label_upload_status_waiting")
         }
-        case "INSERTING" : {
-            return Util.i18n("common.label_upload_status_inserting", { percentComplete: percentComplete })
+        case "PROCESSING" : {
+            return Util.i18n("common.label_upload_status_processing", { percentComplete: percentComplete })
+        }
+        case "UPDATING" : {
+            return Util.i18n("common.label_upload_status_updating", { percentComplete: percentComplete })
         }
         case "COMPLETED" : {
             return Util.i18n("common.label_upload_status_completed", { percentComplete: percentComplete })
@@ -931,42 +918,12 @@ VXApp = { ...VXApp, ...{
      * @return {object} Upload Stats object or null.
      */
     findUploadStats(uploadType, domainId) {
-        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        domainId = domainId || Util.getCurrentDomainId()
         if (!domainId) {
             OLog.error(`vxapp.js findUploadStats unable to infer domainId from userId=${Meteor.userId()}`)
             return;
         }
         return UploadStats.findOne( { domain : domainId, uploadType : uploadType } )
-    },
-
-    /**
-     * Validate all of the paths in the header row to ensure that the are properly represented in the
-     * import schema.
-     *
-     * @param {object} metadataRoot Import schema.
-     * @param {array} headerArray Array of columns of first row.
-     * @param {array} messages Array of messages.
-     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
-     */
-    validatePaths(metadataRoot, headerArray, messages, fieldIdKey) {
-        let valid = true
-        headerArray.forEach((path) => {
-            if (path === "command") {
-                return
-            }
-            const metadataPath = VXApp.metadataPath(path)
-            const definition = VXApp.findDefinition(metadataRoot, metadataPath)
-            if (!(definition && VXApp.isDefinition(definition))) {
-                valid = false
-                const message = {}
-                message.index = 0
-                message.fieldIdKey = fieldIdKey
-                message.fieldIdVariables = { path: path }
-                message.result = { success : false, icon : "TRIANGLE", key : "common.invalid_header_path" }
-                messages.push(message)
-            }
-        })
-        return valid
     },
 
     /**
@@ -978,26 +935,6 @@ VXApp = { ...VXApp, ...{
      */
     isDefinition(object) {
         return Object.keys(object).includes("bindingType")
-    },
-
-    /**
-     * Return the index of the command column.
-     *
-     * @param {array} headerArray Array of columns of first row.
-     * @param {array} messages Array of messages.
-     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
-     */
-    validateCommandColumn(headerArray, messages, fieldIdKey) {
-        const commandColumnIndex = headerArray.indexOf("command")
-        if (commandColumnIndex < 0) {
-            const message = {}
-            message.index = 0
-            message.fieldIdKey = fieldIdKey
-            message.fieldIdVariables = { path: "error" }
-            message.result = { success : false, icon : "TRIANGLE", key : "common.invalid_header_path" }
-            messages.push(message)
-        }
-        return commandColumnIndex
     },
 
     /**
@@ -1017,7 +954,6 @@ VXApp = { ...VXApp, ...{
     lookupValue(uploadStats, value, definition, index, messages, fieldIdKey,
         fieldIdVariables) {
         const coll = Util.getCollection(definition.collection)
-        const partialValueRegex = new RegExp(value, "i")
         const selector = {}
         if (definition.collection === "users") {
             selector["profile.domains.domainId"] = uploadStats.domain
@@ -1028,14 +964,13 @@ VXApp = { ...VXApp, ...{
         if (definition.retiredDatePath) {
             selector[definition.retiredDatePath] = { $exists: false }
         }
-        selector[definition.keyPropertyName] = partialValueRegex
+        selector[definition.keyPropertyName] = value
         const record = coll.findOne(selector)
         if (record) {
             return record[definition.returnProperty]
         }
         const result = { success : false, icon : "TRIANGLE", key : "common.invalid_key" }
         VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, value)
-        return false
     },
 
     /**
@@ -1088,51 +1023,20 @@ VXApp = { ...VXApp, ...{
      * @param {object} fieldIdVariables Variables to insert into field-identifier message.
      */
     lookupCode(definition, value, codeArray, index, messages, fieldIdKey, fieldIdVariables) {
-        const valueConverted = value.toUpperCase()
         for (const codeElement of codeArray) {
-            if (codeElement.code.toUpperCase() === valueConverted) {
+            if (codeElement.localized === value) {
                 return codeElement.code
-            }
-            if (codeElement.localized.toUpperCase() === valueConverted) {
-                return codeElement.code
-            }
-            if (definition.partial) {
-                if (codeElement.code.toUpperCase().includes(valueConverted)) {
-                    return codeElement.code
-                }
-                if (codeElement.localized.toUpperCase().includes(valueConverted)) {
-                    return codeElement.code
-                }
             }
         }
         const result = { success : false, icon : "TRIANGLE", key : "common.invalid_code_value" }
         VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, value)
-        return null
-    },
-
-    /**
-     * Validate the row command.
-     *
-     * @param {string} value Value to test.
-     * @param {number} index Index of row containing command.
-     * @param {array} messages Array of messages.
-     * @param {string} fieldIdKey i18n bundle key of field-identifier message.
-     * @param {object} fieldIdVariables Variables to insert into field-identifier message.
-     */
-    validateCommand(command, index, messages, fieldIdKey, fieldIdVariables) {
-        if (["create", "update", "retire"].includes(command)) {
-            return true
-        }
-        const result = { success : false, icon : "TRIANGLE", key : "common.invalid_command" }
-        VXApp.validateCreateMessage(result, index, messages, fieldIdKey, fieldIdVariables, command)
-        return false
     },
 
     /**
      * Add a validation message indicating that the record specified by the keyPath was not found
      * in an update operation.
      *
-     * @param {number} index Index of row containing command.
+     * @param {number} index Index of row.
      * @param {array} messages Array of messages.
      * @param {string} fieldIdKey i18n bundle key of field-identifier message.
      * @param {object} fieldIdVariables Variables to insert into field-identifier message.
@@ -1162,6 +1066,23 @@ VXApp = { ...VXApp, ...{
         message.result = result
         message.value = value
         messages.push(message)
+    },
+
+    /**
+     * Given a metadata path return the localized field name.
+     *
+     * @param {array} metadataPath Metadata path name array.
+     * @return {string} Comma-separated list of property names.
+     */
+    formatPropertyName(metadataRoot, metadataPath) {
+        const metadataPathArray = metadataPath.split(".")
+        const headerArray = []
+        for (let segmentIndex = 0; segmentIndex < metadataPathArray.length; segmentIndex++) {
+            const metaDataPathTemp = Util.tokens(metadataPath, ".", segmentIndex)
+            const definition = VXApp.findDefinition(metadataRoot, metaDataPathTemp)
+            headerArray.push(Util.i18nLocalize(definition.localized))
+        }
+        return headerArray.join(", ")
     },
 
     /**
@@ -1351,9 +1272,9 @@ VXApp = { ...VXApp, ...{
         const headings = []
         const metadataPaths = VXApp.sortedMetadataPaths(report.checked, sortFields)
         metadataPaths.forEach(metadataPath => {
-            const definition = VXApp.findDefinition(Meta[report.entityType], metadataPath)
+            const text = VXApp.formatPropertyName(Meta[report.entityType], metadataPath)
             const columnProperties = VXApp.makeColumnProperties(report, metadataPath)
-            const cell = { text: Util.i18nLocalize(definition.localized), ...rootProperties, ...columnProperties }
+            const cell = { text, ...rootProperties, ...columnProperties }
             headings.push(cell)
         })
         return headings
@@ -1670,7 +1591,7 @@ VXApp = { ...VXApp, ...{
         const metadataPathArray = metadataPath.split(".")
         for (let segmentIndex = 0; segmentIndex < metadataPathArray.length; segmentIndex++) {
             const segmentName = metadataPathArray[segmentIndex]
-            metadataNode = metadataNode[segmentName]
+            metadataNode =  metadataNode[segmentName]
             if (!metadataNode) {
                 OLog.debug(`vxapp.js findDefinition cannot find metadata definition of segmentName=${segmentName}`)
                 return
@@ -1798,7 +1719,7 @@ VXApp = { ...VXApp, ...{
      * Compute the count of sub-rows used as a repeat count for the current value.
      * This is to create a report where certain values are repeated to make a
      * "cartesian product" much like a relation. This makes "child" values line up
-     * on the
+     * on the report and spreadsheet rows.
      *
      * @param {object} metadataNode Metadata node (root).
      * @param {string} metadataPath Metadata path.
@@ -1827,7 +1748,7 @@ VXApp = { ...VXApp, ...{
         let count = 0
         const metadataPathsChildren = []
         _.each(report.checked, metadataPath => {
-            if (metadataPath.startsWith(parentMetadataPath)) {
+            if (VXApp.metadataPathStartsWith(metadataPath, parentMetadataPath)) {
                 const reportCheckedArray = metadataPath.split(".")
                 if (reportCheckedArray.length >= pathIndex) {
                     const metadataPathTemp = reportCheckedArray.slice(0, pathIndex + 1).join(".")
@@ -1852,6 +1773,24 @@ VXApp = { ...VXApp, ...{
             }
         })
         return nestedArray ? count : 1
+    },
+
+    /**
+     * Compare two metadata paths consisting of period-separated segments and determine
+     * whether both paths start with the same segments.
+     *
+     * @param {string} metadataPath Metadata path to be tested.
+     * @param {string} parentMetadataPath Parent metadata path to compare.
+     */
+    metadataPathStartsWith(metadataPath, parentMetadataPath) {
+        const metadataPathArray = metadataPath.split(".")
+        const parentMetadataPathArray = parentMetadataPath.split(".")
+        for (let index = 0; index < parentMetadataPathArray.length; index++) {
+            if (parentMetadataPathArray[index] !== metadataPathArray[index]) {
+                return false
+            }
+        }
+        return true
     },
 
     /**
@@ -1909,20 +1848,6 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
-     * For definitions that have the lookup attribute, lookup and return the effective value
-     * from another record. In such instances,the value is a key to a record in another collection.
-     *
-     * @param {object} definition Metadata definition record.
-     * @param {string} value MongoDB ID.
-     * @return {?} Value looked up from record.
-     */
-    fetchLookupValue(definition, value) {
-        const coll = Util.getCollection(definition.collection)
-        const record = coll.findOne(value)
-        return record ? record[definition.returnProperty] : null
-    },
-
-    /**
      * Render report and data objects into HTML.
      *
      * @param {object} report Report object.
@@ -1944,7 +1869,7 @@ VXApp = { ...VXApp, ...{
      * @return {array} Code array of reports.
      */
     makeReportArray(domainId) {
-        domainId = domainId || Util.getCurrentDomainId(Meteor.userId())
+        domainId = domainId || Util.getCurrentDomainId()
         const codeArray = Reports.find({ dateRetired: { $exists: false }, domain : domainId}).map(report => {
             return { code : report._id, localized : report.name }
         })
@@ -1952,5 +1877,32 @@ VXApp = { ...VXApp, ...{
             return Util.safeCompare(recordA.localized, recordB.localized)
         })
         return codeArray
+    },
+
+    /**
+     * Return GUID.
+     *
+     * @return {string} GUID.
+     */
+    makeImportGuid() {
+        return Util.getGuid()
+    },
+
+    /**
+     * Return current date.
+     *
+     * @return {date} Current date.
+     */
+    makeImportDate() {
+        return new Date()
+    },
+
+    /**
+     * Return upload user ID.
+     *
+     * @return {string} User ID.
+     */
+    makeImportUser(uploadStats) {
+        return uploadStats.userId
     }
 }}

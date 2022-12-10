@@ -29,6 +29,7 @@ export default class VXImageModal extends Component {
         const options = {}
         options.background = false
         options.aspectRatio = 1
+        options.viewMode = 0
         this.cropper = new Cropper(image, options)
     }
 
@@ -52,6 +53,7 @@ export default class VXImageModal extends Component {
 
     handleClickConfirm(callback) {
         const content = this.cropper.getCroppedCanvas().toDataURL()
+        OLog.debug(`VXImageModal.jsx handleClickConfirm content length=${content?.length}`)
         this.props.onCrop(content, callback)
     }
 }

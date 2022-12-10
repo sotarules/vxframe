@@ -19,7 +19,7 @@ export default class VXModal extends Component {
     render() {
         return (
             <div id={this.props.id}
-                className="modal fade modal-centered not-selectable"
+                className="modal fade modal-centered"
                 tabIndex="-1"
                 role="dialog"
                 data-backdrop={this.props.backdrop}

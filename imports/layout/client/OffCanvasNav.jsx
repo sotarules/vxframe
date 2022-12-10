@@ -1,4 +1,4 @@
-import { Component } from "react"
+import {Component} from "react"
 import PropTypes from "prop-types"
 import OffCanvasNavItem from "./OffCanvasNavItem"
 import OffCanvasNavSeparator from "./OffCanvasNavSeparator"
@@ -16,6 +16,9 @@ export default class OffCanvasNav extends Component {
         return (
             <nav id="offcanvas-menu-react" className="navmenu navmenu-inverse navmenu-fixed-left offcanvas in scroll-y scroll-momentum" role="navigation" style={this.styles().offcanvasMenu}>
                 <ul className="nav navmenu-nav">
+                    <OffCanvasNavItem iconClass="fa-times"
+                        text={Util.i18n("navbar.close_menu")}
+                        onClick={this.onClickCloseMenu.bind(this)}/>
                     <OffCanvasNavItem iconClass="fa-print"
                         text={Util.i18n("navbar.reports")}
                         path="/reports"/>
@@ -38,10 +41,6 @@ export default class OffCanvasNav extends Component {
                             <OffCanvasNavItem iconClass="fa-sitemap"
                                 text={Util.i18n("navbar.members_domains")}
                                 path="/users-domains"/>
-                            <OffCanvasNavSeparator/>
-                            <OffCanvasNavItem iconClass="fa-cloud-upload"
-                                text={Util.i18n("navbar.import_templates")}
-                                onClick={this.onClickImportTemplates.bind(this)}/>
                         </>
                     }
                     {this.props.isUserAdmin &&
@@ -81,13 +80,13 @@ export default class OffCanvasNav extends Component {
         }
     }
 
-    onClickImportTemplates(event) {
-        VXApp.handleClickImportTemplates(event)
+    onClickCloseMenu(event) {
+        UX.onClickCloseMenu(event)
     }
 
     onClickDeployment(event) {
         event.persist()
-        const delayMilliseconds = Util.isRoutePath("/domains-users") ? 0 : 1000
+        const delayMilliseconds = Util.isRoutePath("domains-users") ? 0 : 2000
         UX.onClickMenuItem(event)
         Meteor.setTimeout(() => {
             UX.onClickDeployment(event, <DeploymentModal/>)

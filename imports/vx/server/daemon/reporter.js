@@ -11,7 +11,7 @@ Reporter = {
             return
         }
         catch (error) {
-            OLog.error(`reporter.js (vx) run unexpected error=${error}`)
+            OLog.error(`reporter.js (vx) run unexpected error=${OLog.errorError(error)}`)
             return
         }
     },
@@ -66,7 +66,7 @@ Reporter = {
             }
         }
         catch (error) {
-            OLog.error(`reporter.js createScheduledReports unexpected error=${error}`)
+            OLog.error(`reporter.js createScheduledReports unexpected error=${OLog.errorError(error)}`)
             return
         }
     }

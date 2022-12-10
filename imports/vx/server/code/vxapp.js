@@ -41,7 +41,7 @@ VXApp = { ...VXApp, ...{
             return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js onClientLogin error=${error}`)
+            OLog.error(`vxapp.js onClientLogin error=${OLog.errorError(error)}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error", variables: { error: error.toString() } }
         }
     },
@@ -68,7 +68,7 @@ VXApp = { ...VXApp, ...{
             return VXApp.updateNotification(notificationId, "PNOTIFY", sent ? ["processed", "sent"] : ["processed"])
         }
         catch (error) {
-            OLog.error(`vxapp.js clearPNotify unexpected error=${error}`)
+            OLog.error(`vxapp.js clearPNotify unexpected error=${OLog.errorError(error)}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error", variables: { error: error.toString() } }
         }
     },
@@ -93,7 +93,7 @@ VXApp = { ...VXApp, ...{
             return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js updateNotification unexpected error=${error}`)
+            OLog.error(`vxapp.js updateNotification unexpected error=${OLog.errorError(error)}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error", variables: { error: error.toString() } }
         }
     },
@@ -111,7 +111,7 @@ VXApp = { ...VXApp, ...{
     createEvent(eventType, domainId, eventData, variables, notificationScope) {
         try {
             const event = {}
-            event.domain = domainId || Util.getCurrentDomainId(Meteor.userId())
+            event.domain = domainId || Util.getCurrentDomainId()
             event.type = eventType
             event.eventData = eventData
             OLog.debug(`vxapp.js createEvent eventType=${event.type} domain=${event.domain} ` +
@@ -128,7 +128,7 @@ VXApp = { ...VXApp, ...{
             return eventId
         }
         catch (error) {
-            OLog.error(`vxapp.js createEvent error=${error}`)
+            OLog.error(`vxapp.js createEvent error=${OLog.errorError(error)}`)
             return
         }
     },
@@ -149,7 +149,9 @@ VXApp = { ...VXApp, ...{
             notificationScope = notificationScope || notificationObject.scope
             const selector = {}
             selector["profile.dateRetired"] = { $exists: false }
-            selector["profile.domains.domainId"] = domainId
+            if (notificationScope !== "SUPERADMIN") {
+                selector["profile.currentDomain"] = domainId
+            }
             if (notificationScope === "USER") {
                 selector._id = Meteor.userId()
             }
@@ -176,7 +178,7 @@ VXApp = { ...VXApp, ...{
             })
         }
         catch (error) {
-            OLog.error(`vxapp.js createNotification error=${error}`)
+            OLog.error(`vxapp.js createNotification error=${OLog.errorError(error)}`)
             return
         }
     },
@@ -265,7 +267,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "CLONE", key : "common.alert_record_cloned_success", variables: { name: Util.fetchDomainName(domainId) }, domainId: domainIdNew }
         }
         catch (error) {
-            OLog.error(`vxapp.js cloneUser unexpected error=${error}`)
+            OLog.error(`vxapp.js cloneUser unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -316,7 +318,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "CLONE", key : "common.alert_record_cloned_success", variables: { name: Util.fetchFullName(userId) }, userId: userIdNew }
         }
         catch (error) {
-            OLog.error(`vxapp.js cloneUser unexpected error=${error}`)
+            OLog.error(`vxapp.js cloneUser unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -431,17 +433,17 @@ VXApp = { ...VXApp, ...{
     retireDomain(domainId, comment) {
         try {
             if (!(_.isString(domainId) && (!comment || _.isString(comment)))) {
-                OLog.error("vxapp.js retireDomain parameter check failed domainId=" + domainId + " comment=" + comment)
+                OLog.error(`vxapp.js retireDomain parameter check failed domainId=${domainId} comment=${comment}`)
                 return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
             }
-            let domain = Domains.findOne(domainId)
+            const domain = Domains.findOne(domainId)
             if (!domain) {
-                OLog.error("vxapp.js retireDomain unable to find domainId=" + domainId)
+                OLog.error(`vxapp.js retireDomain unable to find domainId=${domainId}`)
                 return { success : false, icon : "BUG", key : "common.alert_transaction_fail_domain_not_found", variables : { domainId : domainId } }
             }
-            let tenantId = Util.getTenantId(domainId)
+            const tenantId = Util.getTenantId(domain)
             if (!tenantId) {
-                OLog.error("vxapp.js retireDomain unable to find tenantId for domainId=" + domainId)
+                OLog.error(`vxapp.js retireDomain unable to find tenantId for domainId=${domainId}`)
                 return { success : false, icon : "BUG", key : "common.alert_parameter_check_failed" }
             }
             if (!Meteor.userId()) {
@@ -460,12 +462,12 @@ VXApp = { ...VXApp, ...{
             if (comment) {
                 modifier.$set.comment = comment
             }
-            OLog.debug("vxapp.js retireDomain domainId=" + domainId + " modifier=" + OLog.debugString(modifier))
+            OLog.debug(`vxapp.js retireDomain domainId=${domainId} modifier=${OLog.debugString(modifier)}`)
             Domains.update(domainId, modifier)
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error("vxapp.js retireDomain unexpected error=" + error)
+            OLog.error(`vxapp.js retireDomain unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -543,7 +545,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js retireFunction unexpected error=${error}`)
+            OLog.error(`vxapp.js retireFunction unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -583,7 +585,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js retireReport unexpected error=${error}`)
+            OLog.error(`vxapp.js retireReport unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error",
                 variables : { error : error.toString() } }
         }
@@ -662,17 +664,17 @@ VXApp = { ...VXApp, ...{
      */
     createTenant() {
         try {
-            let userId = Meteor.userId()
-            OLog.debug("vxapp.js createTenant administrator email=" + Util.getUserEmail(userId))
-            let tenantId = VXApp.createTenantRecord( { userId: userId } )
-            let domainId = VXApp.createDomainRecord( { userId: userId, tenantId: tenantId } )
+            const userId = Meteor.userId()
+            OLog.debug(`vxapp.js createTenant administrator email=${Util.getUserEmail(userId)}`)
+            const tenantId = VXApp.createTenantRecord( { userId } )
+            const domainId = VXApp.createDomainRecord( { userId, tenantId } )
             VXApp.addUserToDomain(userId, domainId, false, true)
-            VXApp.createEvent("TENANT_CREATE", domainId, { tenantId : tenantId, adminId: userId },
+            VXApp.createEvent("TENANT_CREATE", domainId, { tenantId, adminId: userId },
                 { adminName : Util.fetchFullName(userId) } )
-            return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", tenantId: tenantId, domainId: domainId }
+            return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", tenantId, domainId }
         }
         catch (error) {
-            OLog.error("vxapp.js createTenant unexpected error=" + error)
+            OLog.error(`vxapp.js createTenant unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -688,21 +690,18 @@ VXApp = { ...VXApp, ...{
             OLog.error("vxapp.js createTenant no parameters were supplied")
             return
         }
-        OLog.debug("vxapp.js createTenant parameters=" + OLog.debugString(parameters))
-        let tenant = {}
+        OLog.debug(`vxapp.js createTenant parameters=${OLog.debugString(parameters)}`)
+        const tenant = {}
         if (parameters.userId) {
             tenant.userCreated = parameters.userId
             tenant.userModified = parameters.userId
             tenant.pocUserId = parameters.userId
+            tenant.functionAnchor = CX.SYSTEM_NAME.replace(/ /g, "_")
+            tenant.timezone = Util.getUserTimezone(parameters.userId)
             tenant.country = Util.getProfileValue("country", parameters.userId)
-            tenant.address1 = Util.getProfileValue("address1", parameters.userId)
-            tenant.address2 = Util.getProfileValue("address2", parameters.userId)
-            tenant.city = Util.getProfileValue("city", parameters.userId)
-            tenant.state = Util.getProfileValue("state", parameters.userId)
-            tenant.zip = Util.getProfileValue("zip", parameters.userId)
         }
-        let tenantId = Tenants.insert(tenant)
-        OLog.debug("vxapp.js createTenant created tenantId=" + tenantId + " tenant=" + OLog.debugString(tenant))
+        const tenantId = Tenants.insert(tenant)
+        OLog.debug(`vxapp.js createTenant created tenantId=${tenantId} tenant=${OLog.debugString(tenant)}`)
         return tenantId
     },
 
@@ -717,9 +716,8 @@ VXApp = { ...VXApp, ...{
             OLog.error("vxapp.js createDomainRecord no parameters were supplied")
             return
         }
-        // Use fetchTenantField to prevent default value:
-        let tenantName = Util.fetchTenantField(parameters.tenantId, "name")
-        let domain = {}
+        const tenantName = Util.fetchTenantField(parameters.tenantId, "name")
+        const domain = {}
         domain.tenant = parameters.tenantId
         if (tenantName) {
             domain.name = Util.i18n("common.value_default_domain_name_with_tenant", { tenantName: tenantName })
@@ -729,14 +727,12 @@ VXApp = { ...VXApp, ...{
             domain.name = Util.i18n("common.value_default_domain_name")
             domain.description = Util.i18n("common.value_default_domain_description")
         }
-        domain.base = true
-
         if (parameters.userId) {
             domain.userCreated = parameters.userId
             domain.userModified = parameters.userId
         }
         let domainId = Domains.insert(domain)
-        OLog.debug("vxapp.js createDomainRecord created domainId=" + domainId + " tenant=" + OLog.debugString(domain))
+        OLog.debug(`vxapp.js createDomainRecord created domainId=${domainId} domain=${OLog.debugString(domain)}`)
         return domainId
     },
 
@@ -908,7 +904,7 @@ VXApp = { ...VXApp, ...{
             OLog.debug(`vxapp.js http ${method} ${url} *executor*`)
             HTTP.call(method, url, request, (error, result) => {
                 if (error) {
-                    OLog.error(`vxapp.js http ${method} ${url} *reject* error=${error}`)
+                    OLog.error(`vxapp.js http ${method} ${url} *reject* error=${OLog.errorError(error)}`)
                     reject(error)
                     return
                 }
@@ -984,7 +980,7 @@ VXApp = { ...VXApp, ...{
             }
         }
         catch (error) {
-            OLog.error(`vxapp.js handleUpdate *fail* ${collection._name} domain=${Util.getCurrentDomainId(userId)} userId=${userId} fieldNames=${OLog.debugString(fieldNames)} error=${error}`)
+            OLog.error(`vxapp.js handleUpdate *fail* ${collection._name} domain=${Util.getCurrentDomainId(userId)} userId=${userId} fieldNames=${OLog.debugString(fieldNames)} error=${OLog.errorError(error)}`)
         }
     },
 
@@ -1103,7 +1099,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js undo unexpected error=${error}`)
+            OLog.error(`vxapp.js undo unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1173,7 +1169,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js redo unexpected error=${error}`)
+            OLog.error(`vxapp.js redo unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1203,7 +1199,7 @@ VXApp = { ...VXApp, ...{
             return VXApp[functionName](...args)
         }
         catch (error) {
-            OLog.error(`vxapp.js serverExecute unexpected error=${error}`)
+            OLog.error(`vxapp.js serverExecute unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1235,7 +1231,7 @@ VXApp = { ...VXApp, ...{
             return VXApp.executeFunction(domainId, name, ...args)
         }
         catch (error) {
-            OLog.error(`vxapp.js serverExecuteFunction unexpected error=${error}`)
+            OLog.error(`vxapp.js serverExecuteFunction unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1265,7 +1261,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, snapshotArray }
         }
         catch (error) {
-            OLog.error(`vxapp.js makeSnapshotArray unexpected error=${error}`)
+            OLog.error(`vxapp.js makeSnapshotArray unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1289,7 +1285,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, key: "common.alert_deployment_message_restore", variables : { targetDomainName, dateTime } }
         }
         catch (error) {
-            OLog.error(`vxapp.js deploymentMessage unexpected error=${error}`)
+            OLog.error(`vxapp.js deploymentMessage unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1330,7 +1326,7 @@ VXApp = { ...VXApp, ...{
             return { success : false, key: "common.alert_deployment_name_issues", variables : { issues } }
         }
         catch (error) {
-            OLog.error(`vxapp.js deploymentMessage unexpected error=${error}`)
+            OLog.error(`vxapp.js deploymentMessage unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1342,32 +1338,27 @@ VXApp = { ...VXApp, ...{
      * @return {object} Result object.
      */
     executeDeploymentAction(formObject) {
-
         try {
-
             if (!_.isObject(formObject)) {
                 OLog.error(`vxapp.js executeDeploymentAction parameter check failed formObject=${OLog.errorString(formObject)}`)
                 return { success : false, icon : "EYE", key : "common.alert_parameter_check_failed"}
             }
-
             const userId = Meteor.userId()
             if (!userId) {
                 OLog.error("vxapp.js executeDeploymentAction security check failed user is not logged in")
                 return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
             }
-
             if (!Util.isUserSuperAdmin(userId)) {
                 OLog.error("vxapp.js executeDeploymentAction security check failed only Super Administrators can execute deployment actions")
                 return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
             }
-
             switch (formObject.deploymentAction) {
             case "COPY" : return VXApp.executeDeploymentCopy(formObject, userId)
             case "RESTORE" : return VXApp.executeDeploymentRestore(formObject)
             }
         }
         catch (error) {
-            OLog.error(`vxapp.js executeDeploymentAction unexpected error=${error}`)
+            OLog.error(`vxapp.js executeDeploymentAction unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1380,10 +1371,9 @@ VXApp = { ...VXApp, ...{
      * @return {object} Result object.
      */
     executeDeploymentCopy(formObject, userId) {
-
         OLog.debug(`vxapp.js executeDeploymentCopy userId=${userId} deploymentAction=${formObject.deploymentAction} ` +
-            ` sourceDomain=${formObject.sourceDomain} targetDomain=${formObject.targetDomain}`)
-
+            `sourceTenant=${formObject.sourceTenant} sourceDomain=${formObject.sourceDomain} ` +
+            `targetTenant=${formObject.targetTenant} targetDomain=${formObject.targetDomain}`)
         let history = History.findOne( { domain: formObject.targetDomain } )
         if (!history) {
             history = {}
@@ -1392,14 +1382,12 @@ VXApp = { ...VXApp, ...{
             const historyId = History.insert(history)
             history = History.findOne(historyId)
         }
-
         const snapshot = {}
         snapshot.userId = userId
         snapshot.date = new Date()
         snapshot.sourceDomain = formObject.sourceDomain
         snapshot.targetDomain = formObject.targetDomain
         snapshot.collections = []
-
         const deploymentCollections = VXApp.getDeploymentCollections()
         _.each(deploymentCollections, collection => {
             const snapshotCollection = {}
@@ -1409,26 +1397,90 @@ VXApp = { ...VXApp, ...{
                 ` record count=${snapshotCollection.records.length}`)
             snapshot.collections.push(snapshotCollection)
         })
-
         history.snapshots.push(snapshot)
-
-        let result = History.direct.update(history._id, history, { bypassCollection2: true })
+        const result = History.direct.update(history._id, history, { bypassCollection2: true })
         if (result !== 1) {
             OLog.error(`vxapp.js executeDeploymentCopy deploymentAction=${formObject.deploymentAction} *fail* result=${result}`)
             return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_update_deployment_history" }
         }
-
-        _.each(deploymentCollections, collection => {
-            // Fetch retired target records to get them removed from target domain (see synchronizeCollection)
-            let sourceRecords = collection.find( { domain: formObject.sourceDomain, dateRetired : { $exists : false } } ).fetch()
-            let targetRecords = collection.find( { domain: formObject.targetDomain } ).fetch()
-            VXApp.synchronizeCollection(formObject, collection, sourceRecords, targetRecords)
-        })
-
-        OLog.debug(`vxapp.js executeDeploymentCopy *success* snapshot created in historyId=${history._id}`)
+        OLog.debug(`vxapp.js executeDeploymentCopy snapshot created in historyId=${history._id}`)
+        if (formObject.copyDeploymentCollections) {
+            OLog.debug("vxapp.js executeDeploymentCopy copying deployment collections")
+            _.each(deploymentCollections, collection => {
+                const fields = VXApp.deploymentCopyFields(collection)
+                // Fetch retired target records to get them removed from target domain (see synchronizeCollection)
+                const sourceRecords = collection.find( { domain: formObject.sourceDomain, dateRetired : { $exists : false } },
+                    { fields } ).fetch()
+                const targetRecords = collection.find( { domain: formObject.targetDomain } ).fetch()
+                VXApp.synchronizeCollection(formObject, collection, sourceRecords, targetRecords)
+            })
+        }
+        if (formObject.copyDomainSettings) {
+            OLog.debug("vxapp.js executeDeploymentCopy copying domain settings")
+            VXApp.copyDomainProperties(formObject.sourceDomain, formObject.targetDomain)
+        }
+        OLog.debug("vxapp.js executeDeploymentCopy *finished* copy operation completed")
         return { success : true, icon : "CLONE", key : "common.alert_deployment_copy_success",
             variables : { sourceDomainName : Util.fetchDomainName(formObject.sourceDomain),
                 targetDomainName : Util.fetchDomainName(formObject.targetDomain) } }
+    },
+
+    /**
+     * Given a collection, locate deployment copy fields specification if any and return them.
+     * This allows us to exclude fields from the copied records.
+     *
+     * @param {object} collection Collection being copied.
+     * @return {object} MongoDB fields specification if any.
+     */
+    deploymentCopyFields(collection) {
+        const codeObjects = Util.getCodeObjects("entityType")
+        const entityTypeObject = _.findWhere(codeObjects, { collection: collection._name })
+        OLog.debug(`vxapp.js deploymentCopyFields name=${collection._name} entityTypeObject=${OLog.debugString(entityTypeObject)}`)
+        const fields = entityTypeObject.deploymentCopyFields
+        if (fields) {
+            OLog.debug(`vxapp.js deploymentCopyFields collection name ${collection._name} fields=${OLog.debugString(fields)}`)
+        }
+        return fields
+    },
+
+    /**
+     * Copy domain properties from source domain to target domain.
+     *
+     * @param {string} sourceDomain Source domain ID.
+     * @param {string} targetDomain Target domain ID.
+     */
+    copyDomainProperties(sourceDomainId, targetDomainId) {
+        const sourceDomain = Domains.findOne(sourceDomainId)
+        const targetDomain = Domains.findOne(targetDomainId)
+        if (!(sourceDomain && targetDomain)) {
+            OLog.error("vxapp.js copyDomainProperties " +
+                `sourceDomainId=${sourceDomainId} ` +
+                `targetDomainId=${targetDomainId} ` +
+                "*failed* unable to fetch source or target domain record")
+            return
+        }
+        const modifier = {}
+        modifier.$set = { ...sourceDomain }
+        delete modifier.$set._id
+        delete modifier.$set.tenant
+        delete modifier.$set.dateCreated
+        delete modifier.$set.userCreated
+        delete modifier.$set.dateModified
+        delete modifier.$set.userModified
+        delete modifier.$set.name
+        delete modifier.$set.description
+        delete modifier.$set.subsystemStatus
+        delete modifier.$set.billingAddress1
+        delete modifier.$set.billingCity
+        delete modifier.$set.billingState
+        delete modifier.$set.billingZip
+        if (VXApp.doAppMutateModifierForDomainCopy) {
+            VXApp.doAppMutateModifierForDomainCopy(modifier)
+        }
+        OLog.debug("vxapp.js copyDomainProperties " +
+            `sourceDomainId=${sourceDomainId} ` +
+            `targetDomainId=${targetDomainId} modifier=${OLog.debugString(modifier)}`)
+        Domains.direct.update(targetDomainId, modifier)
     },
 
     /**
@@ -1438,17 +1490,14 @@ VXApp = { ...VXApp, ...{
      * @return {object} Result object.
      */
     executeDeploymentRestore(formObject) {
-
         let history = History.findOne( { domain: formObject.targetDomain } )
         if (!history) {
             OLog.error(`vxapp.js executeDeploymentRestore *fail* unable to find history of targetDomainName=${Util.fetchDomainName(formObject.targetDomain)}`)
             return { success : false, icon : "BUG", key : "common.alert_transaction_fail_unable_to_find_deployment_history",
                 variables: { targetDomainName : Util.fetchDomainName(formObject.targetDomain) } }
         }
-
         const snapshot = history.snapshots[formObject.snapshotIndex]
         const deploymentCollections = VXApp.getDeploymentCollections()
-
         _.each(snapshot.collections, snapshotCollection => {
             OLog.debug(`vxapp.js executeDeploymentRestore collectionName=${snapshotCollection.collectionName} record count=${snapshotCollection.records.length}`)
             const collection = _.find(deploymentCollections, deploymentCollection => deploymentCollection._name === snapshotCollection.collectionName)
@@ -1460,7 +1509,6 @@ VXApp = { ...VXApp, ...{
             let targetRecords = collection.find( { domain: formObject.targetDomain } ).fetch()
             VXApp.synchronizeCollection(formObject, collection, sourceRecords, targetRecords)
         })
-
         OLog.debug(`vxapp.js executeDeploymentRestore *success* historyId=${history._id} index=${formObject.snapshotIndex}`)
         return { success : true, icon : "HISTORY", key : "common.alert_deployment_restored_success",
             variables : { targetDomainName : Util.fetchDomainName(formObject.targetDomain), dateTime : Util.formatDateTime(snapshot.date) } }
@@ -1470,10 +1518,8 @@ VXApp = { ...VXApp, ...{
      * Synchronize source and target record sets making them match exactly.
      */
     synchronizeCollection(formObject, collection, sourceRecords, targetRecords) {
-
         OLog.debug(`vxapp.js synchronizeCollection collectionName=${collection._name} ` +
             `source count=${sourceRecords.length} target count=${targetRecords.length}`)
-
         _.each(sourceRecords, sourceRecord => {
             const targetRecord = _.findWhere(targetRecords, { name : sourceRecord.name })
             if (targetRecord) {
@@ -1501,7 +1547,6 @@ VXApp = { ...VXApp, ...{
                 collection.direct.insert(sourceRecord)
             }
         })
-
         _.each(targetRecords, targetRecord => {
             OLog.debug(`vxapp.js synchronizeCollection collectionName=${collection._name} removing name=${targetRecord.name} ` +
                 ` targetRecordId=${targetRecord._id}`)
@@ -1610,6 +1655,7 @@ VXApp = { ...VXApp, ...{
      * @param {string} functionId Function ID to deploy.
      */
     deployFunction(functionId) {
+        let adjustedFunction
         try {
             const newFunction = Functions.findOne(functionId)
             if (!newFunction) {
@@ -1635,7 +1681,7 @@ VXApp = { ...VXApp, ...{
                 OLog.debug(`vxapp.js deployFunction no value supplied implicitly deleting functionId=${functionId}`)
                 return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
             }
-            let adjustedFunction =
+            adjustedFunction =
                 VXApp.replaceFunctionAnchorReferences(newFunction.value, functionAnchor, fullyQualifiedFunctionAnchor)
             adjustedFunction = VXApp.augmentFunctionWithName(adjustedFunction, newFunction.name)
             const func = eval(`(${adjustedFunction})`)
@@ -1647,7 +1693,7 @@ VXApp = { ...VXApp, ...{
             return { success: true, icon: "ENVELOPE", key: "common.alert_transaction_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js deployFunction unexpected error=${error}`)
+            OLog.error(`vxapp.js deployFunction unexpected error=${OLog.errorError(error)} adjustedFunction=${adjustedFunction}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1684,6 +1730,7 @@ VXApp = { ...VXApp, ...{
         }
         return value
     },
+
     /**
      * Execute arbitrary user-written function on server.
      *
@@ -1701,7 +1748,7 @@ VXApp = { ...VXApp, ...{
                 `qualifiedFunctionAnchor=${qualifiedFunctionAnchor}`)
             return false
         }
-        OLog.debug(`vxapp.js executeFunction domainId=${domainId} name=${name} *execute*`)
+        // OLog.debug(`vxapp.js executeFunction domainId=${domainId} name=${name} *execute*`)
         return FunctionAnchors[qualifiedFunctionAnchor][name](...args)
     },
 
@@ -1722,7 +1769,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "ENVELOPE", key : "common.alert_transaction_success", secret }
         }
         catch (error) {
-            OLog.error(`vxapp.js generateSecret unexpected error=${error}`)
+            OLog.error(`vxapp.js generateSecret unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1760,7 +1807,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, icon : "CHECK", key : "common.alert_valid_2fa_token" }
         }
         catch (error) {
-            OLog.error(`vxapp.js generateSecret unexpected error=${error}`)
+            OLog.error(`vxapp.js generateSecret unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1792,7 +1839,7 @@ VXApp = { ...VXApp, ...{
             return { success : true, type : "INFO", icon : "RETIRE", key : "common.alert_2fa_disabled" }
         }
         catch (error) {
-            OLog.error(`vxapp.js disableTwoFactor unexpected error=${error}`)
+            OLog.error(`vxapp.js disableTwoFactor unexpected error=${OLog.errorError(error)}`)
             return { success : false, icon : "BUG", key : "common.alert_unexpected_error", variables : { error : error.toString() } }
         }
     },
@@ -1832,7 +1879,7 @@ VXApp = { ...VXApp, ...{
             return { success: true, icon: "CHECK", key: "common.alert_transaction_success", dataUrl: dataUrl }
         }
         catch (error) {
-            OLog.error(`vxapp.js toDataUrl unexpected error=${error}`)
+            OLog.error(`vxapp.js toDataUrl unexpected error=${OLog.errorError(error)}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString() } }
         }
@@ -1855,15 +1902,29 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
+     * Return an array of all domain-partitioned collections.
+     *
+     * @return {array} Array of domain-partitioned collections.
+     */
+    getDomainCollections() {
+        let collections = [ Events, Functions, Transactions, Notifications, Reports, Templates ]
+        if (VXApp.getAppDomainCollections) {
+            collections = [ ...collections, ...VXApp.getAppDomainCollections() ]
+        }
+        return collections
+    },
+
+    /**
      * Return the deployment collections.
      *
      * @return {array} Array of deployment collections.
      */
     getDeploymentCollections() {
+        let collections = [ Functions ]
         if (VXApp.getAppDeploymentCollections) {
-            return VXApp.getAppDeploymentCollections()
+            collections = [ ...collections, ...VXApp.getAppDeploymentCollections() ]
         }
-        return [ Functions ]
+        return collections
     },
 
     /**
@@ -1904,7 +1965,7 @@ VXApp = { ...VXApp, ...{
             return { success: true, icon: "PLANE", key: "common.alert_send_report_email_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js sendReportEmail unexpected error=${error} stack=${error.stack}`)
+            OLog.error(`vxapp.js sendReportEmail unexpected error=${OLog.errorError(error)} stack=${error.stack}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString(), stack: error.stack } }
         }
@@ -1970,7 +2031,7 @@ VXApp = { ...VXApp, ...{
             return { success: true, icon: "PLANE", key: "common.alert_send_report_email_success" }
         }
         catch (error) {
-            OLog.error(`vxapp.js sendReportEmail unexpected error=${error} stack=${error.stack}`)
+            OLog.error(`vxapp.js sendReportEmail unexpected error=${OLog.errorError(error)} stack=${error.stack}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString(), stack: error.stack } }
         }
@@ -2029,7 +2090,7 @@ VXApp = { ...VXApp, ...{
             return { success: true, icon: "PLANE", key: "common.alert_transaction_success", reportData }
         }
         catch (error) {
-            OLog.error(`vxapp.js fetchReportData unexpected error=${error}`)
+            OLog.error(`vxapp.js fetchReportData unexpected error=${OLog.errorError(error)}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString() } }
         }
@@ -2063,7 +2124,7 @@ VXApp = { ...VXApp, ...{
             return { success: true, icon: "PLANE", key: "common.alert_transaction_success", array }
         }
         catch (error) {
-            OLog.error(`vxapp.js fetchReportSpreadsheet unexpected error=${error}`)
+            OLog.error(`vxapp.js fetchReportSpreadsheet unexpected error=${OLog.errorError(error)}`)
             return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
                 variables: { error: error.toString() } }
         }
@@ -2089,8 +2150,11 @@ VXApp = { ...VXApp, ...{
         reportData.headings?.forEach(heading => {
             const definition = VXApp.findDefinition(Meta[report.entityType], heading.metadataPath)
             const column = {}
-            column.key =  heading.metadataPath
+            column.metadataPath =  heading.metadataPath
             column.text = heading.text
+            if (definition.key) {
+                column.key = definition.key
+            }
             column.alignment = { horizontal: heading.alignment }
             column.numFmt = VXApp.spreadsheetFormat(definition)
             spreadsheetParameters.columns.push(column)
@@ -2129,13 +2193,19 @@ VXApp = { ...VXApp, ...{
         OLog.debug(`vxapp.js makeWorkbook worksheetName=${worksheetName}`)
         const worksheet = workbook.addWorksheet(VXApp.formatWorksheetName(worksheetName))
         worksheet.columns = spreadsheetParameters.columns.map(column => {
-            return { header: column.text, key: column.key,
+            return { header: column.text, key: column.metadataPath,
                 style : { alignment : column.alignment, numFmt: column.numFmt } }
         })
-        worksheet.views = [ { zoomScale : spreadsheetParameters.zoomScale } ]
-        for (let columnIndex = 1; columnIndex <= spreadsheetParameters.columns.length; columnIndex++) {
-            const cellName = `${Util.columnToLetter(columnIndex)}1`
-            worksheet.getCell(cellName).font = { bold: true }
+        worksheet.views = [ { zoomScale : spreadsheetParameters.zoomScale, state: "frozen", ySplit: 1 } ]
+        for (let columnIndex = 0; columnIndex < spreadsheetParameters.columns.length; columnIndex++) {
+            const column = spreadsheetParameters.columns[columnIndex]
+            const cellName = `${Util.columnToLetter(columnIndex + 1)}1`
+            const font = {}
+            font.bold = true
+            if (column.key) {
+                font.color = { argb: "FFD9534F" }
+            }
+            worksheet.getCell(cellName).font = font
         }
         for (let rowIndex = 0; rowIndex < reportData.rows.length; rowIndex++) {
             const row = reportData.rows[rowIndex]
@@ -2238,5 +2308,68 @@ VXApp = { ...VXApp, ...{
             return definition.dateFormat.toLowerCase()
         }
         return null
+    },
+
+    /**
+     * Completely delete a tenant and all of its domains and records.
+     *
+     * @param {object} tenantId Tenant ID to delete.
+     */
+    deleteTenant(tenantId) {
+        try {
+            if (!_.isString(tenantId)) {
+                OLog.error(`vxapp.js deleteTenant parameter check failed tenantId=${tenantId}`)
+                return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
+            }
+            if (!Meteor.userId()) {
+                OLog.error("vxapp.js deleteTenant security check failed user is not logged in")
+                return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
+            }
+            if (!Util.isUserSuperAdmin()) {
+                OLog.error("vxapp.js deleteTenant security check failed invoking user is not super administrator")
+                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
+            }
+            Domains.find({ tenant: tenantId }).forEach(domain => {
+                const collections = VXApp.getDomainCollections()
+                collections.forEach(collection => {
+                    OLog.warn(`vxapp.js deleteTenant tenantId=${tenantId} domainId=${domain._id} ${collection._name} *remove*`)
+                    collection.remove({domain: domain._id})
+                })
+                Domains.remove(domain._id)
+            })
+            Tenants.remove(tenantId)
+            return { success: true, icon: "PLANE", key: "common.alert_transaction_success" }
+        }
+        catch (error) {
+            OLog.error(`vxapp.js deleteTenant unexpected error=${OLog.errorError(error)}`)
+            return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
+                variables: { error: error.toString() } }
+        }
+    },
+
+    fixUserTenants() {
+        Meteor.users.find({"profile.dateRetired":{$exists: false}}).forEach(user => {
+            const tenants = []
+            user.profile.domains.forEach(userDomainObject => {
+                const domain = Domains.findOne(userDomainObject.domainId)
+                const userTenantObject = _.findWhere(tenants, { tenantId : domain.tenant })
+                if (!userTenantObject) {
+                    const userTenantObjectNew = {}
+                    userTenantObjectNew.tenantId = domain.tenant
+                    userTenantObjectNew.roles = []
+                    tenants.push(userTenantObjectNew)
+                }
+            })
+            const modifier = {}
+            modifier.$set = {}
+            modifier.$set["profile.tenants"] = tenants
+            OLog.debug(`vxapp.js fixUserTenants for user ${Util.fetchFullName(user._id)} modifier=${OLog.debugString(modifier)}`)
+            Meteor.users.update(user._id, modifier, error => {
+                if (error) {
+                    OLog.error(`vxapp.js fixUserTenants error returned from MongoDB update=${OLog.errorError(error)}`)
+                    return
+                }
+            })
+        })
     }
 }}

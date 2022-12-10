@@ -112,6 +112,6 @@ export default class IOSButtonBar extends Component {
 
     className() {
         return "flexi-fixed flex-direction-row flex-justify-space-between " +
-            "not-selectable hidden-print lock-exiting-component"
+            "hidden-print lock-exiting-component"
     }
 }

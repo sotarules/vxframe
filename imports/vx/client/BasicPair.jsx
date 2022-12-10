@@ -18,7 +18,7 @@ export default class BasicPair extends Component {
 
     render() {
         return (
-            <div id={this.props.id} className="animation-panel not-selectable flexi-grow">
+            <div id={this.props.id} className="animation-panel flexi-grow">
                 <IOSButtonBarContainer/>
                 <div className="row conserve-space fill">
                     <div className={this.props.leftColumnClasses}>

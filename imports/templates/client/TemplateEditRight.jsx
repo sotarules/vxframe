@@ -59,7 +59,7 @@ export default class TemplateEditRight extends Component {
                 className="flexi-grow lock-exiting-component">
                 {this.props.template ? (
                     <RightPanel>
-                        <RightHeader iconUrl={CX.CLOUDFILES_PREFIX + "/img/system/template5.png"}
+                        <RightHeader iconUrl={`${CX.CLOUDFILES_PREFIX}/img/system/template5.png`}
                             name={this.props.template.name}
                             description={this.props.template.description}
                             message={this.props.template.message}

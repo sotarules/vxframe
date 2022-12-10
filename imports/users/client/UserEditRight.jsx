@@ -13,8 +13,9 @@ export default class UserEditRight extends Component {
 
     static propTypes = {
         id : PropTypes.string.isRequired,
+        domains : PropTypes.array.isRequired,
         user : PropTypes.object,
-        domains : PropTypes.array,
+        userDomains : PropTypes.array,
         domainRolesChecked : PropTypes.object,
         currentDomainId : PropTypes.string
     }
@@ -129,7 +130,7 @@ export default class UserEditRight extends Component {
                         </RightHeader>
                         <EntityListHeader label={Util.i18n("user_domain.label_domains_header")}/>
                         <DomainEntityList id="user-edit-right-list"
-                            domains={this.props.domains}
+                            domains={this.props.userDomains}
                             currentDomainId={this.props.currentDomainId}
                             rightPanel={true}
                             selectable={true}
@@ -145,7 +146,7 @@ export default class UserEditRight extends Component {
                                 className: "fa-times",
                                 onClick: this.handleClickDelete.bind(this)
                             }]}
-                            onDrop={this.handleDropUserDomain.bind(this)}/>
+                            onDrop={this.handleDropUserDomains.bind(this)}/>
                     </RightPanel>
                 ) : (
                     <EmptyRightPanel emptyMessage={Util.i18n("common.empty_edit_record_missing")}/>
@@ -200,8 +201,8 @@ export default class UserEditRight extends Component {
         }
     }
 
-    handleDropUserDomain(dropInfo) {
-        VXApp.handleDropUserDomain(dropInfo, this.props.user)
+    handleDropUserDomains(dropInfo) {
+        VXApp.handleDropUserDomains(dropInfo, this.props.user, this.props.domains)
     }
 
     updateEmail(component, strippedValue) {

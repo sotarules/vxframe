@@ -9,7 +9,7 @@ RecordRemover = {
             RecordRemover.removeRecordsNotifications()
         }
         catch (error) {
-            OLog.error(`recordremover.js (vx) removeAllRecords unexpected error=${error}`)
+            OLog.error(`recordremover.js (vx) removeAllRecords unexpected error=${OLog.errorError(error)}`)
             return
         }
     },

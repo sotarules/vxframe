@@ -6,6 +6,7 @@ import ModalBody from "/imports/vx/client/ModalBody"
 import ModalFooterConfirm from "/imports/vx/client/ModalFooterConfirm"
 import VXForm from "/imports/vx/client/VXForm"
 import VXSelect from "/imports/vx/client/VXSelect"
+import VXCheck from "/imports/vx/client/VXCheck"
 import VXTextArea from "/imports/vx/client/VXTextArea"
 import VXAnchor from "/imports/vx/client/VXAnchor"
 
@@ -23,8 +24,12 @@ export default class DeploymentModal extends Component {
         super(props)
         this.state = {
             deploymentAction : "",
+            sourceTenant : Util.getCurrentTenantId(),
             sourceDomain : "",
+            targetTenant : Util.getCurrentTenantId(),
             targetDomain : "",
+            copyDomainSettings : false,
+            copyDeploymentCollections : false,
             snapshotIndex : "",
             deploymentMessage : "",
             issuesMessage : "",
@@ -66,22 +71,46 @@ export default class DeploymentModal extends Component {
                     </div>
                 </div>
                 {this.state.deploymentAction === "COPY" &&
-                    <div className="row">
-                        <div className="col-xs-12">
-                            <VXSelect id="sourceDomain"
-                                codeArray={UX.addBlankSelection(VXApp.makeDomainArray(true))}
-                                label={Util.i18n("common.label_source_domain")}
-                                tooltip={Util.i18n("common.tooltip_source_domain")}
-                                required={true}
-                                value={this.state.sourceDomain}
-                                onChange={this.handleChangeSourceDomain.bind(this)}/>
+                    <>
+                        <div className="row">
+                            <div className="col-xs-12">
+                                <VXSelect id="sourceTenant"
+                                    codeArray={UX.addBlankSelection(this.makeTenantArray())}
+                                    label={Util.i18n("common.label_source_tenant")}
+                                    tooltip={Util.i18n("common.tooltip_source_tenant")}
+                                    required={true}
+                                    value={this.state.sourceTenant}
+                                    onChange={this.handleChangeSourceTenant.bind(this)}/>
+                            </div>
                         </div>
-                    </div>
+                        <div className="row">
+                            <div className="col-xs-12">
+                                <VXSelect id="sourceDomain"
+                                    codeArray={UX.addBlankSelection(this.makeDomainArray(this.state.sourceTenant))}
+                                    label={Util.i18n("common.label_source_domain")}
+                                    tooltip={Util.i18n("common.tooltip_source_domain")}
+                                    required={true}
+                                    value={this.state.sourceDomain}
+                                    onChange={this.handleChangeSourceDomain.bind(this)}/>
+                            </div>
+                        </div>
+                    </>
                 }
                 <div className="row">
                     <div className="col-xs-12">
+                        <VXSelect id="targetTenant"
+                            codeArray={UX.addBlankSelection(this.makeTenantArray())}
+                            label={Util.i18n("common.label_target_tenant")}
+                            tooltip={Util.i18n("common.tooltip_target_tenant")}
+                            required={true}
+                            value={this.state.targetTenant}
+                            onChange={this.handleChangeTargetTenant.bind(this)}/>
+                    </div>
+                </div>
+                <div className="row">
+                    <div className="col-xs-12">
                         <VXSelect id="targetDomain"
-                            codeArray={UX.addBlankSelection(VXApp.makeDomainArray(true))}
+                            codeArray={UX.addBlankSelection(this.makeDomainArray(this.state.targetTenant))}
                             label={Util.i18n("common.label_target_domain")}
                             tooltip={Util.i18n("common.tooltip_target_domain")}
                             required={true}
@@ -89,6 +118,22 @@ export default class DeploymentModal extends Component {
                             onChange={this.handleChangeTargetDomain.bind(this)}/>
                     </div>
                 </div>
+                {this.state.deploymentAction === "COPY" &&
+                    <>
+                        <div className="row margin-top-10">
+                            <div className="col-sm-6">
+                                <VXCheck id="copyDeploymentCollections"
+                                    label={Util.i18n("common.label_copy_deployment_collections")}
+                                    checked={this.state.copyDeploymentCollections}/>
+                            </div>
+                            <div className="col-sm-6">
+                                <VXCheck id="copyDomainSettings"
+                                    label={Util.i18n("common.label_copy_domain_settings")}
+                                    checked={this.state.copyDomainSettings}/>
+                            </div>
+                        </div>
+                    </>
+                }
                 {this.state.deploymentAction === "COPY" && this.state.issuesMessage &&
                     <div className="row">
                         <div className="col-xs-12">
@@ -130,10 +175,28 @@ export default class DeploymentModal extends Component {
         )
     }
 
+    makeTenantArray() {
+        if (!Util.isUserSuperAdmin()) {
+            const tenantId = Util.getCurrentTenantId()
+            const tenantName = Util.fetchTenantName(tenantId)
+            return [ { code: tenantId, localized: tenantName } ]
+        }
+        return VXApp.makeTenantArray()
+    }
+
+    makeDomainArray(tenantId) {
+        if (!Util.isUserSuperAdmin()) {
+            return VXApp.makeDomainArray()
+        }
+        return VXApp.makeDomainArrayForTenant(tenantId)
+    }
+
     handleChangeDeploymentAction(event, deploymentAction) {
         console.log(`handleChangeDeploymentAction state=${JSON.stringify(this.state)}`)
         this.setState({ deploymentAction,
+            sourceTenant : Util.getCurrentTenantId(),
             sourceDomain : "",
+            targetTenant : Util.getCurrentTenantId(),
             targetDomain : "",
             snapshotIndex : "",
             deploymentMessage : "",
@@ -142,8 +205,16 @@ export default class DeploymentModal extends Component {
         })
     }
 
+    handleChangeSourceTenant(event, sourceTenant) {
+        this.setState({ sourceTenant, sourceDomain: "" })
+    }
+
     handleChangeSourceDomain(event, sourceDomain) {
         this.setState({ sourceDomain })
+    }
+
+    handleChangeTargetTenant(event, targetTenant) {
+        this.setState({ targetTenant, targetDomain: "" })
     }
 
     async handleChangeTargetDomain(event, targetDomain) {
