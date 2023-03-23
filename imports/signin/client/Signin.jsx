@@ -100,7 +100,7 @@ export default class Signin extends Component {
     }
 
     proceedToSignin(laddaCallback) {
-        VXApp.handleSignin(this.state, (error, result) => {
+        VXApp.handleSignin(this.state, laddaCallback, (error, result) => {
             if (error) {
                 if (error.error === "two-factor-required") {
                     UX.clearFade()
