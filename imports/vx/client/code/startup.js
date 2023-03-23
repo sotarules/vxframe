@@ -3,8 +3,6 @@ import {createBrowserHistory} from "history"
 import {createRoot} from "react-dom/client"
 import {setExemptRoute, setRoutePath, setWideRoute} from "/imports/vx/client/code/actions"
 
-// This makes it possible to debug even if the user hasn't yet logged in (very helpful for debugging hyperlinks
-// such as sign-off actions):
 if (Meteor.absoluteUrl().indexOf("sota.ddns.net") >= 0) {
     console.log(`startup.js development absoluteUrl=${Meteor.absoluteUrl()} so client log level will be DEBUG`)
     OLog.setLogLevel(5)
@@ -29,17 +27,18 @@ if (VXApp.isLogoutOnBrowserClose()) {
 const doRoute = () => {
     console.log(`startup.js doRoute [${Util.routePath()}] *init*`)
     UX.lockExitingComponents(true)
-    const routePath = Util.routePath()
-    if (routePath !== Store.getState().routePath) {
-        Store.dispatch(setRoutePath(routePath))
+    const routePathOld = Store.getState().routePath
+    const routePathNew = Util.routePath()
+    if (routePathNew !== routePathOld) {
+        Store.dispatch(setRoutePath(routePathNew))
     }
-    const valid = Routes.isValidRoute(routePath)
+    const valid = Routes.isValidRoute(routePathNew)
     if (!valid) {
         console.log(`startup.js doRoute [${Util.routePath()}] *invalid* no subscriptions shall be performed`)
         VXApp.routeAfter()
         return
     }
-    const wideRoute = VXApp.isWideRoute(routePath)
+    const wideRoute = VXApp.isWideRoute(routePathNew)
     if (wideRoute !== Store.getState().wideRoute) {
         Store.dispatch(setWideRoute(wideRoute))
     }
@@ -64,26 +63,20 @@ const doRoute = () => {
 }
 
 Meteor.startup(() => {
-    // Default loading to hold off any rendering until subscriptions are loaded (see below).
     UX.setLoading(true)
     BrowserHistory = createBrowserHistory()
     BrowserHistory.listen((location, action) => {
-        console.log(`startup.js browser history listen URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
+        OLog.warn(`startup.js browser history listen URL is ${location.pathname}${location.search}${location.hash} action ${action}`)
         doRoute()
     })
-
     UX["react-root"] = createRoot(document.getElementById("react-root"))
     UX["react-root"].render(Routes.renderRoutes())
-    // Compute initial slide mode based on device characteristics:
-    UX.updateSlideMode()
+    UX.handleResize()
     PNotify.prototype.options.styling = "fontawesome"
-    // Dynamic changes in screen size can change the slide-mode state of the system:
     $(window).on("resize", () => {
-        UX.updateSlideMode()
+        UX.handleResize()
     })
-    // Anti-rubber-band logic:
     UX.noRubberBand()
-    // Capture and log the client version:
     Accounts.onLogin(() => {
         console.log("startup.js Accounts onLogin *fire*")
         Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, React.version, error => {
@@ -114,7 +107,6 @@ Meteor.startup(() => {
             }, 60000)
         })
     })
-    // Use React-friendly FastClick:
     initReactFastclick()
     doRoute()
 })

@@ -87,6 +87,11 @@ Meteor.i18nMessages.common = {
         rx : "$Retire Report$"
     },
 
+    label_retire_warning : {
+        en : "Are you sure you want to permanently delete {{subtitle}}?",
+        rx : "$Are you sure you want to permanently delete {{subtitle}}?$"
+    },
+
     label_enter_comment : {
         en : "Enter Comment (optional)",
         rx : "$Enter Comment (optional)$"

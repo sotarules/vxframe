@@ -2,6 +2,7 @@ import {get, set} from "lodash"
 import UploadModal from "/imports/vx/client/UploadModal"
 import allReducersVx from "/imports/vx/client/code/reducers/allReducers"
 import ReportSendModal from "/imports/reports/client/ReportSendModal"
+import TwoFactorModal from "/imports/vx/client/TwoFactorModal"
 import {
     setCurrentDomainId,
     setCurrentLocale,
@@ -32,16 +33,52 @@ import {
     setSubscriptionParameters
 } from "/imports/vx/client/code/actions"
 
+
 VXApp = { ...VXApp, ...{
 
     /**
-     * Handle normal signin passing email, password and potentially 2FA token to Meteor login subsystem.
+     * Handle normal signin. If mandatory 2FA is enabled, we must ensure that 2FA is set up
+     * before we login. If 2FA is opt-in, we can just proceeed to call login.
+     *
+     * @param {object} state React state of sign-in component.
+     * @param {function} laddaCallback Callback to stop Ladda spinner.
+     * @param {function} signInCallback Callback bearing either error or results.
+     */
+    async handleSignin(state, laddaCallback, signInCallback) {
+        if (!CX.MANDATORY_2FA) {
+            VXApp.callLogin(state, signInCallback)
+            return
+        }
+        const { email, password } = state
+        OLog.debug(`vxapp.handleSignin mandatory 2FA checking enablement of email=${email}`)
+        const result1 = await UX.call("isTwoFactorEnabled", email, password)
+        if (result1.error) {
+            signInCallback(result1.error)
+            return
+        }
+        OLog.debug(`vxapp.handleSignin mandatory 2FA email=${email} twoFactorEnabled=${result1.twoFactorEnabled}`)
+        if (result1.twoFactorEnabled) {
+            VXApp.callLogin(state, signInCallback)
+            return
+        }
+        const result2 = await UX.call("generateSecret")
+        if (!result2.success) {
+            UX.notify(result2)
+            return
+        }
+        laddaCallback()
+        UX.showModal(<TwoFactorModal email={email} password={password}
+            secret={result2.secret} signInCallback={signInCallback} />)
+    },
+
+    /**
+     * Call accounts login method passing email, password and potentially 2FA token to Meteor login subsystem.
      * This is a heavily-customized approach using a very poorly-documented API.
      *
      * @param {object} state React state of sign-in component.
-     * @param {function} callback Callback bearing either error or results.
+     * @param {function} signInCallback Callback bearing either error or results.
      */
-    handleSignin(state, callback) {
+    callLogin(state, signInCallback) {
         const { email, password, token, doNotAskAgain } = state
         Accounts.callLoginMethod({
             methodArguments: [{
@@ -56,16 +93,18 @@ VXApp = { ...VXApp, ...{
                     return
                 }
                 if (doNotAskAgain) {
-                    OLog.debug(`vxapp.handleSignin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *setting* local storage`)
+                    OLog.debug(`vxapp.js callLogin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *setting* local storage`)
                     UX.setLocalStorageWithExpiry(CX.LOCAL_STORAGE_TWO_FACTOR_HASH_KEY, result.twoFactorHash,
                         CX.LOCAL_STORAGE_TWO_FACTOR_HASH_TTL)
                 }
                 else {
-                    OLog.debug(`vxapp.handleSignin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *removing* local storage`)
+                    OLog.debug(`vxapp.js callLogin email=${email} token=${token} doNotAskAgain=${doNotAskAgain} *removing* local storage`)
                     UX.removeLocalStorageWithExpiry(CX.LOCAL_STORAGE_TWO_FACTOR_HASH_KEY)
                 }
             },
-            userCallback: callback
+            userCallback: (error, result) => {
+                signInCallback(error, result)
+            }
         })
     },
 
@@ -275,6 +314,15 @@ VXApp = { ...VXApp, ...{
      * @return {boolean} True if system is in slide mode.
      */
     isSlideMode() {
+        return $(window).width() <= 1200
+    },
+
+    /**
+     * Return true if system if the responsive grid is collapsed.
+     *
+     * @return {boolean} True if responsive gride is collapsed.
+     */
+    isGridCollapsed() {
         return $(window).width() < 768
     },
 
@@ -303,7 +351,7 @@ VXApp = { ...VXApp, ...{
      * @param {function} Mandatory callback invoked when subscriptions are ready.
      */
     doGlobalSubscriptions(callback) {
-        let result = VXApp.getSubscriptionParameters()
+        const result = VXApp.getSubscriptionParameters()
         if (result.success) {
             OLog.debug("vxapp.js doGlobalSubscriptions subscriptionParameters exist and will be used")
             VXApp.doGlobalSubscriptionsContinued(result.subscriptionParameters, callback)

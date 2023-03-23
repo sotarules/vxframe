@@ -29,7 +29,7 @@ export default class RetireModal extends Component {
         return (
             <VXModal id="retire-modal" width="350px">
                 <ModalHeaderSimple title={this.props.title}
-                    subtitle={this.props.subtitle}
+                    subtitle={this.subtitle()}
                     centerTitle={true}
                     iconClass="fa fa-times"/>
                 {this.props.comment &&
@@ -48,6 +48,10 @@ export default class RetireModal extends Component {
                 <ModalFooterConfirm onClickConfirm={this.handleClickConfirm.bind(this)}/>
             </VXModal>
         )
+    }
+
+    subtitle() {
+        return this.props.subtitle ? Util.i18n("common.label_retire_warning", { subtitle: this.props.subtitle }) : null
     }
 
     handleClickConfirm(callback) {

@@ -38,7 +38,6 @@ export default class VXTextEditor extends Component {
             ["color", ["color"]],
             ["style", ["bold", "italic", "underline"]],
             ["para", ["ul", "ol", "paragraph"]],
-            ["insert", ["table", "hr"]],
             ["codeview", ["codeview"]],
             ["undo", ["undo", "redo"]]
         ],
@@ -71,6 +70,7 @@ export default class VXTextEditor extends Component {
                 onInit: () => {
                     $(".note-editor").addClass("needsclick")
                     $(".note-editable").addClass("needsclick")
+                    $(".note-editable").addClass("scroll-momentum")
                     $(".note-current-color-button").data("value", { backColor: "inherit" } )
                     $(".note-recent-color").css("background-color", "inherit")
                     if (this.props.disableResizeEditor) {
@@ -96,8 +96,6 @@ export default class VXTextEditor extends Component {
     UNSAFE_componentWillReceiveProps(newProps) {
         if (UX.isFormReceiveProps(this) && newProps.hasOwnProperty("value")) {
             if (this.state.value !== newProps.value) {
-                OLog.warn(`VXTextEditor.jsx UNSAFE_componentWillReceiveProps ${this.props.id} ` +
-                    `this.state.value=${this.state.value} newProps.value=${newProps.value}`)
                 this.setState({ value: newProps.value }, () => {
                     $(`#${this.props.id}`).summernote("code", newProps.value ? newProps.value : null)
                 })

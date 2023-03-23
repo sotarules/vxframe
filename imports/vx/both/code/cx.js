@@ -1,6 +1,7 @@
 CX.SYSTEM_NAME = "VXFrame"
 CX.SYSTEM_URL = "https://app.vxframe.com"
 CX.SYSTEM_EMAIL = "admin@sotaenterprises.com"
+CX.MANDATORY_2FA = false
 
 CX.LOCAL_STORAGE_TWO_FACTOR_HASH_KEY = "VXFrame.twoFactorHash"
 CX.LOCAL_STORAGE_TWO_FACTOR_HASH_TTL = 30 * 24 * 60 * 60 * 1000

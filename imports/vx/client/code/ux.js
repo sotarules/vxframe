@@ -367,33 +367,6 @@ UX = {
     },
 
     /**
-     * Determine whether Bootstrap grid has collapsed into a single column.
-     *
-     * @return {boolean} True if grid is collapsed (small device).
-     */
-    isGridCollapsed() {
-        return $(window).width() < 768
-    },
-
-    /**
-     * Determine whether this is a phone.
-     *
-     * @return {boolean} True if device is a phone.
-     */
-    isPhone() {
-        return $(window).width() <= 480
-    },
-
-    /**
-     * Determine whether this is a pad (portrait).
-     *
-     * @return {boolean} True if device is a pad (portrait).
-     */
-    isPad() {
-        return $(window).width() > 480 && $(window).width() <= 768
-    },
-
-    /**
      * A problem with Firefox and IE: lists of items that have tabindex=0 set will not
      * automatically receive focus when clicked.  This doesn't seem to affect Chrome or Safari, including
      * iOS.  As a work-around, when an element is clicked, ensure that the element is
@@ -744,22 +717,28 @@ UX = {
     },
 
     /**
-     * Update redux slide mode state if necessary.
+     * Handler for window resize, update redux.
      */
-    updateSlideMode() {
+    handleResize() {
         const iosState = { ...Store.getState().iosState }
         const slideModeOld = iosState.slideMode
         const slideModeNew = VXApp.isSlideMode()
-        if (slideModeNew === slideModeOld) {
-            return
+        if (slideModeNew !== slideModeOld) {
+            OLog.debug(`ux.js handleResize *changed* slideModeOld=${slideModeOld} slideModeNew=${slideModeNew}`)
+            UX.mutatePanelMap(iosState, Util.routePath(), "LEFT")
+            const slidePair = UX.findComponentById("vx-slide-pair")
+            if (slidePair) {
+                UX.setAnimation("vx-slide-pair", null)
+            }
+            iosState.slideMode = slideModeNew
+            Store.dispatch(setIosState(iosState))
         }
-        OLog.debug(`ux.js updateSlideMode *changed* slideModeOld=${slideModeOld} slideModeNew=${slideModeNew}`)
-        UX.mutatePanelMap(iosState, Util.routePath(), "LEFT")
-        iosState.slideMode = slideModeNew
-        Store.dispatch(setIosState(iosState))
-        const slidePair = UX.findComponentById("vx-slide-pair")
-        if (slidePair) {
-            UX.setAnimation("vx-slide-pair", null)
+        const gridCollapsedOld = iosState.gridCollapsed
+        const gridCollapsedNew = VXApp.isGridCollapsed()
+        if (gridCollapsedNew !== gridCollapsedOld) {
+            OLog.debug(`ux.js handleResize *changed* gridCollapsedOld=${gridCollapsedOld} gridCollapsedNew=${gridCollapsedNew}`)
+            iosState.gridCollapsed = gridCollapsedNew
+            Store.dispatch(setIosState(iosState))
         }
     },
 
@@ -770,6 +749,15 @@ UX = {
      */
     isSlideMode() {
         return Store.getState().iosState.slideMode === true
+    },
+
+    /**
+     * Determine whether the bootstrap grid is collapsed.
+     *
+     * @return {boolean} True if the bootstrap grid is collapsed.
+     */
+    isGridCollapsed() {
+        return Store.getState().iosState.gridCollapsed === true
     },
 
     /**
@@ -2604,7 +2592,7 @@ UX = {
      * @return {string} Expand-in class for new collapse sections.
      */
     expandInClass() {
-        return UX.isPhone() ? "" : " in"
+        return UX.isGridCollapsed() ? "" : " in"
     },
 
     /**
@@ -2613,7 +2601,7 @@ UX = {
      * @return {string} Expand-chevron class for new collapse sections.
      */
     expandChevronClass() {
-        return UX.isPhone() ? "fa-chevron-down" : "fa-chevron-up"
+        return UX.isGridCollapsed() ? "fa-chevron-down" : "fa-chevron-up"
     },
 
     /**

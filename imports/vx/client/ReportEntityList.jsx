@@ -22,8 +22,7 @@ export default class ReportEntityList extends Component {
         if (this.props.reports.length === 0) {
             return (
                 <EmptyEntityList id={this.props.id}
-                    emptyMessage={Util.i18n("common.empty_reports")}
-                    emptyListSize="large"/>
+                    emptyMessage={Util.i18n("common.empty_reports")}/>
             )
         }
         return (

@@ -19,8 +19,7 @@ export default class FunctionEntityList extends Component {
         if (this.props.functions.length === 0) {
             return (
                 <EmptyEntityList id={this.props.id}
-                    emptyMessage={Util.i18n("common.empty_functions")}
-                    emptyListSize="large"/>
+                    emptyMessage={Util.i18n("common.empty_functions")}/>
             )
         }
         return (

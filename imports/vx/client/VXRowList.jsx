@@ -107,7 +107,6 @@ export default class VXRowList extends Component {
                 onDrop={this.props.onDrop}
                 emptyListMargins={this.props.emptyListMargins}
                 emptyListWhiteBackground={this.props.emptyListWhiteBackground}
-                emptyListSize="large"
                 emptyMessage={this.props.emptyMessage}/>
         )
     }

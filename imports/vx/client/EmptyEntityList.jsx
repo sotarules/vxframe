@@ -9,7 +9,6 @@ export default class EmptyEntityList extends Component {
         id : PropTypes.string.isRequired,
         className : PropTypes.string,
         emptyMessage : PropTypes.string,
-        emptyListSize : PropTypes.oneOf(["small", "large"]).isRequired,
         emptyListMargins : PropTypes.bool.isRequired,
         emptyListWhiteBackground : PropTypes.bool.isRequired,
         scrollable : PropTypes.bool,
@@ -38,7 +37,7 @@ export default class EmptyEntityList extends Component {
             <VXForm id={this.props.id}
                 className={this.dropZoneClassNames()}>
                 {this.props.emptyMessage &&
-                    <span className={`empty-list-text-${this.props.emptyListSize}`}>
+                    <span className="empty-list-text-large">
                         <span className="fa fa-lightbulb-o"></span>
                         {Parser(` ${this.props.emptyMessage}`)}
                     </span>

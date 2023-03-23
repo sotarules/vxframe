@@ -7,7 +7,7 @@ Daemon = {
         if (!enableDaemon) {
             return
         }
-        Daemon.conditionallyDispatch();
+        Daemon.conditionallyDispatch()
     },
 
     /**

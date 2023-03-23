@@ -286,4 +286,3 @@ Meta.FUNCTION = {
         onModify: VXApp.makeImportUser
     }
 }
-

@@ -22,8 +22,7 @@ export default class TemplateEntityList extends Component {
         if (this.props.templates.length === 0) {
             return (
                 <EmptyEntityList id={this.props.id}
-                    emptyMessage={Util.i18n("common.empty_templates")}
-                    emptyListSize="large"/>
+                    emptyMessage={Util.i18n("common.empty_templates")}/>
             )
         }
         return (

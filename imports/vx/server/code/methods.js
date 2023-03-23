@@ -44,8 +44,12 @@ Meteor.methods({
         return VXApp.generateSecret()
     },
 
-    verifyAndEnableTwoFactor(token, secret) {
-        return VXApp.verifyAndEnableTwoFactor(token, secret)
+    isTwoFactorEnabled(email, password) {
+        return VXApp.isTwoFactorEnabled(email, password)
+    },
+
+    verifyAndEnableTwoFactor(email, token, secret) {
+        return VXApp.verifyAndEnableTwoFactor(email, token, secret)
     },
 
     disableTwoFactor(userId) {

@@ -18,8 +18,7 @@ export default class TenantEntityList extends Component {
         if (this.props.tenants.length === 0) {
             return (
                 <EmptyEntityList id={this.props.id}
-                    emptyMessage={Util.i18n("common.empty_tenants")}
-                    emptyListSize="large"/>
+                    emptyMessage={Util.i18n("common.empty_tenants")}/>
             )
         }
         return (
