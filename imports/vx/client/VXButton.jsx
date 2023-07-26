@@ -132,7 +132,7 @@ export default class VXButton extends Component {
             <button
                 {...UX.omit(this.props, OMITTED_PROPS)}
                 type="button"
-                className={`ladda-button ${this.props.className || ""}`}
+                className={`ladda-button vx-drop-hide ${this.props.className || ""}`}
                 ref={(node) => {this.node = node}}
                 title={this.props.tooltip}
                 data-spinner-color={this.dataSpinnerColor()}

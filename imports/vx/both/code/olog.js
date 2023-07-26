@@ -23,31 +23,31 @@ OLog = {
     },
 
     debug(message, userId) {
-        if (OLog.logLevel >= OLog.logLevelMap.DEBUG) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.DEBUG) {
             OLog.log("DEBUG", message, userId)
         }
     },
 
     info(message, userId) {
-        if (OLog.logLevel >= OLog.logLevelMap.INFO) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.INFO) {
             OLog.log("INFO", message, userId)
         }
     },
 
     warn(message, userId) {
-        if (OLog.logLevel >= OLog.logLevelMap.WARN) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.WARN) {
             OLog.log("WARN", message, userId)
         }
     },
 
     error(message, userId) {
-        if (OLog.logLevel >= OLog.logLevelMap.ERROR) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.ERROR) {
             OLog.log("ERROR", message, userId)
         }
     },
 
     fatal(message, userId) {
-        if (OLog.logLevel >= OLog.logLevelMap.FATAL) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.FATAL) {
             OLog.log("FATAL", message, userId)
         }
     },
@@ -86,61 +86,61 @@ OLog = {
     },
 
     debugString(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.DEBUG) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.DEBUG) {
             return OLog.stringify(object)
         }
     },
 
     infoString(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.INFO) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.INFO) {
             return OLog.stringify(object)
         }
     },
 
     warnString(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.WARN) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.WARN) {
             return OLog.stringify(object)
         }
     },
 
     errorString(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.ERROR) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.ERROR) {
             return OLog.stringify(object)
         }
     },
 
     fatalString(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.FATAL) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.FATAL) {
             return OLog.stringify(object)
         }
     },
 
     debugError(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.DEBUG) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.DEBUG) {
             return OLog.stackTrace(object)
         }
     },
 
     infoError(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.INFO) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.INFO) {
             return OLog.stackTrace(object)
         }
     },
 
     warnError(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.WARN) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.WARN) {
             return OLog.stackTrace(object)
         }
     },
 
     errorError(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.ERROR) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.ERROR) {
             return OLog.stackTrace(object)
         }
     },
 
     fatalError(object) {
-        if (OLog.logLevel >= OLog.logLevelMap.FATAL) {
+        if (OLog.getLogLevel() >= OLog.logLevelMap.FATAL) {
             return OLog.stackTrace(object)
         }
     },

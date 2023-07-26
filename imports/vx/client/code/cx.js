@@ -138,3 +138,20 @@ CX.IOS_BUTTON_DEFAULTS = {
         position : "right"
     },
 }
+
+CX.FONT_FAMILIES = [
+    "Noto Sans",
+    "PT Serif",
+    "Inconsolata",
+    "Oswald",
+    "Roboto",
+    "Open Sans",
+    "Lato",
+    "Montserrat",
+    "Raleway",
+    "Poppins",
+    "Ubuntu",
+    "Nunito",
+    "Comic Neue",
+    "Delicious Handrawn"
+]

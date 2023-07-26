@@ -407,32 +407,29 @@ UX = {
      * Initialize component drag/drop. This function has been optimized to initialize
      * both drag/drop in a single call because sortable initialization is slow with large lists.
      *
-     * @param {string} id HTML element ID to made draggable.
-     * @param {string} dropClassName Drop class name (used with connectWith).
-     * @param {string} placeholderClassName Placeholder class name.
      * @param {object} component Component that is drag source.
-     * @param {boolean} draggable True to make component draggable.
-     * @param {boolean} droppable True to make component droppable.
+     * @param {function} afterDrop After drop callback.
      */
-    makeDraggableDroppable(id, dropClassName, placeholderClassName, component, draggable, droppable) {
-        if (!(draggable || droppable)) {
+    makeDraggableDroppable(component, afterDrop) {
+        if (!(component.props.draggable || component.props.droppable)) {
             return
         }
-        const $list = $(`#${id}`)
+        const $list = $(`#${component.props.id}`)
         let parameters = {
             handle : ".entity-handle",
-            placeholder : placeholderClassName,
+            placeholder : component.props.placeholderClassName,
             change : (event, ui) => {
-                UX.initPlaceholder(ui, dropClassName)
+                UX.initPlaceholder(ui, component)
             }
         }
-        if (draggable) {
+        if (component.props.draggable) {
             parameters = { ...parameters, ...{
                 cursor : "move",
                 appendTo : document.body,
                 zIndex : 2000,
                 opacity : ".7",
-                connectWith : `.${dropClassName}`,
+                tolerance: "pointer",
+                connectWith : `.${component.props.dropClassName}`,
                 scroll : false,
                 helper(event, $element) {
                     return UX.makeHelper(event, $element)
@@ -441,13 +438,14 @@ UX = {
                     $list.sortable("cancel")
                 },
                 hideDragged(event, ui) {
-                    if (!component.props.dragClone && component.props.droppable) {
-                        UX.hideSelected(event, ui, $list)
+                    // This is custom callback DL created in jQuery Sortable:
+                    if (component.props.droppable) {
+                        UX.hideDragged(event, ui, $list)
                     }
-                },
+                }
             }}
         }
-        if (droppable) {
+        if (component.props.droppable) {
             parameters = { ...parameters, ...{
                 update : function(event, ui) {
                     const thisId = this.id
@@ -461,6 +459,35 @@ UX = {
                     if (component.props.onDrop) {
                         const dropInfo = UX.makeDropInfo(event, ui, component, $list)
                         component.props.onDrop(dropInfo)
+                        if (afterDrop) {
+                            afterDrop(dropInfo)
+                        }
+                        Meteor.setTimeout(() => {
+                            UX.reinitializeTinyMCE($list)
+                        }, 100)
+                    }
+                },
+                sort(event) {
+                    const sensitivity = 100
+                    const speed = 20
+                    const scrollingElement = $(event.target).closest(".scroll-momentum")
+                    if (!scrollingElement.length) {
+                        return
+                    }
+                    const offset = scrollingElement.offset()
+                    const innerHeight = scrollingElement.innerHeight()
+                    const fromTop = event.pageY - offset.top
+                    if (fromTop < sensitivity) {
+                        scrollingElement.stop().animate({ scrollTop: "-=" + speed }, 1, () => {
+                            UXState.originalTargetState.scrollTop = scrollingElement.scrollTop()
+                            $list.sortable("refreshPositions", true)
+                        })
+                    }
+                    else if (fromTop > innerHeight - sensitivity) {
+                        scrollingElement.stop().animate({ scrollTop: "+=" + speed }, 1, () => {
+                            UXState.originalTargetState.scrollTop = scrollingElement.scrollTop()
+                            $list.sortable("refreshPositions", true)
+                        })
                     }
                 },
                 stop() {
@@ -469,14 +496,87 @@ UX = {
                     Meteor.setTimeout(() => {
                         UX.showTargetItems()
                         $list.scrollTop(UXState.originalTargetState.scrollTop)
-                    })
+                    }, 100)
                 },
                 showDragged(event, ui) {
-                    UX.showSelected(event, ui, $list)
+                    UX.showDragged(event, ui, $list)
                 }
             }}
         }
         $list.sortable(parameters)
+    },
+
+    /**
+     * Reinitialize all instances of TinyMCE after a drop operation. Somehow, these changes
+     * in the DOM screw up TinyMCE and it needs to be reinitialized.
+     *
+     * @param {object} $list jQuery object of list.
+     */
+    reinitializeTinyMCE($list) {
+        $list.find(".vx-tiny-editor").each(function() {
+            const component = UX.findComponentById(this.id)
+            if (!component) {
+                OLog.error(`ux.js reinitializeTinyMCE could not find component for id=[${this.id}]`)
+                return
+            }
+            component.reinitializeTinyMCE()
+        })
+    },
+
+    /**
+     * Standard configuration for TinyMCE (see VXTinyEditor.jsx).
+     *
+     * @param {boolean} readonly True if readonly.
+     * @param {number} height Height in pixels.
+     * @return {object} TinyMCE configuration.
+     */
+    tinyMCEConfig(readonly, height) {
+        return {
+            readonly: readonly,
+            contextmenu: false,
+            menubar: false,
+            branding: false,
+            statusbar: false,
+            resize: false,
+            height: height,
+            font_family_formats:
+                "Noto Sans=Noto Sans, sans-serif;" +
+                "Inconsolata=Inconsolata, monospace;" +
+                "Oswald=Oswald, sans-serif;" +
+                "Roboto=Roboto, sans-serif;" +
+                "Open Sans=Open Sans, sans-serif;" +
+                "Lato=Lato, sans-serif;" +
+                "Montserrat=Montserrat, sans-serif;" +
+                "Raleway=Raleway, sans-serif;" +
+                "Delicious Handrawn=Delicious Handrawn, cursive;" +
+                "Poppins=Poppins, sans-serif;" +
+                "Ubuntu=Ubuntu, sans-serif;" +
+                "PT Serif=PT Serif, serif;" +
+                "Nunito=Nunito, sans-serif;" +
+                "Comic Neue=Comic Neue, cursive;",
+            plugins: [
+                "autolink", "lists", "link", "image", "code"
+            ],
+            toolbar: "bold italic forecolor | alignleft aligncenter " +
+                "alignright alignjustify | bullist numlist outdent indent | blocks | " +
+                "removeformat fontfamily fontsize | code | undo redo",
+            font_size_formats: "8px 10px 12px 14px 16px 18px 24px 36px 48px",
+            content_style:
+                "@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=PT+Serif:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap');" +
+                "@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap');" +
+                "body { font-family: 'Noto Sans', sans-serif; font-size: 16px; }"
+        }
     },
 
     /**
@@ -487,71 +587,123 @@ UX = {
      * @return {object} jQuery helper (either single or multi-row)
      */
     makeHelper(event, $element) {
+        OLog.warn(`ux.js makeHelper $element id=${$element.attr("id")}`)
         UXState.originalIds = UX.captureOriginalIds($element)
-        UXState.originalTargetState = UX.captureTargetState($element.parents(".vx-list"))
-        const helperHeight = _.reduce($element.parents(".vx-list").children(".selected"), (memo, child) => {
+        UXState.originalTargetState = UX.captureTargetState($element.closest(".vx-list"))
+        const helperHeight = _.reduce($element.closest(".vx-list").children(".selected"), (memo, child) => {
             return memo + $(child).outerHeight(true)
         }, 0) + 1
-        const $listClone = $element.parents(".vx-list").clone()
+        const $listClone = $element.closest(".vx-list").clone()
+        $listClone.attr("id", `helper-${$listClone.attr("id")}`)
         _.each($listClone.children(), child => {
             $(child).attr("id", `helper-${$(child).attr("id")}`)
         })
         $listClone.children(":not(.selected)").remove()
         $listClone.find(".entity-control-set").remove()
+        $element.find("select").each((index, element) => {
+            const selectedValue = $(element).val()
+            $listClone.find("select").eq(index).val(selectedValue)
+        })
         const height = `${helperHeight}px`
         const css = {}
         css.height = height
         css["min-height"] = height
         css["max-height"] = height
         css["overflow-y"] = "hidden"
+        css["overflow-x"] = "hidden"
+        css["white-space"] = "nowrap"
         $listClone.css(css)
         UXState.$helper = $listClone
         return $listClone
     },
 
     /**
-     * Hide all selected elements (support multiple drag/drop).
+     * Initialize placeholder display setting for jQuery UI.
+     *
+     * @param {object} ui jQuery UI object.
+     * @param {object} component Component being drag/drop enabled.
+     */
+    initPlaceholder(ui, component) {
+        const css = {}
+        if (UX.isShowPlaceholder(ui, component.props.dropClassName)) {
+            css.display = "block"
+            let width = ui.helper.outerWidth()
+            let height = ui.helper.outerHeight()
+            if (component.props.placeholderWidthMax && width > component.props.placeholderWidthMax) {
+                width = component.props.placeholderWidthMax
+            }
+            if (component.props.placeholderHeightMax && height > component.props.placeholderHeightMax) {
+                height = component.props.placeholderHeightMax
+            }
+            width = `${width}px`
+            height = `${height}px`
+            css.width = width
+            css["min-width"] = width
+            css["max-width"] = width
+            css.height = height
+            css["min-height"] = height
+            css["max-height"] = height
+        }
+        else {
+            css.display = "none"
+        }
+        ui.placeholder.css(css)
+    },
+
+    /**
+     * Determine whether placeholder should be shown at all.
+     *
+     * @param {object} ui jQuery UI object.
+     * @param {string} dropClassName Drop class name.
+     * @return {boolean} True if placeholder should be shown.
+     */
+    isShowPlaceholder(ui, dropClassName) {
+        const $parent = ui.placeholder.parent()
+        const parentDroppable = $parent.hasClass(dropClassName)
+        if (!parentDroppable) {
+            return false
+        }
+        const vxList = $parent.hasClass("vx-list")
+        const emptyList = $parent.hasClass("empty-list")
+        const actualList = vxList && !emptyList
+        if (!actualList) {
+            return false
+        }
+        const clone = UX.isDropClone(ui)
+        if (!clone) {
+            const sourceParentId = ui.item.parent().attr("id")
+            const targetParentId = ui.placeholder.parent().attr("id")
+            if (sourceParentId !== targetParentId) {
+                return false
+            }
+        }
+        return true
+    },
+
+    /**
+     * Hide all dragged rows.
      *
      * @param {object} event Event from JQuery sortable.
      * @param {object} ui jQuery UI object.
      * @param {object} $targetElement List being modified.
      */
-    hideSelected(event, ui, $targetElement) {
+    hideDragged(event, ui, $targetElement) {
         $targetElement.children(".selected").hide()
     },
 
     /**
-     * Show all selected elements (support multiple drag/drop).
+     * Show all dragged rows.
      *
      * @param {object} event Event from JQuery sortable.
      * @param {object} ui jQuery UI object.
      * @param {object} $targetElement List being modified.
      */
-    showSelected(event, ui, $targetElement) {
-        $targetElement.children(".selected").show()
-    },
-
-    /**
-     * Initialize placeholder display setting for jQuery UI.
-     *
-     * @param {object} ui jQuery UI object.
-     * @param {string} droppableClassName Droppable class name.
-     * @param {boolean} horizontal Horizontal list.
-     */
-    initPlaceholder(ui, droppableClassName, horizontal) {
-        const $parent = ui.placeholder.parent()
-        const parentDroppable = $parent.hasClass(droppableClassName)
-        const listGroup = $parent.hasClass("list-group")
-        const emptyList = $parent.hasClass("empty-list")
-        const actualList = listGroup && !emptyList
-        const blockType = (horizontal ? "inline-block" : "block")
-        const css = {}
-        const height = `${ui.helper.outerHeight()}px`
-        css.display = parentDroppable && actualList ? blockType : "none"
-        css.height = height
-        css["min-height"] = height
-        css["max-height"] = height
-        ui.placeholder.css(css)
+    showDragged(event, ui, $targetElement) {
+        Meteor.setTimeout(() => {
+            $targetElement.children().filter(function() {
+                return $(this).css("display") === "none"
+            }).show()
+        })
     },
 
     /**
@@ -561,7 +713,7 @@ UX = {
      */
     captureOriginalIds($element) {
         const originalIds = []
-        const $list = $element.parents(".vx-list")
+        const $list = $element.closest(".vx-list")
         $list.children().each((index, child) => {
             const id = $(child).attr("data-item-id")
             if (id) {
@@ -597,7 +749,7 @@ UX = {
         dropInfo["data-item-id"] = ui.item?.attr("data-item-id")
         dropInfo.component = component
         dropInfo.$entityTarget = $entityTarget
-        dropInfo.clone = UX.isDropClone(ui, component)
+        dropInfo.clone = UX.isDropClone(ui)
         dropInfo.targetIndex = itemIdArray.indexOf(dropInfo["data-item-id"])
         dropInfo.items = []
         UXState.$helper.children().each((index, helperChild) => {
@@ -630,8 +782,7 @@ UX = {
         const scrollTop = $entityTarget.scrollTop()
         const elementObjects = $entityTarget.children(".vx-list-item").toArray().map(element => {
             const id = $(element).attr("id")
-            const display = $(element).css("display") || ""
-            return { id, display }
+            return { id }
         })
         return { scrollTop, elementObjects }
     },
@@ -642,8 +793,9 @@ UX = {
     hideTargetItems() {
         const targetState = UXState.originalTargetState
         targetState.elementObjects.forEach(elementObject => {
-            const id = elementObject.id
-            $(`#${id}`).css("display", "none")
+            $(`#${elementObject.id}`).find(".vx-drop-hide").css("transition", "none")
+            $(`#${elementObject.id}`).find(".vx-drop-hide").find("*").css("transition", "none")
+            $(`#${elementObject.id}`).css("visibility", "hidden")
         })
     },
 
@@ -653,9 +805,9 @@ UX = {
     showTargetItems() {
         const targetState = UXState.originalTargetState
         targetState.elementObjects.forEach(elementObject => {
-            const id = elementObject.id
-            const $element = $(`#${id}`)
-            $element.css("display", elementObject.display)
+            $(`#${elementObject.id}`).find(".vx-drop-hide").css("transition", "")
+            $(`#${elementObject.id}`).find(".vx-drop-hide").find("*").css("transition", "")
+            $(`#${elementObject.id}`).css("visibility", "")
         })
     },
 
@@ -663,15 +815,11 @@ UX = {
      * Determine whether this is a clone (creational) operation.
      *
      * @param {object} ui jQuery sortable ui object.
-     * @param {object} component Component receiving drop.
      * @return {boolean} True if this is a clone operation.
      */
-    isDropClone(ui, component) {
+    isDropClone(ui) {
         if (!ui.sender) {
             return false
-        }
-        if (component.props.dropClone) {
-            return true
         }
         const draggable = ui.sender.hasClass("vx-draggable")
         const droppable = ui.sender.hasClass("vx-droppable")
@@ -2320,10 +2468,20 @@ UX = {
      * Add an "All" selection to the beginning of a code array.
      *
      * @param {array} codeArray Traditional code array.
-     * @return {array} New array with "All" value added to beginning
+     * @return {array} New array with "All" value added to beginning.
      */
     addAllSelection(codeArray) {
         return UX.addSelection(codeArray, "ALL", Util.i18n("common.label_all"))
+    },
+
+    /**
+     * Add a "Unassigned" selection to the beginning of a code array.
+     *
+     * @param {array} codeArray Traditional code array.
+     * @return {array} New array with "Unassigned" value added to beginning.
+     */
+    addUnassignedSelection(codeArray) {
+        return UX.addSelection(codeArray, "UNASSIGNED", Util.i18n("common.label_unassigned"))
     },
 
     /**
@@ -2469,18 +2627,20 @@ UX = {
     },
 
     /**
-     * Given a form, construct a JSON object consisting of all of the
-     * component values where the name is the dbName and the value is the value.
+     * Given a form, construct a JSON object consisting of all component values
+     * where the name is the dbName and the value is the value.
      *
      * @param {object} form Form object.
+     * @param {boolean} includeNulls Whether to include null values.
+     *
      * @returns {object} Form object.
      */
-    makeFormObject(form) {
-        let formObject = {}
+    makeFormObject(form, includeNulls) {
+        const formObject = {}
         _.each(form.components, component => {
             let dbName = component.props.dbName || component.props.id
             let value = component.getValue()
-            if (!Util.isNullish(value)) {
+            if (includeNulls || !Util.isNullish(value)) {
                 formObject[dbName] = value
             }
         })
@@ -2811,7 +2971,7 @@ UX = {
             if (!userOrId) {
                 return null
             }
-            const user = Util.user(userOrId)
+            const user = Util.user(userOrId, { "profile.timezone" : 1 })
             if (!user) {
                 OLog.error(`ux.js formatDate unable to locate userOrId=${userOrId}`)
                 return
@@ -2998,6 +3158,47 @@ UX = {
         Meteor.setTimeout(() => {
             $element.scrollTop($element[0].scrollHeight)
         }, 100)
+    },
+
+    /**
+     * Subscribe and maintain the subscription handle in UXState.
+     *
+     * @param {string} subscriptionName Name of subscription.
+     * @param {...*} args Arguments to pass to subscription.
+     * @return {object} Subscription handle.
+     */
+    subscribe(subscriptionName, ...args) {
+        const subscriptionHandle = Meteor.subscribe(subscriptionName, ...args)
+        UXState.handles = UXState.handles || {}
+        UXState.handles[subscriptionName] = subscriptionHandle
+        return subscriptionHandle
+    },
+
+    /**
+     * Stop all subscriptions in UXState.
+     *
+     * @param {string} email Email address of user for logging only.
+     */
+    stopAllSubscriptions(email) {
+        if (!UXState.handles) {
+            return
+        }
+        const count = Object.keys(UXState.handles).length
+        OLog.debug(`ux.js stopAllSubscriptions stopping ${count} subscriptions for email=${email}`)
+        Object.values(UXState.handles).forEach((handle) => {
+            handle.stop()
+        })
+        UXState.handles = {}
+    },
+
+    /**
+     * Determine whether system is running locally.
+     *
+     * @return {boolean} True if system is running locally.
+     */
+    isLocal() {
+        return window.location.hostname.indexOf("sota.ddns.net") >= 0 ||
+            window.location.hostname.indexOf("localhost") >= 0
     },
 
     /**

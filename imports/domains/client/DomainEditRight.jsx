@@ -102,8 +102,8 @@ export default class DomainEditRight extends Component {
                                         <VXInput id="billingZip"
                                             label={Util.i18n("common.label_billing_zip")}
                                             value={this.props.domain.billingZip}
-                                            supplementalValues={[ "US" ]}
-                                            rule={VX.common.zip}/>
+                                            rule={VX.common.zip}
+                                            format={FX.zipUS}/>
                                     </div>
                                 </div>
                             </VXForm>

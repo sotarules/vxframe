@@ -62,7 +62,7 @@ import "/imports/vx/server/accounts/accounts"
 import "/imports/vx/server/allow/allow"
 //import "/imports/app/server/allow/allow"
 
-//import "/imports/vx/server/hooks/hooks"
+import "/imports/vx/server/hooks/hooks"
 //import "/imports/app/server/hooks/hooks"
 
 import "/imports/vx/server/service/service"
@@ -71,19 +71,12 @@ import "/imports/vx/server/service/service"
 import "/imports/vx/server/publications/publications"
 //import "/imports/app/server/publications/publications"
 
-import "/imports/vx/server/reporter/i18n"
-//import "/imports/app/server/reporter/i18n"
-
-import "/imports/vx/server/reporter/reporter"
-import "/imports/vx/server/reporter/user_list"
-
 import "/imports/vx/server/daemon/mailman"
-import "/imports/vx/server/daemon/recordremover"
 import "/imports/vx/server/daemon/recordimporter"
+import "/imports/vx/server/daemon/recordremover"
 import "/imports/vx/server/daemon/reporter"
 
 import "/imports/vx/server/daemon/daemon"
 //import "/imports/app/server/daemon/daemon"
 
 import "/imports/vx/server/code/startup"
-

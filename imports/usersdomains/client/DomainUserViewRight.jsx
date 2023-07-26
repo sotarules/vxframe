@@ -91,7 +91,7 @@ export default class UserDomainViewRight extends Component {
                                     </div>
                                     <div className="col-xs-6">
                                         <VXFieldBox label={Util.i18n("common.label_billing_zip")}
-                                            value={this.props.domain.billingZip}/>
+                                            value={FX.zipUS.render(this.props.domain.billingZip)}/>
                                     </div>
                                 </div>
                             </VXForm>

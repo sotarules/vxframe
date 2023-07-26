@@ -33,7 +33,6 @@ import {
     setSubscriptionParameters
 } from "/imports/vx/client/code/actions"
 
-
 VXApp = { ...VXApp, ...{
 
     /**
@@ -204,15 +203,15 @@ VXApp = { ...VXApp, ...{
         }
 
         if (doServer) {
-            handles.push(Meteor.subscribe("config"))
-            handles.push(Meteor.subscribe("clipboard"))
-            handles.push(Meteor.subscribe("current_tenants", publishCurrentTenants.server))
-            handles.push(Meteor.subscribe("current_domains", publishCurrentDomains.server))
-            handles.push(Meteor.subscribe("current_users", publishCurrentUsers.server))
-            handles.push(Meteor.subscribe("templates", publishCurrentTemplates.server))
-            handles.push(Meteor.subscribe("functions", publishCurrentFunctions.server))
-            handles.push(Meteor.subscribe("reports", publishCurrentReports.server))
-            handles.push(Meteor.subscribe("uploadstats", publishCurrentUploadStats.server))
+            handles.push(UX.subscribe("config"))
+            handles.push(UX.subscribe("clipboard"))
+            handles.push(UX.subscribe("current_tenants", publishCurrentTenants.server))
+            handles.push(UX.subscribe("current_domains", publishCurrentDomains.server))
+            handles.push(UX.subscribe("current_users", publishCurrentUsers.server))
+            handles.push(UX.subscribe("templates", publishCurrentTemplates.server))
+            handles.push(UX.subscribe("functions", publishCurrentFunctions.server))
+            handles.push(UX.subscribe("reports", publishCurrentReports.server))
+            handles.push(UX.subscribe("uploadstats", publishCurrentUploadStats.server))
         }
 
         return handles
@@ -446,7 +445,7 @@ VXApp = { ...VXApp, ...{
             handles = handles.concat(VXApp.changeAppGlobalSubscriptions(doClient, doServer, newSubscriptionParameters))
         }
 
-        OLog.debug("vxapp.js globalSubscriptions have been computed *wait* for publication")
+        OLog.warn("vxapp.js globalSubscriptions have been computed *wait* for publication")
         UX.setLoading(true)
         UX.waitSubscriptions(handles, (error, result) => {
             if (VXApp.onAppChangeSubscriptionsReady) {
@@ -454,7 +453,7 @@ VXApp = { ...VXApp, ...{
             }
             VXApp.addAllFunctions()
             VXApp.doContextMakerBeforeRender()
-            OLog.debug(`vxapp.js globalSubscriptions ready domain count=${Domains.find().count()}`)
+            OLog.warn(`vxapp.js globalSubscriptions ready domain count=${Domains.find().count()}`)
             callback(error, result)
             UX.setLoading(false)
             return
@@ -671,7 +670,8 @@ VXApp = { ...VXApp, ...{
      * @param {function} callback Callback function.
      */
     logout(callback) {
-        OLog.debug(`vxapp.js logout user=${Util.getUserEmail(Meteor.userId())}`)
+        const email = Util.getUserEmail(Meteor.userId())
+        OLog.debug(`vxapp.js logout user=${email}`)
         VXApp.clearSessionSettings()
         if (callback) {
             Meteor.setTimeout(() => {
@@ -690,6 +690,7 @@ VXApp = { ...VXApp, ...{
                     return
                 }
                 OLog.debug("vxapp.js logout was successful")
+                UX.stopAllSubscriptions(email)
             })
         }, 1000)
     },
@@ -715,20 +716,20 @@ VXApp = { ...VXApp, ...{
      * @param {boolean} checked True to add role, false to remove role.
      */
     updateTenantOrDomainRole(userOrId, tenantOrDomainId, roleName, updateTenant, checked) {
-        let user = Util.user(userOrId)
+        const user = Util.user(userOrId)
         if (!user) {
-            OLog.error("vxapp.js updateTenantOrDomainRole unable to locate userOrId=" + userOrId)
+            OLog.error(`vxapp.js updateTenantOrDomainRole unable to locate userOrId=${userOrId}`)
             return
         }
-        let modifier = {}
+        const modifier = {}
         modifier.$set = {}
         if (updateTenant) {
-            let tenantObject = _.findWhere(user.profile.tenants, { tenantId : tenantOrDomainId } )
+            const tenantObject = _.findWhere(user.profile.tenants, { tenantId : tenantOrDomainId } )
             if (!tenantObject) {
-                OLog.error("vxapp.js updateTenantOrDomainRole unable to locate tenantId=" + tenantOrDomainId)
+                OLog.error(`vxapp.js updateTenantOrDomainRole unable to locate tenantId=${tenantOrDomainId}`)
                 return
             }
-            let index = _.indexOf(_.pluck(user.profile.tenants, "tenantId"), tenantOrDomainId)
+            const index = _.indexOf(_.pluck(user.profile.tenants, "tenantId"), tenantOrDomainId)
             // Add the role if checked (avoid duplicates)
             if (checked) {
                 if (!_.contains(tenantObject.roles, roleName)) {
@@ -738,16 +739,16 @@ VXApp = { ...VXApp, ...{
             else {
                 tenantObject.roles = _.without(tenantObject.roles, roleName)
             }
-            modifier.$set["profile.tenants." + index + ".roles"] = tenantObject.roles
-            OLog.debug("vxapp.js updateTenantOrDomainRole user " + Util.fetchFullName(user._id) + " tenant " + Util.fetchTenantName(tenantOrDomainId) + " modifier=" + OLog.debugString(modifier))
+            modifier.$set[`profile.tenants.${index}.roles`] = tenantObject.roles
+            OLog.debug(`vxapp.js updateTenantOrDomainRole user ${Util.fetchFullName(user._id)} tenant ${Util.fetchTenantName(tenantOrDomainId)} modifier=${OLog.debugString(modifier)}`)
         }
         else {
-            let domainObject = _.findWhere(user.profile.domains, { domainId : tenantOrDomainId } )
+            const domainObject = _.findWhere(user.profile.domains, { domainId : tenantOrDomainId } )
             if (!domainObject) {
-                OLog.error("vxapp.js updateTenantOrDomainRole unable to locate domainId=" + tenantOrDomainId)
+                OLog.error(`vxapp.js updateTenantOrDomainRole unable to locate domainId=${tenantOrDomainId}`)
                 return
             }
-            let index = _.indexOf(_.pluck(user.profile.domains, "domainId"), tenantOrDomainId)
+            const index = _.indexOf(_.pluck(user.profile.domains, "domainId"), tenantOrDomainId)
             // Add the role if checked (avoid duplicates)
             if (checked) {
                 if (!_.contains(domainObject.roles, roleName)) {
@@ -757,18 +758,17 @@ VXApp = { ...VXApp, ...{
             else {
                 domainObject.roles = _.without(domainObject.roles, roleName)
             }
-            modifier.$set["profile.domains." + index + ".roles"] = domainObject.roles
-            OLog.debug("vxapp.js updateTenantOrDomainRole user " + Util.fetchFullName(user._id) + " domain " + Util.fetchDomainName(tenantOrDomainId) + " modifier=" + OLog.debugString(modifier))
+            modifier.$set[`profile.domains.${index}.roles`] = domainObject.roles
+            OLog.debug(`vxapp.js updateTenantOrDomainRole user ${Util.fetchFullName(user._id)} domain ${Util.fetchDomainName(tenantOrDomainId)} modifier=${OLog.debugString(modifier)}`)
         }
         Meteor.users.update(user._id, modifier, error => {
             if (error) {
-                OLog.error("vxapp.js updateTenantOrDomainRole error returned from dynamic field update=" + error)
+                OLog.error(`vxapp.js updateTenantOrDomainRole error returned from dynamic field update=${error}`)
                 UX.notifyForDatabaseError(error)
                 return
             }
         })
     },
-
 
     /**
      * Return a list of tenants.
@@ -778,7 +778,7 @@ VXApp = { ...VXApp, ...{
      */
     findUserTenantList(userOrId) {
         userOrId = userOrId || Meteor.userId()
-        const user = Util.user(userOrId, { "profile.tenants": 1 } )
+        const user = Util.user(userOrId, { "profile.tenants.tenantId": 1 } )
         if (!user) {
             OLog.error(`util.js findUserTenantList unable to find userOrId=${userOrId}`)
             return
@@ -1724,6 +1724,11 @@ VXApp = { ...VXApp, ...{
                 })
             }
             else {
+                if (dropInfo.senderId && dropInfo.senderId !== dropInfo.targetId) {
+                    OLog.warn(`vxapp.js handleDropMultiPrime *warning* senderId=${dropInfo.senderId} ` +
+                        `targetId=${dropInfo.targetId} do not match *aborting*`)
+                    return
+                }
                 const insertArray = dropInfo.items.map(item => {
                     return _.findWhere(sourceRows, { [parameters.rowId]: item["data-item-id"] })
                 })
@@ -2237,7 +2242,7 @@ VXApp = { ...VXApp, ...{
         const publishRequestModified = {}
         publishRequestModified.criteria = { ...publishRequest.criteria, ...criteria }
         publishRequestModified.options = { ...publishRequest.options, ...options }
-        return Meteor.subscribe(subscription, publishRequestModified)
+        return UX.subscribe(subscription, publishRequestModified)
     },
 
     /**

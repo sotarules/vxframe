@@ -198,7 +198,7 @@ Util = {
         }
         criteria["profile.domains"] = { $elemMatch: { domainId } }
         const codeArray = []
-        Meteor.users.find(criteria).forEach(user => {
+        Meteor.users.find(criteria, { fields: CX.USER_SELECT_FIELDS }).forEach(user => {
             let qualified
             if (roleNames) {
                 _.each(roleNames, roleName => {
@@ -550,7 +550,7 @@ Util = {
      */
     getUserEmail(userOrId) {
         userOrId = userOrId || Meteor.userId()
-        const user = Util.user(userOrId)
+        const user = Util.user(userOrId, { "username" : 1, "profile.dateRetired": 1, "emails": 1 })
         if (!user) {
             return
         }
@@ -681,12 +681,13 @@ Util = {
      * Fetch a specified user/domain field.
      *
      * @param {?} userOrId User object or ID.
-     * @param {string} domainId Domain ID to update.
+     * @param {string} domainId Domain ID to fetch.
      * @param {string} fieldName Field name to fetch.
      * @return {?} Domain field.
      */
     fetchUserDomainField(userOrId, domainId, fieldName) {
-        const user = Util.user(userOrId)
+        const fields = { "profile.domains.domainId": 1, [`profile.domains.${fieldName}`]: 1 }
+        const user = Util.user(userOrId, fields)
         const domains = Util.getProfileValue("domains", user)
         const userDomainObject = _.findWhere(domains, { domainId })
         if (!userDomainObject) {
@@ -1762,7 +1763,7 @@ Util = {
      * @return {boolean} True if user has two-factor authentication enabled.
      */
     isUserTwoFactorEnabled(userOrId) {
-        const user = Util.user(userOrId)
+        const user = Util.user(userOrId, { twoFactorEnabled: 1 })
         if (!user) {
             OLog.error(`vxapp.js isUserTwoFactorEnabled unable to locate userOrId=${userOrId}`)
             return
@@ -1976,7 +1977,7 @@ Util = {
      */
     getTenantIds(userOrId, includeRetiredTenants) {
         userOrId = userOrId || Meteor.userId()
-        const user = Util.user(userOrId, { "profile.tenants": 1 } )
+        const user = Util.user(userOrId, { "profile.tenants.tenantId": 1 } )
         if (!user) {
             OLog.error(`util.js getTenantIds unable to find userOrId=${OLog.errorString(userOrId)}`)
             return
@@ -1999,7 +2000,7 @@ Util = {
      */
     getDomainIds(userOrId, tenantId, includeRetiredDomains) {
         userOrId = userOrId || Meteor.userId()
-        const user = Util.user(userOrId, { "profile.domains": 1 } )
+        const user = Util.user(userOrId, { "profile.domains.domainId": 1 } )
         if (!user) {
             OLog.error(`util.js getDomainIds unable to find userOrId=${OLog.errorString(userOrId)}`)
             return
@@ -2172,9 +2173,9 @@ Util = {
         if (!Util.isTenantRole(roleName)) {
             return domainId
         }
-        let domain = Domains.findOne(domainId, { tenant: 1 })
+        const domain = Domains.findOne(domainId, {fields: { tenant: 1 }})
         if (!domain) {
-            OLog.error("util.js getTenantOrDomainId cannot find domainId=" + domainId)
+            OLog.error(`util.js getTenantOrDomainId cannot find domainId=${domainId}`)
             return
         }
         return domain.tenant
@@ -2422,169 +2423,6 @@ Util = {
             let propertyLocalized = Util.i18n("codes.timeOption." + timeOption)
             return { code: timeOption, localized: propertyLocalized }
         })
-    },
-
-    /**
-     * Determine whether a given report type has parameter definitions.
-     *
-     * @param {string} reportType Report type.
-     * @return {boolean} True if the report type has parameter definitions.
-     */
-    isReportParameterDefinitions(reportType) {
-        return !!Util.reportParameterDefinitions(reportType)
-    },
-
-    /**
-     * Return the parameter definitions of a given report type.
-     *
-     * @param {string} reportType Report type.
-     * @return {object} Parameter definitions object or undefined if no parameters.
-     */
-    reportParameterDefinitions(reportType) {
-        let reportTypeObject = Meteor.i18nMessages.codes.reportType[reportType]
-        if (!reportTypeObject) {
-            OLog.error("util.js reportParameterDefinitions could not find reportType=" + reportType)
-            return
-        }
-        if (!reportTypeObject.parameterDefinitions) {
-            return
-        }
-        return _.map(reportTypeObject.parameterDefinitions, (reportParameterDefinition, fieldName) => {
-            reportParameterDefinition.fieldName = fieldName
-            reportParameterDefinition.fieldNameLocalized = Util.i18n("codes.reportType." + reportType + ".parameterDefinitions." + fieldName)
-            return reportParameterDefinition
-        })
-    },
-
-    /**
-     * Create an object consisting of the default values for parameter fields.
-     *
-     * @param {string} reportType Report type.
-     * @param {?} userOrId User record or ID.
-     * @return {object} Report default parameters object or undefined if no parameters.
-     */
-    reportParameterDefaults(reportType, userOrId) {
-        let reportParameterDefinitions = Util.reportParameterDefinitions(reportType)
-        if (!reportParameterDefinitions) {
-            return
-        }
-        let user = Util.user(userOrId)
-        let timezone = Util.reportTimezone(reportType, user)
-        let reportParameterDefaults = {}
-        _.each(reportParameterDefinitions, (reportParameterDefinition) => {
-            switch (reportParameterDefinition.type) {
-            case "DATE" : {
-                switch (reportParameterDefinition.default) {
-                case "START_OF_MONTH" : {
-                    reportParameterDefaults[reportParameterDefinition.fieldName] = moment().tz(timezone).startOf("month").toDate()
-                    break
-                }
-                case "END_OF_MONTH" : {
-                    reportParameterDefaults[reportParameterDefinition.fieldName] = moment().tz(timezone).endOf("month").toDate()
-                    break
-                }
-                }
-            }
-            }
-        })
-
-        return reportParameterDefaults
-    },
-
-    /**
-     * Get the effective timezone for a specified report.
-     *
-     * @param {string} reportType Report type.
-     * @param {string} userOrId User object or ID.
-     * @return {string} Timezone in IANA form.
-     */
-    reportTimezone(reportType, userOrId) {
-        let reportTypeObject = Meteor.i18nMessages.codes.reportType[reportType]
-        if (!reportTypeObject) {
-            OLog.error("util.js reportTimezone could not find reportType=" + reportType)
-            return
-        }
-        return reportTypeObject.timezone || Util.getUserTimezone(userOrId)
-    },
-
-    /**
-     * Get the configuration for a specified report.
-     *
-     * @param {string} reportType Report type.
-     * @return {object} Configuration object for report.
-     */
-    reportConfig(reportType) {
-        let reportTypeObject = Meteor.i18nMessages.codes.reportType[reportType]
-        if (!reportTypeObject) {
-            OLog.error("util.js reportConfig could not find reportType=" + reportType)
-            return
-        }
-        return reportTypeObject.config
-    },
-
-    /**
-     * Format the report description including the next execution date.
-     *
-     * @param {string} reportType Report type.
-     * @param {string} user User record.
-     */
-    formatReportDescription(reportType, user) {
-        let description = Util.i18n("codes.reportType." + reportType)
-        let nextDate = Util.fetchReportPreferenceValue(user, reportType, "nextDate")
-        if (nextDate) {
-            let nextMoment = moment.tz(nextDate, user.profile.timezone)
-            description += " " + Util.i18n("profile.format_next_date", { nextDate: nextMoment.format("D MMM YYYY h:mm A") } )
-        }
-        return description
-    },
-
-    /**
-     * Send an email report.
-     *
-     * @param {string} reportType Report type.
-     * @param {object} reportParameters Report parameters (either values or defaults).
-     */
-    sendReport(reportType, reportParameters) {
-        Meteor.call("sendReport", Meteor.userId(), reportType, reportParameters, (error, result) => {
-            UX.notify(result, error)
-        })
-    },
-
-    /**
-     * Extract report parameters from UI and return them in object form.
-     *
-     * @param {string} reportType Report type.
-     * @return {object} Report parameter values object.
-     */
-    reportParameterValues(reportType) {
-        let reportParameterDefinitions = Util.reportParameterDefinitions(reportType)
-        let timezone = Util.reportTimezone(reportType, Meteor.userId())
-        let reportParameterValues = {}
-        _.each(reportParameterDefinitions, reportParameterDefinition => {
-            let component = UX.findComponentById(reportParameterDefinition.fieldName)
-            if (!component) {
-                OLog.error("util.js reportParameterValues unable to find component for fieldName=" + reportParameterDefinition.fieldName)
-                return
-            }
-            switch (reportParameterDefinition.type) {
-            case "DATE":
-                switch (reportParameterDefinition.subtype) {
-                case "START_OF_DAY":
-                    reportParameterValues[reportParameterDefinition.fieldName] =
-                        moment.tz(component.getValue(), timezone).startOf("day").toDate()
-                    break
-                case "END_OF_DAY":
-                    reportParameterValues[reportParameterDefinition.fieldName] =
-                        moment.tz(component.getValue(), timezone).endOf("day").toDate()
-                    break
-                }
-                break
-            default :
-                reportParameterValues[reportParameterDefinition.fieldName] = component.getValue()
-                break
-            }
-        })
-        return reportParameterValues
     },
 
     /**

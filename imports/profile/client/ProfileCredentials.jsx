@@ -6,7 +6,7 @@ import BigButton from "/imports/vx/client/BigButton"
 import VXForm from "/imports/vx/client/VXForm"
 import VXInput from "/imports/vx/client/VXInput"
 import FooterCancelSave from "/imports/vx/client/FooterCancelSave"
-import Profile2FAModal from "./Profile2FAModal"
+import TwoFactorModal from "/imports/vx/client/TwoFactorModal"
 
 export default class ProfileCredentials extends Component {
 
@@ -108,7 +108,8 @@ export default class ProfileCredentials extends Component {
                 UX.notify(result)
                 return
             }
-            UX.showModal(<Profile2FAModal secret={result.secret} />)
+            const email = Util.getUserEmail()
+            UX.showModal(<TwoFactorModal email={email} secret={result.secret} />)
         }
         catch (error) {
             UX.notifyForError(error)

@@ -1286,6 +1286,7 @@
                 //this.currentItem.hide();
                 // DL--custom callback
             	this._trigger( "hideDragged", event, this._uiHash() );
+            	this.refreshPositions(true);
             }
 
             //Create the placeholder

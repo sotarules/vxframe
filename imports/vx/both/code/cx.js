@@ -34,3 +34,17 @@ CX.REGEX_IP_ADDRESS = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/
 CX.URL_IMAGE_PREFIX = "img"
 CX.IMAGE_MIME_EXTENSION_MAP = { "image/gif" : "gif", "image/jpeg" : "jpg", "image/png" : "png" }
 CX.USER_LIMITED_FIELDS = { "profile.dateModified": 0, "profile.userModified" : 0, "status" : 0 }
+CX.USER_SELECT_FIELDS = {
+    "emails": 1,
+    "profile.dateRetired": 1,
+    "profile.currentDomain": 1,
+    "profile.firstName": 1,
+    "profile.lastName": 1,
+    "profile.middleName": 1,
+    "profile.superAdmin": 1,
+    "profile.domains.domainId": 1,
+    "profile.domains.roles": 1,
+    "profile.tenants.tenantId": 1,
+    "profile.tenants.roles": 1
+}
+

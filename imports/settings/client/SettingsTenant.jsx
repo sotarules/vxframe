@@ -116,7 +116,8 @@ export default class SettingsTenant extends Component {
                                     <VXInput id="zip"
                                         label={Util.i18n("system_settings.label_tenant_zip")}
                                         value={this.props.tenant.zip}
-                                        rule={VX.common.zip}/>
+                                        rule={VX.common.zip}
+                                        format={FX.zipUS}/>
                                 </div>
                             </div>
                         </VXFieldSet>

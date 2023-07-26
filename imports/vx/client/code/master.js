@@ -49,9 +49,13 @@ window.onerror = (message, url, line, column, error) => {
         if (message.indexOf("SyntaxError: Unexpected token ')'") >= 0) {
             return
         }
+        // GPT-4 says this is more of a warning than an error:
+        if (message.indexOf("ResizeObserver loop limit exceeded") >= 0) {
+            return
+        }
     }
     OLog.error(`master.js window onerror event, message=${message} url=${url} line=${line} column=${column} ` +
-        `stack=${error.stack}`)
+        `stack=${error ? error.stack : "n/a"}`)
 }
 
 document.addEventListener("touchstart", event => {
@@ -96,7 +100,7 @@ Tracker.autorun(function() {
 
     console.log("master.js autorun notification observer *subscribe*")
 
-    Meteor.subscribe("my_notifications", myNotificationsRequest)
+    UX.subscribe("my_notifications", myNotificationsRequest)
 
     // Timeout allows initialization to complete.  Without this PNotify can throw errors during initialization trying to find
     // attribute CSS on an element that doesn't exist:
@@ -158,7 +162,7 @@ Tracker.autorun(function() {
 
     publishCurrentFunctions.criteria.dateModified = { $gt: new Date() }
 
-    Meteor.subscribe("my_functions", publishCurrentFunctions)
+    UX.subscribe("my_functions", publishCurrentFunctions)
     UXState.functionObserver = Functions.find(publishCurrentFunctions.criteria).observe({
         added : (newDocument) => {
             VXApp.addFunction(newDocument)

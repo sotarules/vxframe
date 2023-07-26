@@ -400,12 +400,17 @@ input[type="radio"] {
     margin-bottom: 20px;
 }
 
+.tab-icon {
+    font-size: 11px;
+    margin-right: 1px;
+}
+
 .tab-text {
     font-size: 11px;
     text-align: center;
 }
 
-.tab-margin-bottom {
+.vx-tab-container {
     margin-bottom: 20px;
 }
 
@@ -668,6 +673,15 @@ fieldset[disabled] .form-control {
     line-height: 1.5;
 }
 
+.vx-tiny-editor .tox:not(.tox-tinymce-inline) .tox-editor-header {
+    border-bottom: 1px solid #DDDDDD;
+    box-shadow: none;
+}
+
+.vx-tiny-editor .tox.tox-tinymce {
+    min-height: 190px;
+}
+
 // ---- Eliminate annoying outline on popup menus ----
 a:focus,
 a:hover {
@@ -928,19 +942,6 @@ body {
     background-color: #F5F5F5;
 }
 
-.entity-control-container:hover .entity-control-hotzone {
-    visibility: visible;
-}
-
-.entity-control-hotzone {
-    visibility: hidden;
-    .control-hotzone;
-}
-
-.entity-control-container:hover .entity-control-set {
-    visibility: visible;
-}
-
 .entity-control-element:hover {
     text-decoration: none;
 }
@@ -949,7 +950,7 @@ body {
     right: 3px;
     top: -1px;
     z-index: 9;
-    visibility: hidden;
+    visibility: visible;
     position: absolute;
 }
 
@@ -957,6 +958,19 @@ body {
     z-index: 10;
     margin-left: 5px;
     color: #C0C0C0;
+}
+
+.row-handle.fa.fa-bars {
+    left: 4px;
+    top: 4px;
+    z-index: 9;
+    position: absolute;
+    color: #C0C0C0;
+    font-size: 11px;
+}
+
+.row-handle:hover {
+    text-decoration: none;
 }
 
 .entity-table {
@@ -1028,6 +1042,7 @@ body {
 
 .entity-drag-placeholder-conditional {
     display: none;
+    .drag-placeholder;
 }
 
 .entity-decoration-small {
@@ -1192,6 +1207,17 @@ body {
 .entity-single {
   .flexi-fixed;
   height: 92px;
+}
+
+.tab-drag-placeholder {
+    min-height: 38px;
+    max-height: 38px;
+    .drag-placeholder;
+}
+
+.tab-drag-placeholder-conditional {
+    display: none;
+    .tab-drag-placeholder;
 }
 
 .field-spinner-outer {
@@ -1541,9 +1567,7 @@ legend.group-legend {
 }
 
 .drag-placeholder {
-    background-color: #FFFFFF;
-    margin: 0px;
-    border: none;
+    margin: 0;
 }
 
 .dropzone-header {
@@ -1591,6 +1615,11 @@ legend.group-legend {
     border-left: 1px solid #DDDDDD;
     border-right: 1px solid #DDDDDD;
     border-bottom: 1px solid #DDDDDD;
+}
+
+/* We don't have to supply tab borders when dragging */
+.nav.nav-tabs.ui-sortable-helper .vx-tab-anchor {
+    border: none;
 }
 
 .dropzone-container-small {
@@ -2482,6 +2511,25 @@ legend.group-legend {
 
 .top-image-with-text-right {
     .flexi-fixed;
+}
+
+.top-tiny-edit-view {
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    border: 1px solid;
+    border-color: #CCCCCC;
+    background-color: #FFFFFF;
+    font-size: 16px;
+    .border-radius(4px);
+    min-height: 200px;
+    text-wrap: wrap;
+    overflow-wrap: break-word;
 }
 
 .modal-centered {

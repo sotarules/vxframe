@@ -114,8 +114,18 @@ export default class EntityItem extends Component {
                         </tbody>
                     </table>
                     {this.renderControls()}
+                    {this.renderHandle()}
                 </div>
             </li>
+        )
+    }
+
+    renderHandle() {
+        if (!this.props.draggable) {
+            return null
+        }
+        return (
+            <a className="row-handle entity-handle fa fa-bars fa-xs"/>
         )
     }
 

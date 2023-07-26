@@ -1,4 +1,5 @@
 import SimpleSchema from "simpl-schema"
+import { Match } from "meteor/check"
 
 Schema.checkMongoIdSingle = (schema, collection, value) => {
     const record = collection.findOne(value, { fields: { "_id" : 1 } })
@@ -1290,7 +1291,7 @@ Schema.ReportField = new SimpleSchema({
         optional : true
     },
     filter : {
-        type : Object,
+        type : Match.OneOf(String, Object),
         optional : true,
         blackbox: true
     }

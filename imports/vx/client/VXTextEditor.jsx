@@ -35,13 +35,16 @@ export default class VXTextEditor extends Component {
         minHeight: null,
         maxHeight: null,
         toolbar: [
+            ["fontname", ["fontname"]],
+            ["fontsize", ["fontsize"]],
             ["color", ["color"]],
             ["style", ["bold", "italic", "underline"]],
             ["para", ["ul", "ol", "paragraph"]],
             ["codeview", ["codeview"]],
             ["undo", ["undo", "redo"]]
         ],
-        fontNames: [ "Noto Sans", "Arial" ],
+        fontNames: CX.FONT_FAMILIES,
+        fontNamesIgnoreCheck: CX.FONT_FAMILIES,
         disableResizeEditor : true
     }
 
@@ -152,7 +155,7 @@ export default class VXTextEditor extends Component {
      * gesture is often clobbered by UNSAFE_componentWillReceiveProps, making the component seem flakey.
      */
     handleBlur(event) {
-        const $editor = $(event.relatedTarget).parents(`#${this.props.id}-editor`)
+        const $editor = $(event.relatedTarget).closest(`#${this.props.id}-editor`)
         if (!$editor.exists()) {
             const value = $(`#${this.props.id}`).summernote("code")
             this.setState({value}, () => {

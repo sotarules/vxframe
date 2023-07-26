@@ -34,7 +34,7 @@ const MeteorContainer = withTracker(props => {
     Store.dispatch(setPublishCurrentLog(publishRequest.server))
 
     const handles = []
-    handles.push(Meteor.subscribe("olog", publishRequest.server))
+    handles.push(UX.subscribe("olog", publishRequest.server))
 
     UX.waitSubscriptions(handles, () => {
         ready.set(true)

@@ -22,6 +22,11 @@ Meteor.i18nMessages.common = {
         rx : "$None$"
     },
 
+    label_unassigned : {
+        en : "Unassigned",
+        rx : "$Unassigned$"
+    },
+
     label_notify : {
         en : "*notify*",
         rx : "$*notify*$"

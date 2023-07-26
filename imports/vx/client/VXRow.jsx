@@ -27,6 +27,7 @@ export default class VXRow extends Component {
         return (
             <div tabIndex={this.tabIndex()}
                 id={this.props.id}
+                key={this.props.itemId}
                 data-item-id={this.props.itemId}
                 data-db-id={this.props.dbId}
                 className={"vx-list-item list-group-item flexi-fixed entity-control-container " +
@@ -35,6 +36,7 @@ export default class VXRow extends Component {
                 onClick={this.handleClick.bind(this)}
                 onDoubleClick={this.handleDoubleClick.bind(this)}>
                 {this.props.children}
+                {this.renderHandle()}
                 {this.renderControls()}
             </div>
         )
@@ -42,6 +44,15 @@ export default class VXRow extends Component {
 
     tabIndex() {
         return (this.props.selectable || this.props.editable) ? "0" : null
+    }
+
+    renderHandle() {
+        if (!this.props.draggable) {
+            return null
+        }
+        return (
+            <a className="row-handle entity-handle fa fa-bars fa-xs"/>
+        )
     }
 
     renderControls() {

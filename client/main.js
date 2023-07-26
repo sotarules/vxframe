@@ -52,14 +52,14 @@ import "/imports/vx/both/code/meta"
 
 import "/imports/vx/client/code/prototype"
 
-import "/imports/vx/client/code/master"
-//import "/imports/app/client/code/master"
-
 import "/imports/vx/client/code/routes"
-//import "/imports/app/client/code/router"
+//import "/imports/app/client/code/routes"
 
 import "/imports/vx/client/code/ux"
 //import "/imports/app/client/code/ux"
+
+import "/imports/vx/client/code/master"
+//import "/imports/app/client/code/master"
 
 import "/imports/vx/client/code/contextmaker"
 //import "/imports/app/client/code/contextmaker"

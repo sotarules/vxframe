@@ -3,9 +3,9 @@ import {createBrowserHistory} from "history"
 import {createRoot} from "react-dom/client"
 import {setExemptRoute, setRoutePath, setWideRoute} from "/imports/vx/client/code/actions"
 
-if (Meteor.absoluteUrl().indexOf("sota.ddns.net") >= 0) {
-    console.log(`startup.js development absoluteUrl=${Meteor.absoluteUrl()} so client log level will be DEBUG`)
+if (UX.isLocal()) {
     OLog.setLogLevel(5)
+    OLog.warn(`startup.js development URL=${window.location.hostname} so client log level set to DEBUG`)
 }
 
 if (VXApp.isLogoutOnBrowserClose()) {

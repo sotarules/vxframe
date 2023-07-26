@@ -140,9 +140,8 @@ export default class ProfileMain extends Component {
                                     label={Util.i18n("profile.label_zip")}
                                     tooltip={Util.i18n("profile.tooltip_zip")}
                                     value={this.props.user.profile.zip}
-                                    supplementalValues={[ this.props.user.profile.country || "US" ]}
                                     rule={VX.common.zip}
-                                    supplement={["country"]}
+                                    format={FX.zipUS}
                                     dbName={"profile.zip"}/>
                             </div>
                         </div>

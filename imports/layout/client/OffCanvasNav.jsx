@@ -14,8 +14,8 @@ export default class OffCanvasNav extends Component {
 
     render() {
         return (
-            <nav id="offcanvas-menu-react" className="navmenu navmenu-inverse navmenu-fixed-left offcanvas in scroll-y scroll-momentum" role="navigation" style={this.styles().offcanvasMenu}>
-                <ul className="nav navmenu-nav">
+            <nav id="offcanvas-menu-react" className="navmenu navmenu-inverse navmenu-fixed-left offcanvas in" role="navigation" style={this.styles().offcanvasMenu}>
+                <ul className="nav navmenu-nav scroll-y scroll-momentum">
                     <OffCanvasNavItem iconClass="fa-times"
                         text={Util.i18n("navbar.close_menu")}
                         onClick={this.onClickCloseMenu.bind(this)}/>
@@ -41,6 +41,7 @@ export default class OffCanvasNav extends Component {
                             <OffCanvasNavItem iconClass="fa-sitemap"
                                 text={Util.i18n("navbar.members_domains")}
                                 path="/users-domains"/>
+
                         </>
                     }
                     {this.props.isUserAdmin &&
@@ -82,6 +83,10 @@ export default class OffCanvasNav extends Component {
 
     onClickCloseMenu(event) {
         UX.onClickCloseMenu(event)
+    }
+
+    onClickImport(event) {
+        VXApp.handleClickImport(event)
     }
 
     onClickDeployment(event) {

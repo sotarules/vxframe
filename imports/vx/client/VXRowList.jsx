@@ -30,12 +30,12 @@ export default class VXRowList extends Component {
         draggable : PropTypes.bool,
         droppable : PropTypes.bool,
         multi : PropTypes.bool,
-        dragClone : PropTypes.bool,
-        dropClone : PropTypes.bool,
         scrollable : PropTypes.bool,
         zeroHeightHack : PropTypes.bool,
         dropClassName : PropTypes.string,
-        placeholderClassName : PropTypes.string
+        placeholderClassName : PropTypes.string,
+        placeholderWidthMax : PropTypes.number,
+        placeholderHeighthMax : PropTypes.number
     }
 
     static defaultProps = {
@@ -47,7 +47,8 @@ export default class VXRowList extends Component {
         rightPanel : true,
         scrollable : true,
         zeroHeightHack : true,
-        placeholderClassName : "entity-drag-placeholder-conditional"
+        placeholderClassName : "entity-drag-placeholder-conditional",
+        placeholderHeightMax : 80
     }
 
     constructor(props) {
@@ -67,8 +68,7 @@ export default class VXRowList extends Component {
     initSelectionAndDragAndDrop() {
         if (this.mustInitializeSortable) {
             $(`#${this.props.id}`).multiselectable({ multi: this.props.multi, items: ".vx-list-item" })
-            UX.makeDraggableDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this,
-                this.props.draggable, this.props.droppable)
+            UX.makeDraggableDroppable(this)
             this.mustInitializeSortable = false
         }
     }

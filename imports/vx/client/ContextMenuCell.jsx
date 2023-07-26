@@ -72,9 +72,9 @@ export default class ContextMenuCell extends Component {
         const position = {}
         position.x = realEvent.clientX
         position.y = realEvent.clientY
-        const inModal = $(`#${this.props.id}`).parents(".modal-dialog").exists()
+        const inModal = $(`#${this.props.id}`).closest(".modal-dialog").exists()
         if (inModal) {
-            const modalLeft = $(`#${this.props.id}`).parents(".modal-dialog").offset().left
+            const modalLeft = $(`#${this.props.id}`).closest(".modal-dialog").offset().left
             position.x = position.x - modalLeft
         }
         contextMenu.show({ id: this.props.contextMenuId, event : realOrFakeEvent, props, position })

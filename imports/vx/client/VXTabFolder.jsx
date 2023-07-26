@@ -14,6 +14,13 @@ export default class VXTabFolder extends Component {
         className : PropTypes.string,
         pills : PropTypes.bool,
         editable : PropTypes.bool,
+        fade : PropTypes.bool,
+        draggable : PropTypes.bool,
+        droppable : PropTypes.bool,
+        dropClassName : PropTypes.string,
+        placeholderClassName : PropTypes.string,
+        placeholderWidthMax : PropTypes.number,
+        placeholderHeighthMax : PropTypes.number,
         record : PropTypes.object,
         selectText : PropTypes.bool,
         tabDbName : PropTypes.string,
@@ -22,28 +29,53 @@ export default class VXTabFolder extends Component {
         onClickAddTab : PropTypes.func,
         isAddTabDisabled : PropTypes.func,
         onClickRemoveTab : PropTypes.func,
-        isRemoveTabDisabled : PropTypes.func
+        isRemoveTabDisabled : PropTypes.func,
+        onDrop : PropTypes.func
+    }
+
+    static defaultProps = {
+        placeholderClassName : "tab-drag-placeholder-conditional",
+        fade : true
     }
 
     constructor(props) {
         super(props)
+        this.mustInitializeSortable = true
         this.state = { activeTabId : props.activeTabId, tabNames: this.computeTabNames(props, props.activeTabId) }
     }
 
     componentDidMount() {
         this.registerListeners()
+        if (this.props.draggable && this.props.droppable) {
+            this.initSelectionAndDragAndDrop()
+        }
+    }
+
+    componentDidUpdate() {
+        if (this.props.draggable && this.props.droppable) {
+            this.initSelectionAndDragAndDrop()
+        }
+    }
+
+    initSelectionAndDragAndDrop() {
+        if (this.mustInitializeSortable) {
+            UX.makeDraggableDroppable(this, this.handleAfterDrop.bind(this))
+            this.mustInitializeSortable = false
+        }
     }
 
     UNSAFE_componentWillReceiveProps(newProps) {
+        const activeTabId = !this.isValidTabId(newProps.activeTabId) ?
+            newProps.activeTabId : this.state.activeTabId
         if (newProps.children.length !== this.props.children.length) {
-            this.setState({ tabNames: this.computeTabNames(newProps, this.state.activeTabId) })
+            this.setState({activeTabId, tabNames: this.computeTabNames(newProps, activeTabId) })
             return
         }
         const oldChildren = React.Children.toArray(this.props.children)
         const newChildren = React.Children.toArray(newProps.children)
         for (let childIndex = 0; childIndex < oldChildren.length; childIndex++) {
             if (oldChildren[childIndex].props.name !== newChildren[childIndex].props.name) {
-                this.setState({ tabNames: this.computeTabNames(newProps, this.state.activeTabId) })
+                this.setState({activeTabId, tabNames: this.computeTabNames(newProps, activeTabId) })
                 return
             }
         }
@@ -53,10 +85,10 @@ export default class VXTabFolder extends Component {
         const children = React.Children.toArray(this.props.children)
         children.forEach(child => {
             //OLog.debug(`VXTabFolder.jsx registerListeners *init* id=${this.props.id}-${child.props.id}`)
-            $(`#tab-${this.props.id}-${child.props.id}`).on("shown.bs.tab", (event) => {
-                OLog.debug(`VXTabFolder.jsx registerListeners shown.bs.tab id=$${this.props.id}-${child.props.id}`)
+            $(`#${this.props.id}-${child.props.id}`).on("shown.bs.tab", (event) => {
+                OLog.warn(`VXTabFolder.jsx registerListeners shown.bs.tab id=${this.props.id}-${child.props.id}`)
                 this.setState( { activeTabId : child.props.id } )
-                const $li = $(event.target).parents(".dropdown")
+                const $li = $(event.target).closest(".dropdown")
                 if ($li.exists()) {
                     this.setTabName($li.index(), child.props.name)
                 }
@@ -71,7 +103,7 @@ export default class VXTabFolder extends Component {
         const children = React.Children.toArray(this.props.children)
         children.forEach(child => {
             //OLog.debug(`VXTabFolder.jsx componentWillUnmount unregister listeners shown.bs.tab id=${this.props.id}-${child.props.id}`)
-            $(`#tab-${this.props.id}-${child.props.id}`).off("shown.bs.tab")
+            $(`#${this.props.id}-${child.props.id}`).off("shown.bs.tab")
         })
     }
 
@@ -101,20 +133,23 @@ export default class VXTabFolder extends Component {
             active = child.props.id === activeTabId
             if (!child.props.group || groupPrevious !== child.props.group) {
                 if (group.length > 0) {
-                    tabSets.push({firstName: this.firstName(children, group), active: this.isGroupActive(group), group})
+                    tabSets.push({firstName: this.firstName(children, group), active: this.isGroupActive(group), group,
+                        id: this.formatTabId(groupPrevious)})
                     group = []
                 }
             }
             if (!child.props.group) {
-                tabSets.push({firstName: child.props.name, active, group: [{childIndex, active}]})
+                tabSets.push({firstName: child.props.name, active, group: [{childIndex, active}],
+                    id: this.formatTabId(child.props.id)})
             }
             else {
-                group.push({childIndex, active})
+                group.push({childIndex, active, id: this.formatTabId(child.props.id)})
             }
             groupPrevious = child.props.group
         }
         if (group.length > 0) {
-            tabSets.push({firstName: this.firstName(children, group), active: this.isGroupActive(group), group})
+            tabSets.push({firstName: this.firstName(children, group), active: this.isGroupActive(group), group,
+                id: this.formatTabId(groupPrevious)})
         }
         return tabSets
     }
@@ -139,6 +174,7 @@ export default class VXTabFolder extends Component {
     }
 
     setActiveTabId(activeTabId, callback) {
+        OLog.warn(`VXTabFolder.jsx setActiveTabId id=${this.props.id} activeTabId=${activeTabId}`)
         this.setState({activeTabId}, callback)
     }
 
@@ -169,7 +205,8 @@ export default class VXTabFolder extends Component {
 
     renderTabTopList() {
         return (
-            <ul className={`vx-list nav ${this.props.pills ? "nav-pills" : "nav-tabs"} flex-section-fixed tab-margin-bottom`}
+            <ul id={this.props.id}
+                className={`vx-list tab-drop-list nav ${this.props.pills ? "nav-pills" : "nav-tabs"} flex-section-fixed vx-tab-container`}
                 role="tablist">
                 {this.renderTabs()}
             </ul>
@@ -183,27 +220,36 @@ export default class VXTabFolder extends Component {
             if (tabSet.group.length === 1) {
                 const child = children[tabSet.group[0].childIndex]
                 return  (
-                    <li key={`${this.props.id}-tab-${tabSetIndex}`}
+                    <li id={tabSet.id}
+                        key={tabSet.id}
                         data-item-id={child.props.itemId}
+                        data-tab-id={child.props.id}
                         role="presentation"
-                        className={`vx-list-item tab-text ${tabSet.active ? "active" : ""}`}>
-                        <a id={`tab-${this.props.id}-${child.props.id}`}
-                            href={`#${this.props.id}-${child.props.id}`}
+                        className={`vx-list-item tab-text ${tabSet.active ? "active selected" : ""}`}>
+                        <a id={`${tabSet.id}-anchor`}
+                            data-target={`#${tabSet.id}-panel`}
                             role="tab"
-                            data-toggle="tab">
-                            {this.renderTabName(tabSetIndex)}
+                            data-toggle="tab"
+                            className="vx-tab-anchor">
+                            {this.props.draggable && this.props.droppable &&
+                                <i className="tab-icon fa fa-bars entity-handle"
+                                    onMouseDown={this.handleHandleMouseDown.bind(this)}/>
+                            }
+                            {this.renderTabName(tabSet, tabSetIndex)}
                         </a>
                     </li>
                 )
             }
             return (
-                <li key={`${this.props.id}-tab-${tabSetIndex}`}
+                <li id={tabSet.id}
+                    key={tabSet.id}
                     role="presentation"
-                    className={`tab-text dropdown ${tabSet.active ? "active" : ""}`}>
-                    <a className="dropdown-toggle"
+                    className={`tab-text dropdown ${tabSet.active ? "active selected" : ""}`}>
+                    <a id={`${tabSet.id}-anchor`}
+                        className="dropdown-toggle"
                         data-toggle="dropdown"
                         role="button">
-                        {this.renderTabName(tabSetIndex)}
+                        {this.renderTabName(tabSet, tabSetIndex)}
                         <span>&nbsp;</span>
                         <span className="caret"></span>
                     </a>
@@ -215,12 +261,12 @@ export default class VXTabFolder extends Component {
         })
     }
 
-    renderTabName(tabSetIndex) {
+    renderTabName(tabSet, tabSetIndex) {
         if (!this.props.editable) {
             return Parser(this.state.tabNames[tabSetIndex])
         }
         return (
-            <VXSpan id={`${this.props.id}-tab-${tabSetIndex}-name`}
+            <VXSpan id={`${tabSet.id}-name`}
                 elementType="span"
                 editable={true}
                 selectText={this.props.selectText}
@@ -235,10 +281,12 @@ export default class VXTabFolder extends Component {
         return tabSet.group.map(groupItem => {
             const child = children[groupItem.childIndex]
             return (
-                <li key={`drop-down-item-${child.props.id}`}
-                    data-item-id={child.props.itemId}>
-                    <a id={`tab-${this.props.id}-${child.props.id}`}
-                        href={`#${this.props.id}-${child.props.id}`}
+                <li id={groupItem.id}
+                    key={groupItem.id}
+                    data-item-id={child.props.itemId}
+                    data-tab-id={child.props.id}>
+                    <a id={`${groupItem.id}-anchor`}
+                        data-target={`#${groupItem.id}-panel`}
                         className="downdown-item tab-text"
                         role="tab"
                         data-toggle="tab">
@@ -251,12 +299,16 @@ export default class VXTabFolder extends Component {
 
     renderTabPanels() {
         const children = React.Children.toArray(this.props.children)
-        return children.map(child => {
+        children.sort((childA, childB) => {
+            return Util.safeCompare(childA.props.itemId, childB.props.itemId)
+        })
+        return children.map(child=> {
             return (
-                <VXTabPanel id={`${this.props.id}-${child.props.id}`}
-                    key={`${this.props.id}-${child.props.id}`}
+                <VXTabPanel id={this.formatTabPanelId(child.props.id)}
+                    key={child.props.id}
                     itemId={child.props.itemId}
-                    className={`${child.props.id === this.state.activeTabId ? "in active" : ""}`}>
+                    className={`${child.props.id === this.state.activeTabId ? "in active" : ""}`}
+                    fade={this.props.fade}>
                     {child.props.children}
                 </VXTabPanel>
             )
@@ -266,6 +318,16 @@ export default class VXTabFolder extends Component {
     tabId(firstOrLast) {
         const children = React.Children.toArray(this.props.children)
         return firstOrLast === "first" ? children[0].props.id : children[children.length - 1].props.id
+    }
+
+    handleHandleMouseDown(event) {
+        const elementFocused = document.activeElement
+        elementFocused.blur()
+        const $listItem = $(event.target).closest(".vx-list-item")
+        const tabId = $listItem.attr("data-tab-id")
+        OLog.warn(`VXTabFolder.jsx handleHandleMouseDown tabId=${tabId}`)
+        $listItem.tab("show")
+        $listItem.focus()
     }
 
     handleClickAddTab(data) {
@@ -295,6 +357,28 @@ export default class VXTabFolder extends Component {
             if (this.props.onUpdateTabName) {
                 this.props.onUpdateTabName(component, value, this)
             }
+        })
+    }
+
+    handleAfterDrop(dropInfo) {
+        const dataItemId = dropInfo["data-item-id"]
+        const $droppedItem = dropInfo.$entityTarget.find(`.vx-list-item[data-item-id=${dataItemId}]`)
+        const activeTabId = $droppedItem.attr("data-tab-id")
+        this.setState({activeTabId})
+    }
+
+    formatTabId(tabId) {
+        return `${this.props.id}-${tabId}`
+    }
+
+    formatTabPanelId(tabId) {
+        return `${this.props.id}-${tabId}-panel`
+    }
+
+    isValidTabId(tabId) {
+        const children = React.Children.toArray(this.props.children)
+        return children.some(child => {
+            return child.props.id === tabId
         })
     }
 }

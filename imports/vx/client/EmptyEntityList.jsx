@@ -13,9 +13,12 @@ export default class EmptyEntityList extends Component {
         emptyListWhiteBackground : PropTypes.bool.isRequired,
         scrollable : PropTypes.bool,
         zeroHeightHack : PropTypes.bool,
+        draggable : PropTypes.bool,
         droppable : PropTypes.bool,
-        dropClone : PropTypes.bool,
         dropClassName : PropTypes.string,
+        placeholderClassName : PropTypes.string,
+        placeholderWidthMax : PropTypes.number,
+        placeholderHeighthMax : PropTypes.number,
         onDrop : PropTypes.func
     }
 
@@ -28,8 +31,7 @@ export default class EmptyEntityList extends Component {
     }
 
     componentDidMount() {
-        UX.makeDraggableDroppable(this.props.id, this.props.dropClassName, this.props.placeholderClassName, this,
-            false, this.props.droppable)
+        UX.makeDraggableDroppable(this)
     }
 
     render() {

@@ -146,7 +146,8 @@ export default class VXRowPanel extends Component {
                 id={`${this.props.id}-row-list`}
                 rows={this.rows()}
                 onSelectRow={this.handleSelectRow.bind(this)}
-                onUpdateRow={this.handleUpdateRow.bind(this)}/>
+                onUpdateRow={this.handleUpdateRow.bind(this)}
+                onDrop={this.handleDrop.bind(this)}/>
         )
     }
 
@@ -190,6 +191,15 @@ export default class VXRowPanel extends Component {
         if (this.props.onSelectRow) {
             this.props.onSelectRow(component, value)
         }
+    }
+
+    handleDrop(dropInfo) {
+        if (this.props.onDrop) {
+            this.props.onDrop(dropInfo)
+            return
+        }
+        VXApp.handleDropMulti(this.props.collection, this.props.record,
+            this.props.rowsPath, this.props.rowId, dropInfo)
     }
 
     handleUpdateRow(component, value) {
