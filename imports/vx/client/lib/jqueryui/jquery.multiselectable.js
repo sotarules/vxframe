@@ -77,7 +77,6 @@ $.fn.multiselectable = function(options) {
         if (shiftKey) {
             let last_shift_range = parent.children(".multiselectable-shift")
             last_shift_range.removeClass(options.selectedClass).removeClass("multiselectable-shift")
-
             let shift_range
             if (prevIndex < myIndex) {
                 shift_range = item.prevUntil(".multiselectable-previous").add(prev).add(item)
@@ -85,7 +84,7 @@ $.fn.multiselectable = function(options) {
             else if (prevIndex > myIndex) {
                 shift_range = item.nextUntil(".multiselectable-previous").add(prev).add(item)
             }
-            shift_range.addClass(options.selectedClass).addClass("multiselectable-shift")
+            shift_range?.addClass(options.selectedClass)?.addClass("multiselectable-shift")
         }
         else {
             parent.children(".multiselectable-shift").removeClass("multiselectable-shift")

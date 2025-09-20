@@ -131,6 +131,9 @@ VX.common = {
         if (country !== "US") {
             return { success : true }
         }
+        if (input.indexOf("+") >= 0) {
+            return { success : true }
+        }
         const inputArray = input.split("X")
         const phone = inputArray[0]
         const extension = inputArray.length > 1 ? inputArray[1] : null

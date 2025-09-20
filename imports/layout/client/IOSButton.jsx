@@ -36,9 +36,11 @@ export default class IOSButton extends Component {
     render() {
         return (
             <div id={this.props.id}
+                tabIndex="0"
                 className={`ios-button-group-member ios-button-group-member-${this.props.position} ` +
                     "flex-section flex-section-fixed"}
                 title={this.props.title}
+                ref={(node) => {this.node = node}}
                 onClick={this.handleClick.bind(this)}>
                 <span className={`ios-button-link ios-button-icon fa ${this.iconClass()}`}
                     style={this.props.iconStyle}/>
@@ -57,6 +59,8 @@ export default class IOSButton extends Component {
             OLog.error(`IOSButton.jsx handleClick id=${this.props.id} no delegate has been registered`)
             return
         }
+        OLog.warn(`IOSButton.jsx handleClick id=${this.props.id} grabbing focus`)
+        this.node.focus()
         if (!this.props.showLoading) {
             this.execute(event)
             return

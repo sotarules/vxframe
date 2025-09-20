@@ -10,7 +10,6 @@ export default class LayoutDiag extends Component {
 
     static propTypes = {
         exemptRoute : PropTypes.bool,
-        authorizedRoute : PropTypes.bool,
         loading : PropTypes.bool
     }
 
@@ -23,7 +22,7 @@ export default class LayoutDiag extends Component {
                 <OffCanvasNavContainer/>
                 <TopBar/>
                 <div className="nav-canvas notification-container diag-container flexi-grow">
-                    {this.props.authorizedRoute ? this.props.children : (<NotAuthorizedPage/>)}
+                    {VXApp.isAuthorizedRoute() ? this.props.children : (<NotAuthorizedPage/>)}
                 </div>
                 <VXAnchor/>
             </div>

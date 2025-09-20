@@ -4,7 +4,6 @@ import currentDomainId from "./currentDomainId"
 import currentLocale from "./currentLocale"
 import currentUserId from "./currentUserId"
 import currentPublishingMode from "./currentPublishingMode"
-import currentReportRecord from "./currentReportRecord"
 import iosState from "./iosState"
 import publishingModeClient from "./publishingModeClient"
 import publishingModeServer from "./publishingModeServer"
@@ -30,7 +29,6 @@ import publishCurrentUploadStats from "./publishCurrentUploadStats"
 import searchPhrase from "./searchPhrase"
 import reportData from "./reportData"
 import reportLoading from "./reportLoading"
-import reportGuid from "./reportGuid"
 import selectedEventType from "./selectedEventType"
 import selectedEventRows from "./selectedEventRows"
 import selectedEventEndDate from "./selectedEventEndDate"
@@ -44,7 +42,6 @@ import reportRecipients from "./reportRecipients"
 import reportAttachments from "./reportAttachments"
 import routePath from "./routePath"
 import exemptRoute from "./exemptRoute"
-import authorizedRoute from "./authorizedRoute"
 import wideRoute from "./wideRoute"
 import importLastPercent from "./importLastPercent"
 
@@ -55,7 +52,6 @@ export default {
     currentLocale,
     currentUserId,
     currentPublishingMode,
-    currentReportRecord,
     iosState,
     publishingModeClient,
     publishingModeServer,
@@ -80,7 +76,6 @@ export default {
     publishCurrentUploadStats,
     reportData,
     reportLoading,
-    reportGuid,
     searchPhrase,
     selectedEventType,
     selectedEventRows,
@@ -95,7 +90,6 @@ export default {
     reportAttachments,
     routePath,
     exemptRoute,
-    authorizedRoute,
     wideRoute,
     importLastPercent
 }

@@ -16,7 +16,7 @@ const ReportViewRightConnect = connect(
 const MeteorContainer = withTracker(() => {
     const report = ContextMaker.reports()
     if (report) {
-        VXApp.conditionallyFetchReportData(report)
+        VXApp.conditionallyFetchReportData(report, true)
     }
     return {
         report

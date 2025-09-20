@@ -143,7 +143,7 @@ export default class EntityItem extends Component {
     renderControlRow() {
         return this.props.controls.map((control, index) => {
             return (
-                <a className={`entity-control-element fa fa-xs ${control.className}`}
+                <a className={`entity-control-element fa fa-xs ${this.controlClassName(control.className)}`}
                     id={`${this.props.id}-control-${index}`}
                     key={`${this.props.id}-control-${index}`}
                     data-toggle="tooltip"
@@ -153,6 +153,10 @@ export default class EntityItem extends Component {
                 </a>
             )
         })
+    }
+
+    controlClassName(className) {
+        return typeof className === "function" ? className(this.props.itemId) : className
     }
 
     roundedClassName() {

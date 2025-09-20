@@ -34,6 +34,9 @@ FX.phoneUS = {
         if (country !== "US") {
             return input
         }
+        if (input.indexOf("+") >= 0) {
+            return input
+        }
         input = input.toUpperCase()
         const inputArray = input.split("X")
         const phone = inputArray[0]
@@ -52,6 +55,9 @@ FX.phoneUS = {
             return null
         }
         if (country !== "US") {
+            return input
+        }
+        if (input.indexOf("+") >= 0) {
             return input
         }
         const inputArray = input.split("X")

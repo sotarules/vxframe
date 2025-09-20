@@ -58,7 +58,7 @@ export default class ReportTreeModal extends Component {
         return (
             <div className="flexi-fixed">
                 <div className="row">
-                    <div className="col-sm-6">
+                    <div className="col-sm-3">
                         <VXSelect id={`${this.props.id}-padding`}
                             groupClass="form-group-first"
                             label={Util.i18n("common.label_padding")}
@@ -67,7 +67,7 @@ export default class ReportTreeModal extends Component {
                             value={fieldsObject.padding}
                             dbName="padding"/>
                     </div>
-                    <div className="col-sm-6">
+                    <div className="col-sm-3">
                         <VXSelect id={`${this.props.id}-limit`}
                             groupClass="form-group-first"
                             label={Util.i18n("common.label_limit")}
@@ -75,6 +75,15 @@ export default class ReportTreeModal extends Component {
                             bindingType="Integer"
                             value={fieldsObject.limit}
                             dbName="limit"/>
+                    </div>
+                    <div className="col-sm-6">
+                        <VXSelect id={`${this.props.id}-row-format`}
+                            groupClass="form-group-first"
+                            label={Util.i18n("common.label_report_row_format")}
+                            codeArray={UX.addBlankSelection(UX.makeCodeArray("reportRowFormat"))}
+                            bindingType="String"
+                            value={fieldsObject.rowFormat}
+                            dbName="rowFormat"/>
                     </div>
                 </div>
             </div>

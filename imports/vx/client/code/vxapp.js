@@ -7,7 +7,6 @@ import {
     setCurrentDomainId,
     setCurrentLocale,
     setCurrentPublishingMode,
-    setCurrentReportRecord,
     setCurrentUserId,
     setFunctionUpdateTimestamp,
     setImportLastPercent,
@@ -28,7 +27,6 @@ import {
     setPublishingModeClient,
     setPublishingModeServer,
     setReportData,
-    setReportGuid,
     setReportLoading,
     setSubscriptionParameters
 } from "/imports/vx/client/code/actions"
@@ -262,8 +260,8 @@ VXApp = { ...VXApp, ...{
         if (VXApp.isAppExemptRoute && VXApp.isAppExemptRoute(path)) {
             return true
         }
-        const exemptRoutes = ["/signin", "/enroll-account", "/reset-password"]
-        if (Util.startsWith(exemptRoutes, path)) {
+        const exemptRoutes = ["signin", "enroll-account", "reset-password"]
+        if (Util.isRoutePath(exemptRoutes, path)) {
             return true
         }
         return false
@@ -280,18 +278,21 @@ VXApp = { ...VXApp, ...{
         }
         const meteorUserId = window.localStorage.getItem("Meteor.userId")
         if (VXApp.isAppAuthorizedRoute && VXApp.isAppAuthorizedRoute(meteorUserId)) {
+            return true
+        }
+        const userRoutes = ["reports", "report", "reportpreview", "profile", "tenants", "domains"]
+        const systemAdminRoutes = ["users-domains", "domains-users", "user", "domain", "tenant"]
+        const superAdminRoutes = ["log", "events", "functions", "function", "templates", "template"]
+        if (Util.isRoutePath(userRoutes)) {
             return !!meteorUserId
         }
-        const superAdminRoutes = ["/log", "/events" ]
-        const systemAdminRoutes = ["/users-domains", "/domains-users", "/user/", "/domain/", "/tenant/"]
-        const path = Util.routePath()
-        if (Util.startsWith(superAdminRoutes, path)) {
+        if (Util.isRoutePath(superAdminRoutes)) {
             return Util.isUserSuperAdmin(meteorUserId)
         }
-        if (Util.startsWith(systemAdminRoutes, path)) {
+        if (Util.isRoutePath(systemAdminRoutes)) {
             return Util.isUserAdmin(meteorUserId)
         }
-        return !!meteorUserId
+        return false
     },
 
     /**
@@ -546,8 +547,9 @@ VXApp = { ...VXApp, ...{
             if (email && domainId) {
                 OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} domain ${Util.fetchDomainName(domainId)}`)
                 Store.dispatch(setCurrentUserId(userId))
-                let currentLocale = Util.getProfileValue("locale")
+                const currentLocale = Util.getProfileValue("locale")
                 Store.dispatch(setCurrentLocale(currentLocale))
+                UXState.currentLocale = currentLocale
                 OLog.debug(`vxapp.js routeBefore [${Util.routePath()}] *before* email=${email} i18n currentLocale=${currentLocale}`)
                 // Set the user's default timezone if it hasn't already been established:
                 if (!Util.getProfileValue("timezone", userId)) {
@@ -824,9 +826,13 @@ VXApp = { ...VXApp, ...{
      * @return {array} Array of users.
      */
     findUserList() {
-        const domainIdsVisible = Util.getDomainIds(Meteor.userId())
-        const users = Meteor.users.find( { "profile.dateRetired": { $exists: false },
-            "profile.domains.domainId": { $in : domainIdsVisible }}).fetch()
+        const selector = {}
+        selector["profile.dateRetired"] = { $exists: false }
+        if (!Util.isPreference("ALL_MEMBERS_AND_DOMAINS")) {
+            const domainIdsVisible = Util.getDomainIds(Meteor.userId())
+            selector["profile.domains.domainId"] = { $in : domainIdsVisible }
+        }
+        const users = Meteor.users.find(selector).fetch()
         return VXApp.sortUserList(users)
     },
 
@@ -940,6 +946,12 @@ VXApp = { ...VXApp, ...{
                 `to ${Util.fetchFullName(user._id)}`)
             modifier.$push["profile.tenants"] = { tenantId: domain.tenant, roles : [ ]  }
         }
+        if (domains.length === 0) {
+            OLog.debug(`vxapp.js addUserDomain for user ${Util.fetchFullName(user._id)} ` +
+                `setting currentDomain to ${Util.fetchDomainName(domain._id)}`)
+            modifier.$set = {}
+            modifier.$set["profile.currentDomain"] = domain._id
+        }
         OLog.debug(`vxapp.js addUserDomain modifier=${OLog.debugString(modifier)}`)
         Meteor.users.update(user._id, modifier, error => {
             if (error) {
@@ -993,13 +1005,11 @@ VXApp = { ...VXApp, ...{
             modifier.$pull["profile.tenants"] = { tenantId }
         }
         if (user.profile.currentDomain === domainIdDeleted) {
-            if (domains.length < 1) {
-                OLog.error(`vxapp.js deleteUserDomain ${Util.fetchFullName(userId)} cannot remove last domain`)
-                UX.notify({ success: false, icon: "TRIANGLE", key: "common.alert_cannot_remove_last_domain" })
-                return
-            }
+            const currentDomain = domains.length > 0 ? domains[0].domainId : null
+            OLog.debug(`vxapp.js deleteUserDomain for user ${Util.fetchFullName(userId)} ` +
+                `resetting currentDomain to ${currentDomain}`)
             modifier.$set = {}
-            modifier.$set["profile.currentDomain"] = domains[0].domainId
+            modifier.$set["profile.currentDomain"] = currentDomain
         }
         OLog.debug(`vxapp.js deleteUserDomain for user ${Util.fetchFullName(userId)} modifier=${OLog.debugString(modifier)}`)
         Meteor.users.update(user._id, modifier, error => {
@@ -1298,6 +1308,31 @@ VXApp = { ...VXApp, ...{
         })
         codeArray.sort((recordA, recordB) => {
             return Util.safeCompare(recordA.localized, recordB.localized)
+        })
+        return codeArray
+    },
+
+    /**
+     * Make an array of entity types.
+     *
+     * @param {string} domainId Domain ID.
+     * @return {array} Array of entity types (code and localized).
+     */
+    makeEntityTypeArray(domainId) {
+        domainId = domainId || Util.getCurrentDomainId()
+        const codes = Util.getCodes("entityType")
+        const codeArray = []
+        codes.forEach(code => {
+            const visible = Util.getCodeProperty("entityType", code, "visible")
+            if (visible === false) {
+                return
+            }
+            if (_.isString(visible)) {
+                if (!VXApp[visible](domainId)) {
+                    return
+                }
+            }
+            codeArray.push({ code, localized: Util.getCodeLocalized("entityType", code) })
         })
         return codeArray
     },
@@ -2306,8 +2341,14 @@ VXApp = { ...VXApp, ...{
         const treeNodes = []
         Object.keys(metadataNode).forEach(key => {
             const metadataChild = metadataNode[key]
-            if (metadataChild.hidden) {
+            if (metadataChild.visible === false) {
                 return
+            }
+            if (_.isFunction(metadataChild.visible)) {
+                const visible = metadataChild.visible(report.domain)
+                if (!visible) {
+                    return
+                }
             }
             if (metadataChild.usedIndicator) {
                 return
@@ -2360,51 +2401,30 @@ VXApp = { ...VXApp, ...{
         return label
     },
 
-
     /**
      * Conditionally fetch report data to Redux.
      *
      * @param {object} report Report record.
+     * @param {boolean} limit True to limt rows returned.
      */
-    async conditionallyFetchReportData(report) {
+    async conditionallyFetchReportData(report, limit) {
         try {
             if (!(report && report.entityType)) {
                 return
             }
-            const currentReportRecord = Store.getState().currentReportRecord
-            const equalReport = currentReportRecord &&
-                Util.isDeepEqual(currentReportRecord.checked, report.checked) &&
-                Util.isDeepEqual(currentReportRecord.fields,  report.fields)
-            if (equalReport) {
-                OLog.debug(`vxapp.js conditionallyFetchReportData report name=${report.name} is unchanged fetch bypassed`)
-                return
-            }
-            const reportGuid = Util.getGuid()
-            OLog.debug(`vxapp.js conditionallyFetchReportData report name=${report.name} *fetch* report=${reportGuid}`)
-            Store.dispatch(setCurrentReportRecord(report))
-            Store.dispatch(setReportGuid(reportGuid))
+            OLog.debug(`vxapp.js conditionallyFetchReportData report name=${report.name}`)
             const server = Util.getCodeProperty("entityType", report.entityType, "server")
             if (!server) {
                 Store.dispatch(setReportLoading(true))
-                const reportData = VXApp.makeReportData(report)
-                if (Store.getState().reportGuid === reportGuid) {
-                    Store.dispatch(setReportLoading(false))
-                    Store.dispatch(setReportData(reportData))
-                }
-                else {
-                    OLog.warn(`vxapp.js conditionallyFetchReportData report name=${report.name} *client* GUID mismatch *ignore*`)
-                }
+                const reportData = VXApp.makeReportData(report, limit)
+                Store.dispatch(setReportLoading(false))
+                Store.dispatch(setReportData(reportData))
                 return
             }
             Store.dispatch(setReportLoading(true))
-            const result = await UX.call("fetchReportData", report._id)
-            if (Store.getState().reportGuid === reportGuid) {
-                Store.dispatch(setReportLoading(false))
-                Store.dispatch(setReportData(result.reportData))
-            }
-            else {
-                OLog.warn(`vxapp.js conditionallyFetchReportData report name=${report.name} *server* GUID mismatch *ignore*`)
-            }
+            const result = await UX.call("fetchReportData", report._id, limit)
+            Store.dispatch(setReportLoading(false))
+            Store.dispatch(setReportData(result.reportData))
         }
         catch (error) {
             UX.notifyForError(error)

@@ -1844,7 +1844,6 @@ Meteor.i18nMessages.codes = {
             rx : "$Restore snapshot$"
         }
     },
-
     daemonJob : {
         MAILMAN : {
             en : "Process all notification records by sending out email and SMS messages",
@@ -2183,5 +2182,16 @@ Meteor.i18nMessages.codes = {
             en : "10000",
             rx : "$10000$"
         }
-    }
+    },
+
+    reportRowFormat : {
+        "SINGLE_ROW" : {
+            en : "Single Row Per Record",
+            rx : "$Single Row Per Record$"
+        },
+        "MULTI_ROW" : {
+            en : "Multiple Rows Per Record",
+            rx : "$Multiple Rows Per Record$"
+        },
+    },
 }

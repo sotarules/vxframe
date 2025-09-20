@@ -75,6 +75,7 @@ UX = {
      * @param {object} error Standard error object.
      */
     notifyForError(error) {
+        console.log(`ux.js notifyForError error=${error.stack}`)
         UX.createNotificationForResult({ success : false, icon : "TRIANGLE", key : "common.alert_callback_error", variables : { error : error } })
     },
 
@@ -1120,55 +1121,6 @@ UX = {
         }
         const lastPath = stack[stack.length - 1].path
         return lastPath.startsWith(routePath)
-    },
-
-    /**
-     * Prevent iOS "rubber-banding" on scroll.
-     */
-    noRubberBand() {
-        // Disable scroll for the document, we'll handle it ourselves
-        document.addEventListener("touchmove", function(e) {
-            e.preventDefault()
-        }, { passive: false })
-        document.body.addEventListener("touchstart", function(e) {
-            const listElement = UX.listElement(e.target)
-            if (!listElement) {
-                return
-            }
-            // See if we're already scrolled to the extreme top or bottom:
-            this.allowUp = listElement.scrollTop > 0
-            this.allowDown = listElement.scrollTop < (listElement.scrollHeight - listElement.clientHeight)
-            // Remember where the touchstart began so we can compute the shift in X or Y later:
-            this.lastX = e.touches[0].pageX
-            this.lastY = e.touches[0].pageY
-        }, { passive: false })
-        // Anti-rubber-banding on iOS part II:
-        document.body.addEventListener("touchmove", function(e) {
-            const listElement = UX.listElement(e.target)
-            if (!listElement) {
-                return
-            }
-            const pageX = e.touches[0].pageX
-            const pageY = e.touches[0].pageY
-            const up = pageY > this.lastY
-            const down = !up
-            const deltaX = Math.abs(pageX - this.lastX)
-            const deltaY = Math.abs(pageY - this.lastY)
-            // If the deltaY is greater than deltaX, this is largely a Y move.  Only a significantly Y
-            // move will trigger the anti-rubber-banding logic:
-            if (deltaY > deltaX) {
-                if (up && !this.allowUp) {
-                    event.preventDefault()
-                    return
-                }
-                if (down && !this.allowDown) {
-                    event.preventDefault()
-                    return
-                }
-            }
-            // Ironically, stopPropagation is tantamount to allowing the events to take effect:
-            event.stopPropagation()
-        }, { passive: false })
     },
 
     /**
@@ -3216,4 +3168,14 @@ UX = {
         })
         console.log("ux.js dumpDuplicateIds duplicates", duplicates)
     },
+
+    /**
+     * Print stack trace.
+     */
+    printStackTrace() {
+        const err = new Error()
+        const stack = err.stack.split("\n")
+        stack.splice(0, 2)
+        console.log(stack.join("\n"))
+    }
 }

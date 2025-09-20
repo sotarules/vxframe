@@ -1,4 +1,3 @@
-import initReactFastclick from "react-fastclick"
 import {createBrowserHistory} from "history"
 import {createRoot} from "react-dom/client"
 import {setExemptRoute, setRoutePath, setWideRoute} from "/imports/vx/client/code/actions"
@@ -76,7 +75,6 @@ Meteor.startup(() => {
     $(window).on("resize", () => {
         UX.handleResize()
     })
-    UX.noRubberBand()
     Accounts.onLogin(() => {
         console.log("startup.js Accounts onLogin *fire*")
         Meteor.call("onClientLogin", Meteor.userId(), Meteor.appVersion.version, React.version, error => {
@@ -107,6 +105,5 @@ Meteor.startup(() => {
             }, 60000)
         })
     })
-    initReactFastclick()
     doRoute()
 })

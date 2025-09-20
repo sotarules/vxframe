@@ -1,7 +1,7 @@
 import { combineReducers, createStore } from "redux"
 import { persistStore, persistReducer } from "redux-persist"
 import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2"
-import storage from "redux-persist/lib/storage"
+import localForage from "localforage"
 import { setCurrentLocale } from "/imports/vx/client/code/actions"
 import {setFunctionUpdateTimestamp} from "/imports/vx/client/code/actions"
 
@@ -9,7 +9,7 @@ React = require("react")
 
 const persistConfig = {
     key: "root",
-    storage,
+    storage: localForage,
     stateReconciler: autoMergeLevel2,
     blacklist: ["loading"]
 }
@@ -77,8 +77,9 @@ Tracker.autorun(() => {
 })
 
 Tracker.autorun(() => {
-    let locale = Util.getProfileValue("locale")
-    Store.dispatch(setCurrentLocale(locale))
+    const currentLocale = Util.getProfileValue("locale")
+    UXState.currentLocale = currentLocale
+    Store.dispatch(setCurrentLocale(currentLocale))
 })
 
 Tracker.autorun(function() {

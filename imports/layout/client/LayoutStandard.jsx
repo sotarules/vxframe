@@ -13,7 +13,6 @@ export default class LayoutStandard extends Component {
     static propTypes = {
         id : PropTypes.string.isRequired,
         exemptRoute : PropTypes.bool,
-        authorizedRoute : PropTypes.bool,
         wideRoute : PropTypes.bool,
         loading : PropTypes.bool,
     }
@@ -24,7 +23,7 @@ export default class LayoutStandard extends Component {
 
     render() {
         OLog.debug(`LayoutStandard.jsx render id=${this.slidePanelId()} loading=${this.props.loading} ` +
-            ` authorizeRoute=${this.props.authorizedRoute}`)
+            ` authorizeRoute=${VXApp.isAuthorizedRoute()}`)
         if (this.props.loading) {
             return (<LoadingSpinner/>)
         }
@@ -34,7 +33,7 @@ export default class LayoutStandard extends Component {
                 <OffCanvasNavContainer/>
                 <TopBar/>
                 <div className={`${this.containerClassName()} nav-canvas flexi-grow`}>
-                    {this.props.authorizedRoute ? (
+                    {VXApp.isAuthorizedRoute() ? (
                         <div className="animation-top flexi-grow">
                             <div className="animation-container notification-container flexi-grow">
                                 <TransitionGroup id="layout-transition-group" component="div" className="flexi-grow">

@@ -7,6 +7,8 @@ RecordRemover = {
         try {
             RecordRemover.removeRecordsLog()
             RecordRemover.removeRecordsNotifications()
+            RecordRemover.removeRecordsTransactions()
+            RecordRemover.removeRecordsTenants()
         }
         catch (error) {
             OLog.error(`recordremover.js (vx) removeAllRecords unexpected error=${OLog.errorError(error)}`)
@@ -30,5 +32,19 @@ RecordRemover = {
         OLog.debug(`recordremover.js (vx) removeRecordsNotifications *fire* purgeBeforeDate=${purgeBeforeDate} ` +
             ` selector=${JSON.stringify(selector)} remove count=${count}`)
         Notifications.remove(selector)
+    },
+
+    removeRecordsTransactions() {
+        const purgeBeforeMoment = moment().subtract(30, "days")
+        OLog.debug(`recordremover.js (vx) removeRecordsTransactions *fire* purgeBeforeMoment=${purgeBeforeMoment}`)
+        VXApp.removeRecordsTransactions(purgeBeforeMoment)
+    },
+
+    removeRecordsTenants() {
+        const purgeBeforeDate = moment().subtract(30, "days").toDate()
+        OLog.debug(`recordremover.js (vx) removeRecordsTenants *fire* purgeBeforeDate=${purgeBeforeDate}`)
+        Tenants.find( { dateRetired: { "$lte": purgeBeforeDate } }).forEach(tenant => {
+            VXApp.removeTenant(tenant._id)
+        })
     }
 }

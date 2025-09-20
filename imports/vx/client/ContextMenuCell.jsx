@@ -42,10 +42,13 @@ export default class ContextMenuCell extends Component {
             OLog.debug("ContextMenuCell.jsx handleButtonPress entity handle pressed *ignored*")
             return
         }
+        const $element = $(event.target).closest(".vx-list")
+        $element.addClass("not-selectable")
         event.persist()
         this.buttonPressTimer = setTimeout(() => {
             const fakeEvent = UX.makeContextEvent(event)
             this.showContextMenu(event, fakeEvent)
+            $element.removeClass("not-selectable")
         }, 500)
     }
 

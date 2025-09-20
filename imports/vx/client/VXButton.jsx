@@ -204,6 +204,7 @@ export default class VXButton extends Component {
         if (!this.props.onClick) {
             return
         }
+        this.node.focus()
         event.persist()
         this.start()
         Meteor.setTimeout(() => {

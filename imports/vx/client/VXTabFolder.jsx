@@ -67,15 +67,16 @@ export default class VXTabFolder extends Component {
     UNSAFE_componentWillReceiveProps(newProps) {
         const activeTabId = !this.isValidTabId(newProps.activeTabId) ?
             newProps.activeTabId : this.state.activeTabId
+        this.setState({activeTabId})
         if (newProps.children.length !== this.props.children.length) {
-            this.setState({activeTabId, tabNames: this.computeTabNames(newProps, activeTabId) })
+            this.setState({tabNames: this.computeTabNames(newProps, activeTabId) })
             return
         }
         const oldChildren = React.Children.toArray(this.props.children)
         const newChildren = React.Children.toArray(newProps.children)
         for (let childIndex = 0; childIndex < oldChildren.length; childIndex++) {
             if (oldChildren[childIndex].props.name !== newChildren[childIndex].props.name) {
-                this.setState({activeTabId, tabNames: this.computeTabNames(newProps, activeTabId) })
+                this.setState({tabNames: this.computeTabNames(newProps, activeTabId) })
                 return
             }
         }

@@ -2087,12 +2087,13 @@ VXApp = { ...VXApp, ...{
      * Fetch report data server-side.
      *
      * @param {string} reportId ID of report to send.
+     * @param {boolean} limit Limit records returned.
      * @return {object} Standard result object.
      */
-    fetchReportData(reportId) {
+    fetchReportData(reportId, limit) {
         try {
-            if (!_.isString(reportId)) {
-                OLog.error(`vxapp.js fetchReportData parameter check failed reportId=${reportId}`)
+            if (!_.isString(reportId) || !Util.isNullish(limit) && !_.isBoolean(limit)) {
+                OLog.error(`vxapp.js fetchReportData parameter check failed reportId=${reportId} limit=${limit}`)
                 return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
             }
             if (!Meteor.userId()) {
@@ -2105,7 +2106,7 @@ VXApp = { ...VXApp, ...{
                 return { success : false, icon : "BUG", key : "common.alert_transaction_fail_report_not_found",
                     variables : { reportId : reportId } }
             }
-            const reportData = VXApp.makeReportData(report)
+            const reportData = VXApp.makeReportData(report, limit)
             return { success: true, icon: "PLANE", key: "common.alert_transaction_success", reportData }
         }
         catch (error) {
@@ -2171,9 +2172,7 @@ VXApp = { ...VXApp, ...{
             const column = {}
             column.metadataPath =  heading.metadataPath
             column.text = heading.text
-            if (definition.key) {
-                column.key = definition.key
-            }
+            column.key = heading.key
             column.alignment = { horizontal: heading.alignment }
             column.numFmt = VXApp.spreadsheetFormat(definition)
             spreadsheetParameters.columns.push(column)
@@ -2212,7 +2211,7 @@ VXApp = { ...VXApp, ...{
         OLog.debug(`vxapp.js makeWorkbook worksheetName=${worksheetName}`)
         const worksheet = workbook.addWorksheet(VXApp.formatWorksheetName(worksheetName))
         worksheet.columns = spreadsheetParameters.columns.map(column => {
-            return { header: column.text, key: column.metadataPath,
+            return { header: column.text, key: column.key,
                 style : { alignment : column.alignment, numFmt: column.numFmt } }
         })
         worksheet.views = [ { zoomScale : spreadsheetParameters.zoomScale, state: "frozen", ySplit: 1 } ]
@@ -2226,22 +2225,40 @@ VXApp = { ...VXApp, ...{
             }
             worksheet.getCell(cellName).font = font
         }
+        const rootProperties = VXApp.makeRootProperties(report)
         for (let rowIndex = 0; rowIndex < reportData.rows.length; rowIndex++) {
             const row = reportData.rows[rowIndex]
-            for (let subrowIndex = 0; subrowIndex < row.subrowCount; subrowIndex++) {
-                const columns = reportData.rows[rowIndex].columns
+            const columns = reportData.rows[rowIndex].columns
+            switch (rootProperties.rowFormat) {
+            case "MULTI_ROW": {
+                for (let subrowIndex = 0; subrowIndex < row.subrowCount; subrowIndex++) {
+                    const worksheetObject = {}
+                    columns.map(column => {
+                        // If there is only a single row in the path array, replicate that row data
+                        // for all subrows to make a cartesian product.
+                        const textIndex = column.pathArray.length === 1 && subrowIndex > 0 ? 0 : subrowIndex
+                        const text = column.cellArray[textIndex]
+                        if (!Util.isNullish(text)) {
+                            worksheetObject[column.key] = VXApp.convertToOptimalType(column.definition, text)
+                        }
+                    })
+                    const row = worksheet.addRow(worksheetObject)
+                    row.commit()
+                }
+                break
+            }
+            case "SINGLE_ROW": {
                 const worksheetObject = {}
                 columns.map(column => {
-                    // If there is only a single row in the path array, replicate that row data
-                    // for all subrows to make a cartesian product.
-                    const textIndex = column.pathArray.length === 1 && subrowIndex > 0 ? 0 : subrowIndex
-                    const text = column.cellArray[textIndex]
+                    const text = column.text
                     if (!Util.isNullish(text)) {
-                        worksheetObject[column.metadataPath] = VXApp.convertToOptimalType(column.definition, text)
+                        worksheetObject[column.key] = VXApp.convertToOptimalType(column.definition, text)
                     }
                 })
                 const row = worksheet.addRow(worksheetObject)
                 row.commit()
+                break
+            }
             }
         }
         VXApp.adjustColumnWidths(worksheet)
@@ -2330,64 +2347,94 @@ VXApp = { ...VXApp, ...{
     },
 
     /**
-     * Completely delete a tenant and all of its domains and records.
+     * Physically delete a tenant, domains and application-specific records.
      *
      * @param {object} tenantId Tenant ID to delete.
      */
-    deleteTenant(tenantId) {
-        try {
-            if (!_.isString(tenantId)) {
-                OLog.error(`vxapp.js deleteTenant parameter check failed tenantId=${tenantId}`)
-                return { success: false, icon: "EYE", key: "common.alert_parameter_check_failed" }
-            }
-            if (!Meteor.userId()) {
-                OLog.error("vxapp.js deleteTenant security check failed user is not logged in")
-                return { success: false, icon: "EYE", key: "common.alert_security_check_failed" }
-            }
-            if (!Util.isUserSuperAdmin()) {
-                OLog.error("vxapp.js deleteTenant security check failed invoking user is not super administrator")
-                return { success : false, icon : "EYE", key : "common.alert_security_check_failed" }
-            }
-            Domains.find({ tenant: tenantId }).forEach(domain => {
-                const collections = VXApp.getDomainCollections()
-                collections.forEach(collection => {
-                    OLog.warn(`vxapp.js deleteTenant tenantId=${tenantId} domainId=${domain._id} ${collection._name} *remove*`)
-                    collection.remove({domain: domain._id})
+    removeTenant(tenantId) {
+        Domains.find({ tenant: tenantId }).forEach(domain => {
+            const collections = VXApp.getDomainCollections()
+            collections.forEach(collection => {
+                const count = collection.find({ domain: domain._id }).count()
+                OLog.warn(`vxapp.js removeTenant tenantId=${tenantId} domainId=${domain._id} collection=${collection._name} removing ${count} records related to this domain`)
+                collection.remove({domain: domain._id})
+            })
+            Meteor.users.find({ "profile.domains.domainId": domain._id }).forEach(user => {
+                const tenants = user.profile.tenants
+                const domains = user.profile.domains
+                const newTenants = _.filter(tenants, tenantObject => {
+                    return tenantObject.tenantId !== tenantId
                 })
-                Domains.remove(domain._id)
-            })
-            Tenants.remove(tenantId)
-            return { success: true, icon: "PLANE", key: "common.alert_transaction_success" }
-        }
-        catch (error) {
-            OLog.error(`vxapp.js deleteTenant unexpected error=${OLog.errorError(error)}`)
-            return { success: false, icon: "BUG", key: "common.alert_unexpected_error",
-                variables: { error: error.toString() } }
-        }
-    },
-
-    fixUserTenants() {
-        Meteor.users.find({"profile.dateRetired":{$exists: false}}).forEach(user => {
-            const tenants = []
-            user.profile.domains.forEach(userDomainObject => {
-                const domain = Domains.findOne(userDomainObject.domainId)
-                const userTenantObject = _.findWhere(tenants, { tenantId : domain.tenant })
-                if (!userTenantObject) {
-                    const userTenantObjectNew = {}
-                    userTenantObjectNew.tenantId = domain.tenant
-                    userTenantObjectNew.roles = []
-                    tenants.push(userTenantObjectNew)
-                }
-            })
-            const modifier = {}
-            modifier.$set = {}
-            modifier.$set["profile.tenants"] = tenants
-            OLog.debug(`vxapp.js fixUserTenants for user ${Util.fetchFullName(user._id)} modifier=${OLog.debugString(modifier)}`)
-            Meteor.users.update(user._id, modifier, error => {
-                if (error) {
-                    OLog.error(`vxapp.js fixUserTenants error returned from MongoDB update=${OLog.errorError(error)}`)
+                OLog.warn(`vxapp.js removeTenant tenantId=${tenantId} domainId=${domain._id} userId=${user._id} newTenants=${OLog.warnString(newTenants)}`)
+                const newDomains = _.filter(domains, domainObject => {
+                    return domainObject.domainId !== domain._id
+                })
+                OLog.warn(`vxapp.js removeTenant tenantId=${tenantId} domainId=${domain._id} userId=${user._id} newDomains=${OLog.warnString(newDomains)}`)
+                if (newDomains.length === 0) {
+                    OLog.warn(`vxapp.js removeTenant tenantId=${tenantId} domainId=${domain._id} userId=${user._id} removing single-domain user`)
+                    Meteor.users.remove(user._id)
                     return
                 }
+                const modifier = {}
+                modifier.$set = {}
+                modifier.$set["profile.tenants"] = newTenants
+                modifier.$set["profile.domains"] = newDomains
+                if (user.profile.currentDomain === domain._id) {
+                    OLog.warn(`vxapp.js removeTenant tenantId=${tenantId} domainId=${domain._id} userId=${user._id} is multi-domain user ` +
+                    `setting currentDomain to ${newDomains[0].domainId}`)
+                    modifier.$set["profile.currentDomain"] = newDomains[0].domainId
+                }
+                OLog.warn(`vxapp.js removeTenant tenantId=${tenantId} domainId=${domain._id} userId=${user._id} modifier=${OLog.warnString(modifier)}`)
+                Meteor.users.update(user._id, modifier)
+            })
+            OLog.warn(`vxapp.js removeTenant tenantId=${tenantId} domainId=${domain._id} removing domain`)
+            Domains.remove(domain._id)
+        })
+        OLog.warn(`vxapp.js removeTenant tenantId=${tenantId} removing tenant`)
+        Tenants.remove(tenantId)
+    },
+
+    /**
+     * Remove defunct transaction records and history elements.
+     *
+     * @param purgeBeforeMoment Moment before which records are purged.
+     */
+    removeRecordsTransactions(purgeBeforeMoment) {
+        Tenants.find( { dateRetired: { $exists: false } }).forEach(tenant => {
+            Domains.find( { dateRetired : { $exists: false }, tenant: tenant._id }).forEach(domain => {
+                Meteor.users.find( { "profile.dateRetired": { $exists: true }, "profile.domains.domainId": domain._id } ).forEach(user => {
+                    const countBefore = Transactions.find({ domain: domain._id, userId: user._id }).count()
+                    if (countBefore > 0) {
+                        Transactions.remove({ domain: domain._id, userId: user._id })
+                        OLog.warn(`vxapp.js removeRecordsTransactions tenant=${tenant.name} domain=${domain.name} userId=${user._id} retired countBefore=${countBefore}`)
+                    }
+                })
+                Meteor.users.find( { "profile.dateRetired": { $exists: false }, "profile.domains.domainId": domain._id } ).forEach(user => {
+                    let entriesBefore = 0
+                    let entriesRemoved = 0
+                    let entriesAfter = 0
+                    let recordsRemoved = 0
+                    Transactions.find({ domain: domain._id, userId: user._id }).forEach(transaction => {
+                        const newHistory = _.filter(transaction.history, record => {
+                            return moment(record.dateModified).isAfter(purgeBeforeMoment)
+                        })
+                        if (newHistory.length === 0) {
+                            Transactions.remove(transaction._id)
+                            recordsRemoved++
+                        }
+                        if (newHistory.length !== transaction.history.length) {
+                            Transactions.update(transaction._id, { $set: { history: newHistory, index: newHistory.length - 1 } })
+                        }
+                        entriesBefore += transaction.history.length
+                        entriesRemoved += transaction.history.length - newHistory.length
+                        entriesAfter += newHistory.length
+                    })
+                    if (entriesBefore !== entriesAfter) {
+                        OLog.warn(`vxapp.js removeRecordsTransactions tenant=${tenant.name} domain=${domain.name} user=${Util.getUserEmail(user)} ` +
+                         `entriesBefore=${entriesBefore} entriesRemoved=${entriesRemoved} entriesAfter=${entriesAfter} recordsRemoved=${recordsRemoved} ` +
+                         `purgeBeforeMoment=${purgeBeforeMoment.format("YYYY-MM-DD")}`)
+                    }
+                })
             })
         })
     }

@@ -1,5 +1,6 @@
 import { Component } from "react"
 import PropTypes from "prop-types"
+import EmptyEntityList from "/imports/vx/client/EmptyEntityList"
 import EntityList from "/imports/vx/client/EntityList"
 import EntityItem from "/imports/vx/client/EntityItem"
 import EntityListRoleCheckboxes from "/imports/vx/client/EntityListRoleCheckboxes"
@@ -25,6 +26,15 @@ export default class UserEntityList extends Component {
     }
 
     render() {
+        if (this.props.users.length === 0) {
+            return (
+                <EmptyEntityList id={this.props.id}
+                    emptyMessage={Util.i18n("common.empty_users")}
+                    droppable={true}
+                    dropClassName="user-drop-list"
+                    onDrop={this.handleDrop.bind(this)}/>
+            )
+        }
         return (
             <EntityList id={this.props.id}
                 selectable={this.props.selectable}

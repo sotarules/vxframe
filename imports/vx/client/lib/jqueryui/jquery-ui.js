@@ -1485,7 +1485,9 @@
                         break;
                     }
 
-                    this._trigger( "change", event, this._uiHash() );
+                    // DL - 02/24/2025 - We must pass this so we have a sender in ui
+                    // ror listeners to distinguish clone from move:
+                    this._trigger( "change", event, this._uiHash( this ) );
                     break;
                 }
             }

@@ -97,8 +97,8 @@ Meteor.users.allow({
         OLog.error(`allow.js Meteor.users.allow insert *denied* userId=${userId}`)
         return false
     },
-    update: function(userId) {
-        return Serv.isUserDomain(userId, Util.getCurrentDomainId(userId), "Meteor.users.allow update")
+    update: function() {
+        return true
     },
     remove: function(userId) {
         OLog.error(`allow.js Meteor.users.allow remove *denied* userId=${userId}`)
@@ -141,9 +141,6 @@ Meteor.users.deny({
             for (let fieldPath in modifier.$set) {
                 if (fieldPath === "profile.currentDomain") {
                     const domainId = modifier.$set["profile.currentDomain"]
-                    if (!domainId) {
-                        return true
-                    }
                     if (!Serv.isAllowUserSetCurrentDomain(userId, doc._id, domainId, "Meteor.users.deny update")) {
                         return true
                     }

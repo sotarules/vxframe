@@ -76,7 +76,7 @@ export default class FunctionAceEditor extends Component {
     }
 
     handleValidate(annotations) {
-        const hasErrors = _.where(annotations, { type: "error" }).length > 0
+        const hasErrors = _.where(annotations, { type: "error" })?.length > 0
         const valid = this.state.loaded && !hasErrors
         this.setState({ valid: valid, hasErrors : hasErrors })
         if (this.props.onValidate) {

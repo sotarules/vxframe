@@ -16,7 +16,7 @@ const ReportEditRightConnect = connect(
 export default withTracker(() => {
     const report = ContextMaker.reports()
     if (report) {
-        VXApp.conditionallyFetchReportData(report)
+        VXApp.conditionallyFetchReportData(report, true)
     }
     return {
         report

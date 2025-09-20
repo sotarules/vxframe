@@ -10,11 +10,6 @@
         rx : "$Function has errors, please correct them first$"
     },
 
-    alert_cannot_remove_last_domain : {
-        en : "Cannot remove a user from his/her only remaining domain",
-        rx : "$Cannot remove a user from his/her only remaining domain$"
-    },
-
     alert_no_row_selected : {
         en : "Please select (click) the row that you wish to remove first",
         rx : "$Please select (click) the row that you wish to remove first$"
@@ -23,6 +18,11 @@
     alert_choose_file_type_and_file : {
         en : "Please select File Type and then press Choose File",
         rx : "$Please select File Type and then press Choose File$"
+    },
+
+    alert_tiny_editor_changed : {
+        en : "Some process tried to change the contents of the editor, but your changes were preserved.",
+        rx : "$Some process tried to change the contents of the editor, but your changes were preserved.$"
     },
 
     required_fields_incomplete : {
@@ -435,6 +435,16 @@
         rx : "$Issues Detected$"
     },
 
+    label_permissions : {
+        en : "Permissions",
+        rx : "$Permissions$"
+    },
+
+    label_permissions_modal_subheading : {
+        en : "{{fullName}} within {{domainName}}",
+        rx : "${{fullName}} within {{domainName}}$"
+    },
+
     label_function_name : {
         en : "Function Name",
         rx : "$Function Name$"
@@ -620,6 +630,16 @@
         rx : "$Distribution Function$"
     },
 
+    label_report_row_format : {
+        en : "Row Format",
+        rx : "$Row Format$"
+    },
+
+    label_video_tag_not_supported : {
+        en : "Your browser does not support the video tag.",
+        rx : "$Your browser does not support the video tag.$"
+    },
+
     empty_tenants : {
         en : "There are no tenants to display",
         rx : "$There are no tenants to display$"
@@ -628,6 +648,11 @@
     empty_domains : {
         en : "There are no domains to display",
         rx : "$There are no domains to display$"
+    },
+
+    empty_users : {
+        en : "There are no users to display",
+        rx : "$There are no users to display$"
     },
 
     empty_templates : {

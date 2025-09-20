@@ -25,17 +25,21 @@ Service = {
         const mailgun = new Mailgun(formData)
         const mailgunAPI = mailgun.client({username: "api",  key: mailgunPrivateApiKey })
         const mailgunDomain = domain.mailgunDomain || CX.MAILGUN_DOMAIN
+        const environment = Util.getConfigValue("environment")
         to = domain.mailgunDestinationOverride ? domain.mailgunDestinationOverride : to
         to = _.isArray(to) ? to : [to]
         const messageParams = { from, to, subject, html, text }
-        messageParams["o:testmode"] = domain.mailgunTest ? "yes" : "no"
+        messageParams["o:testmode"] = (environment === "development" || domain.mailgunTest) ? "yes" : "no"
+        messageParams["h:sender"] = from
         if (filename && data) {
             messageParams.attachment = [{ filename, data }]
         }
         try {
-            OLog.debug(`service.js sendEmail domainId=${domainId} to=${to} subject=${subject} *invoke* MailGun API mailgunTest=${domain.mailgunTest}`)
-            mailgunAPI.messages.create(mailgunDomain, messageParams)
-            OLog.debug(`service.js sendEmail domainId=${domainId} to=${to} subject=${subject} *success*`)
+            OLog.debug(`service.js sendEmail domainId=${domainId} from=${from} to=${to} subject=${subject} *invoke* ` +
+                `MailGun API mailgunTest=${domain.mailgunTest} key=${mailgunPrivateApiKey} domain=${mailgunDomain} ` +
+                `messageParams=${OLog.debugString(messageParams)}`)
+            const result = await mailgunAPI.messages.create(mailgunDomain, messageParams)
+            OLog.debug(`service.js sendEmail domainId=${domainId} to=${to} subject=${subject} *success* result=${OLog.debugString(result)}`)
             VXApp.setSubsystemStatus("MAILGUN", domain, "GREEN", "common.status_mailgun_green")
             return { success : true }
         }
@@ -64,8 +68,9 @@ Service = {
         try {
             const request = {}
             let twilioUser
-            mobile = domain.twilioDestinationOverride ? domain.twilioDestinationOverride : mobile
-            if (!domain.twilioTest) {
+            const environment = Util.getConfigValue("environment")
+            if (!(domain.twilioTest || environment === "development")) {
+                mobile = domain.twilioDestinationOverride ? domain.twilioDestinationOverride : mobile
                 twilioUser = domain.twilioUser || CX.TWILIO_ACCOUNT_SID
                 request.auth = `${twilioUser}:${domain.twilioAuthToken || CX.TWILIO_AUTH_TOKEN}`
                 request.params = {

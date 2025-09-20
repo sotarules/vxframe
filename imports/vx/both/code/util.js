@@ -343,7 +343,7 @@ Util = {
     i18nLocalize(message)  {
         let locale
         if (Meteor.isClient) {
-            locale = Store.getState().currentLocale || "en_US"
+            locale = UXState.currentLocale || "en_US"
         }
         else {
             locale = Meteor.locale || "en_US"
@@ -1013,18 +1013,19 @@ Util = {
     },
 
     /**
-     * Test whether the current route path begins with the specified string or
-     * any of an array of strings.
+     * Test whether the first segment of the current route path matches a specified string or
+     * any element in the specified array.
      *
-     * @param {?} stringOrArray String or array of route prefixes.
-     * @return {boolean} True if the current route path begins with the specified string.
+     * @param {?} stringOrArray String or array of route first segments to test.
+     * @param {string} path Optional route path to test.
+     * @return {boolean} True if the current route path first segment matches the specified string or array.
      */
-    isRoutePath(stringOrArray) {
-        const routePath = Util.routePath()
-        if (!stringOrArray || !routePath) {
+    isRoutePath(stringOrArray, path) {
+        path = path || Util.routePath()
+        if (!stringOrArray || !path) {
             return false
         }
-        const routeFirstSegment = Util.routeFirstSegment(routePath)
+        const routeFirstSegment = Util.routeFirstSegment(path)
         if (_.isString(stringOrArray)) {
             return stringOrArray === routeFirstSegment
         }
@@ -1054,7 +1055,7 @@ Util = {
      * @return {string} Segment 1 of route path.
      */
     routeFirstSegment(path) {
-        if (!path) {
+        if (!path || !path.includes("/")) {
             return null
         }
         return path.split("/")[1]
@@ -1772,6 +1773,31 @@ Util = {
     },
 
     /**
+     * Determine whether a user has a given permission within a given domain.
+     *
+     * @param {string} permissionName Permission name.
+     * @param {string} domainId Optional domain ID.
+     * @param {string} userId Optional user ID.
+     * @return {boolean} True if user has the specified permission.
+     */
+    isPermission(permissionName, domainId, userId) {
+        userId = userId || Meteor.userId()
+        domainId = domainId || Util.getCurrentDomainId(userId)
+        if (!(domainId && userId)) {
+            return false
+        }
+        const user = Util.user(userId, { "profile.domains": 1 })
+        if (!user) {
+            return false
+        }
+        const userDomain = _.findWhere(user.profile.domains, { domainId })
+        if (!userDomain) {
+            return false
+        }
+        return _.contains(userDomain.permissions, permissionName)
+    },
+
+    /**
      * Return the name of the specified tenant.
      *
      * @param {string} tenantId Tenant ID.
@@ -2081,26 +2107,6 @@ Util = {
             }
         })
         return userRolesMap
-    },
-
-    /**
-     * Determine whether a given value (e.g. path) starts with any of a supplied
-     * array of strings (e.g., list of paths).
-     *
-     * @param {array} stringArray Array of strings to test.
-     * @param {string} value Value to be tested.
-     * @return {boolean} True if any string in the array starts with the value.
-     */
-    startsWith(stringArray, value) {
-        let found = false
-        stringArray.every(testString => {
-            if (value.startsWith(testString)) {
-                found = true
-                return false
-            }
-            return true
-        })
-        return found
     },
 
     /**
@@ -2884,5 +2890,18 @@ Util = {
             column += (letter.toUpperCase().charCodeAt(letterIndex) - 64) * Math.pow(26, letter.length - letterIndex - 1)
         }
         return column
+    },
+
+    /**
+     * Strip array indexes from get-style path.
+     *
+     * @param {string} path Path.
+     * @return {string} Path without array indexes.
+     */
+    stripArrayReferences(path) {
+        if (!path) {
+            return path
+        }
+        return path.replace(/\[\d+\]/g, "")
     }
 }

@@ -219,8 +219,6 @@ RecordImporter = {
             return
         }
         const keypathIndex = metadataPaths.indexOf(uploadTypeObject.keypath)
-        const pathIndices = RecordImporter.makePathIndices(uploadStats, metadataRoot, metadataPaths,
-            rowObject, messages, superCache)
         const key = FX.trim.strip(rowObject.row[keypathIndex])
         let results = RecordImporter.findResultsByKey(insertArray, uploadTypeObject.keypath, key)
         if (!results) {
@@ -254,7 +252,7 @@ RecordImporter = {
             insertArray.push(results)
         }
         RecordImporter.prepareRow(uploadStats, metadataRoot, metadataPaths, rowObject,
-            messages, results.record, insertArray, pathIndices, superCache)
+            messages, results.record, insertArray, superCache)
         return
     },
 
@@ -268,12 +266,14 @@ RecordImporter = {
      * @param {array} messages Array of validation messages (mutated in place).
      * @param {object} record Record being created or updated.
      * @param {array} insertArray Array of records to be inserted (mutated in place).
-     * @param {array} pathIndices Path indicies map.
      * @param {object} superCache Cache to improve lookup performance.
      */
     prepareRow(uploadStats, metadataRoot, metadataPaths, rowObject,
-        messages, record, insertArray, pathIndices, superCache) {
+        messages, record, insertArray, superCache) {
+        const pathIndices = []
         metadataPaths.forEach((metadataPath, columnIndex) => {
+            RecordImporter.mutatePathIndices(uploadStats, metadataRoot, metadataPath, columnIndex,
+                rowObject, messages, superCache, pathIndices)
             const cell = rowObject.row[columnIndex]
             if (Util.isNullish(cell)) {
                 return
@@ -300,7 +300,54 @@ RecordImporter = {
             const propertyName = Util.lastToken(metadataPath, ".")
             targetObject[propertyName] = convertedValue
         })
-        return
+    },
+
+    /**
+     * Mutate a supplied path indices array to add key values.
+     *
+     * @param {object} uploadStats Upload stats object.
+     * @param {object} metadataRoot Metadata root object.
+     * @param {string} metadataPath Metadata path of potential key.
+     * @param {number} columnIndex Column index of cell.
+     * @param {object} rowObject Row object being processed.
+     * @param {array} messages Array of validation messages (mutated in place).
+     * @param {object} superCache Cache to improve lookup performance.
+     * @param {array} pathIndices Path indices array.
+     */
+    mutatePathIndices(uploadStats, metadataRoot, metadataPath, columnIndex, rowObject, messages, superCache, pathIndices) {
+        if (!metadataPath.includes(".")) {
+            return
+        }
+        const definition = VXApp.findDefinition(metadataRoot, metadataPath)
+        if (!definition.key) {
+            return
+        }
+        const cell = rowObject.row[columnIndex]
+        const input = RecordImporter.currentCellValue(cell)
+        const validationResults =
+            RecordImporter.validateAndTransform(uploadStats, metadataRoot, metadataPath, rowObject,
+                input, messages, superCache)
+        const metadataPathParent = Util.tokens(metadataPath, ".", -1)
+        const key = Util.lastToken(metadataPath, ".", -1)
+        let pathIndicesObject = _.findWhere(pathIndices, { metadataPath: metadataPathParent })
+        if (!pathIndicesObject) {
+            pathIndicesObject = {}
+            pathIndicesObject.metadataPath = metadataPathParent
+            pathIndicesObject.keys = {}
+            pathIndicesObject.keysPostUpdate = {}
+            pathIndices.push(pathIndicesObject)
+        }
+        pathIndicesObject.keys[key] = validationResults.value
+        pathIndicesObject.keysPostUpdate[key] = validationResults.value
+        if (RecordImporter.isKeyUpdate(cell)) {
+            const inputPostUpdate = RecordImporter.proposedCellValue(cell)
+            const validationResultsPostUpdate =
+                RecordImporter.validateAndTransform(uploadStats, metadataRoot, metadataPath, rowObject,
+                    inputPostUpdate, messages, superCache)
+            pathIndicesObject.keysPostUpdate[key] = validationResultsPostUpdate.value
+            pathIndicesObject.isKeyUpdate = true
+            OLog.warn(`recordimporter.js mutatePathIndices key update scenario detected cell=${cell}`)
+        }
     },
 
     /**
@@ -414,7 +461,7 @@ RecordImporter = {
      * @param {array} metadataPaths Array of column headers (top row).
      * @return {array} Array of necessary metadata paths.
      */
-    keyMetadataPaths(metadataRoot, metadataPaths ) {
+    keyMetadataPaths(metadataRoot, metadataPaths) {
         const arrayPaths = []
         const keyMetadataPaths = []
         metadataPaths.forEach(metadataPath => {
@@ -601,61 +648,6 @@ RecordImporter = {
             processed++
             UploadStats.update(uploadStats._id, { $set: { processed } })
         })
-    },
-
-    /**
-     * Construct an array of objects that map a metadata path of an array definition with the
-     * key values that are necessary to uniquely identify a row in that array. To support
-     * key updates, each path indices object may have post-update keys as well. This allows
-     * the same spreadsheet to be processed multiple times without creating duplicate elements.
-     *
-     * @param {object} uploadStats Upload stats object.
-     * @param {object} metadataRoot Metadata root object.
-     * @param {array} metadataPaths Array of column headers (top row).
-     * @param {object} rowObject Row object being processed.
-     * @param {array} messages Array of validation messages (mutated in place).
-     * @param {object} superCache Cache to improve lookup performance.
-     * @return {array} Path indices array.
-     */
-    makePathIndices(uploadStats, metadataRoot, metadataPaths,
-        rowObject, messages, superCache) {
-        const pathIndices = []
-        metadataPaths.forEach((metadataPath, columnIndex) => {
-            if (!metadataPath.includes(".")) {
-                return
-            }
-            const definition = VXApp.findDefinition(metadataRoot, metadataPath)
-            if (!definition.key) {
-                return
-            }
-            const cell = rowObject.row[columnIndex]
-            const input = RecordImporter.currentCellValue(cell)
-            const validationResults =
-                RecordImporter.validateAndTransform(uploadStats, metadataRoot, metadataPath, rowObject,
-                    input, messages, superCache)
-            const metadataPathParent = Util.tokens(metadataPath, ".", -1)
-            const key = Util.lastToken(metadataPath, ".", -1)
-            let pathIndicesObject = _.findWhere(pathIndices, { metadataPath: metadataPathParent })
-            if (!pathIndicesObject) {
-                pathIndicesObject = {}
-                pathIndicesObject.metadataPath = metadataPathParent
-                pathIndicesObject.keys = {}
-                pathIndicesObject.keysPostUpdate = {}
-                pathIndices.push(pathIndicesObject)
-            }
-            pathIndicesObject.keys[key] = validationResults.value
-            pathIndicesObject.keysPostUpdate[key] = validationResults.value
-            if (RecordImporter.isKeyUpdate(cell)) {
-                const inputPostUpdate = RecordImporter.proposedCellValue(cell)
-                const validationResultsPostUpdate =
-                    RecordImporter.validateAndTransform(uploadStats, metadataRoot, metadataPath, rowObject,
-                        inputPostUpdate, messages, superCache)
-                pathIndicesObject.keysPostUpdate[key] = validationResultsPostUpdate.value
-                pathIndicesObject.isKeyUpdate = true
-                OLog.warn(`recordimporter.js makePathIndices key update scenario detected cell=${cell}`)
-            }
-        })
-        return pathIndices
     },
 
     /**

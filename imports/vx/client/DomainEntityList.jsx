@@ -30,7 +30,10 @@ export default class DomainEntityList extends Component {
         if (this.props.domains.length === 0) {
             return (
                 <EmptyEntityList id={this.props.id}
-                    emptyMessage={Util.i18n("common.empty_domains")}/>
+                    emptyMessage={Util.i18n("common.empty_domains")}
+                    droppable={true}
+                    dropClassName="domain-drop-list"
+                    onDrop={this.handleDrop.bind(this)}/>
             )
         }
         return (

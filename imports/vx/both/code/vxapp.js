@@ -1080,7 +1080,9 @@ VXApp = { ...VXApp, ...{
         for (let segmentIndex = 0; segmentIndex < metadataPathArray.length; segmentIndex++) {
             const metaDataPathTemp = Util.tokens(metadataPath, ".", segmentIndex)
             const definition = VXApp.findDefinition(metadataRoot, metaDataPathTemp)
-            headerArray.push(Util.i18nLocalize(definition.localized))
+            if (definition) {
+                headerArray.push(Util.i18nLocalize(definition.localized))
+            }
         }
         return headerArray.join(", ")
     },
@@ -1241,9 +1243,10 @@ VXApp = { ...VXApp, ...{
      * necessary to render that report.
      *
      * @param {object} report Report object.
+     * @param {boolean} limit True to limit rows returned.
      * @return {object} Report data object.
      */
-    makeReportData(report) {
+    makeReportData(report, limit) {
         if (!report.entityType) {
             return
         }
@@ -1254,27 +1257,157 @@ VXApp = { ...VXApp, ...{
         reportData.userCreated = Util.fetchFullName(report.userCreated)
         reportData.dateCreated = new Date()
         const rootProperties = VXApp.makeRootProperties(report)
-        reportData.headings = VXApp.makeReportHeadings(report, rootProperties, sortFields)
-        const records = VXApp.fetchReportRecords(report)
-        reportData.rows = VXApp.makeReportRows(report, records, rootProperties, sortFields)
+        const records = VXApp.fetchReportRecords(report, limit)
+        switch (rootProperties.rowFormat) {
+        case "MULTI_ROW":
+            reportData.headings = VXApp.makeReportHeadingsMulti(report, records, rootProperties, sortFields)
+            reportData.rows = VXApp.makeReportRowsMulti(report, records, rootProperties, sortFields)
+            break
+        case "SINGLE_ROW":
+            const columnPathArray = VXApp.makeColumnPathArray(report, records)
+            reportData.headings = VXApp.makeReportHeadingsSingle(report, records, rootProperties, sortFields, columnPathArray)
+            reportData.rows = VXApp.makeReportRowsSingle(report, records, rootProperties, sortFields, columnPathArray)
+            break
+        }
         return reportData
     },
 
     /**
+     * Initializes the creation of a column path array for dynamic report generation. This array contains paths
+     * to data elements in the record, ready for use with Lodash's get to facilitate generating report columns.
+     *
+     * @param {Object} report The report configuration object.
+     * @param {Array} records An array of records fetched for the report.
+     * @returns {Array} An array of strings, each representing a path to a data element in the records.
+     */
+    makeColumnPathArray(report, records) {
+        const columnPathArray = []
+        VXApp.makeColumnPathArrayRecursive(report, records, null, null, columnPathArray)
+        return columnPathArray
+    },
+
+    /**
+     * Recursively explores the metadata structure to build paths for the column path array,
+     * which consists of paths in Lodash get format sutiable for accessing data elements in the records.
+     * This is done recursively to handle nested arrays and objects, causing them to be grouped
+     * by instance number in the column path array.
+     *
+     * @param {Object} report The report configuration object.
+     * @param {Array} records An array of records fetched for the report.
+     * @param {string} metadataPath Metadata path.
+     * @param {string} pathStem Path stem.
+     * @param {array} pathArray Path array.
+     * @returns {Array} An array of strings, each representing a path to a data element in the records.
+     */
+    makeColumnPathArrayRecursive(report, records, metadataPath, pathStem, columnPathArray) {
+        const nonArrayChildren = VXApp.findMetadataPathsChildren(report, metadataPath, false)
+        nonArrayChildren.forEach(childMetadataPath => {
+            const columnPath = VXApp.columnPath(pathStem, childMetadataPath)
+            columnPathArray.push(columnPath)
+        })
+        const arrayChildren = VXApp.findMetadataPathsChildren(report, metadataPath, true)
+        arrayChildren.forEach(childMetadataPath => {
+            const arrayPath = VXApp.columnPath(pathStem, childMetadataPath)
+            const maxElements = VXApp.findMaxElements(records, arrayPath)
+            for (let i = 0; i < maxElements; i++) {
+                const childPathStem = `${arrayPath}[${i}]`
+                VXApp.makeColumnPathArrayRecursive(report, records, childMetadataPath, childPathStem, columnPathArray)
+            }
+        })
+    },
+
+    /**
+     * Finds and returns a list of directly subordinate metadata paths to a given parent metadata path. Can be
+     * configured to return either non-array or array paths based on the returnArrays parameter.
+     *
+     * @param {object} report The report configuration object.
+     * @param {string} parentMetadataPath The parent metadata path to find children for.
+     * @param {boolean} returnArrays Determines whether to return array paths (true) or non-array paths (false).
+     * @returns {Array<string>} A list of directly subordinate metadata paths.
+     */
+    findMetadataPathsChildren(report, parentMetadataPath, returnArrays) {
+        const parentSegments = parentMetadataPath ? parentMetadataPath.split(".") : []
+        const childPaths = []
+        report.checked?.forEach(checkedPath => {
+            if (parentMetadataPath && !checkedPath.startsWith(parentMetadataPath)) {
+                return
+            }
+            const checkedPathSegments = checkedPath.split(".")
+            if (returnArrays) {
+                if (checkedPathSegments.length > parentSegments.length) {
+                    const arrayMetadataPath = parentMetadataPath ?
+                        `${parentMetadataPath}.${checkedPathSegments[parentSegments.length]}` :
+                        checkedPathSegments[0]
+                    if (!childPaths.includes(arrayMetadataPath)) {
+                        const metadataNode = VXApp.findDefinition(Meta[report.entityType], arrayMetadataPath)
+                        if (metadataNode?.bindingType === "Array") {
+                            childPaths.push(arrayMetadataPath)
+                        }
+                    }
+                }
+            }
+            else {
+                if (checkedPathSegments.length === parentSegments.length + 1) {
+                    const metadataNode = VXApp.findDefinition(Meta[report.entityType], checkedPath)
+                    if (metadataNode?.bindingType !== "Array") {
+                        childPaths.push(checkedPath)
+                    }
+                }
+            }
+        })
+        return childPaths
+    },
+
+    /**
+     * Determines the maximum number of elements present at a given path across all provided records. This is used
+     * to ensure the column path array accounts for the 'worst-case' scenario in terms of nested array sizes.
+     *
+     * @param {Array} records The records fetched for the report.
+     * @param {String} arrayPath The path the array to use to find max elements..
+     * @returns {Number} The maximum number of elements found at the specified path across all records.
+     */
+    findMaxElements(records, arrayPath) {
+        let maxElements = 0
+        records.forEach(record => {
+            let myArray = get(record, arrayPath, [])
+            if (!Array.isArray(myArray)) {
+                return
+            }
+            maxElements = Math.max(maxElements, myArray.length)
+        })
+        return maxElements
+    },
+
+    /**
+     * Given a path stem and a child path, return the full path.
+     *
+     * @param {string} pathStem Path stem.
+     * @param {string} childPath Child path.
+     */
+    columnPath(pathStem, metadataPath) {
+        const segments = metadataPath.split(".")
+        const leafSegment = segments.pop()
+        return pathStem ? `${pathStem}.${leafSegment}` : leafSegment
+    },
+
+    /**
      * Given a report record and root properties return an array of heading cells.
+     * This is for multi-row format reports.
      *
      * @param {object} report Report record.
+     * @param {array} records Array of records.
      * @param {object} rootProperties Root properties to be merged into each cell.
      * @param {object} sortFields Array of sort fields.
      * @return {array} Array of heading cells.
      */
-    makeReportHeadings(report, rootProperties, sortFields) {
+    makeReportHeadingsMulti(report, records, rootProperties, sortFields) {
         const headings = []
         const metadataPaths = VXApp.sortedMetadataPaths(report.checked, sortFields)
         metadataPaths.forEach(metadataPath => {
             const text = VXApp.formatPropertyName(Meta[report.entityType], metadataPath)
+            const key = metadataPath
             const columnProperties = VXApp.makeColumnProperties(report, metadataPath)
-            const cell = { text, ...rootProperties, ...columnProperties }
+            const cell = { text, key, ...rootProperties, ...columnProperties }
             headings.push(cell)
         })
         return headings
@@ -1282,6 +1415,7 @@ VXApp = { ...VXApp, ...{
 
     /**
      * Given a report and an array of records, return an array of row objects.
+     * This is for multi-row format reports.
      *
      * @param {object} report Report record.
      * @param {object} records Array of records.
@@ -1289,7 +1423,7 @@ VXApp = { ...VXApp, ...{
      * @param {object} sortFields Array of sort fields.
      * @return {array} Array of row objects.
      */
-    makeReportRows(report, records, rootProperties, sortFields) {
+    makeReportRowsMulti(report, records, rootProperties, sortFields) {
         const rows = []
         const metadataPaths = VXApp.sortedMetadataPaths(report.checked, sortFields)
         const metadataNode = Meta[report.entityType]
@@ -1303,8 +1437,9 @@ VXApp = { ...VXApp, ...{
                 const pathArray = VXApp.makePathArray(metadataNode, metadataPath, record)
                 const cellArray = VXApp.buildCellArray(metadataNode, metadataPath, record, pathArray, report)
                 const text = VXApp.buildCellText(cellArray)
+                const key = metadataPath
                 row.subrowCount = Math.max(cellArray.length, row.subrowCount)
-                const cell = { text, cellArray, pathArray, metadataPath, definition, ...rootProperties, ...columnProperties }
+                const cell = { text, key, cellArray, pathArray, metadataPath, definition, ...rootProperties, ...columnProperties }
                 if (_.findWhere(sortFields, { metadataPath }) || index === 0) {
                     cell.sort = VXApp.buildCellSort(metadataNode, metadataPath, record, pathArray, report)
                 }
@@ -1316,9 +1451,64 @@ VXApp = { ...VXApp, ...{
         if (sortFields.length === 0 && metadataPaths.length > 0) {
             sortFieldsWithDefault.push({ metadataPath: metadataPaths[0], sort : 1 })
         }
-        OLog.debug(`vxapp.js makeReportRows preparing to sort rows for report ${report.name} ` +
+        OLog.debug(`vxapp.js makeReportRowsMulti preparing to sort rows for report ${report.name} ` +
             `sortFieldsWithDefault=${OLog.debugString(sortFieldsWithDefault)}`)
         VXApp.sortReportRows(rows, sortFieldsWithDefault)
+        return rows
+    },
+
+    /**
+     * Given a report record and root properties return an array of heading cells.
+     * This is for single-row format reports.
+     *
+     * @param {object} report Report record.
+     * @param {object} records Array of records.
+     * @param {object} rootProperties Root properties to be merged into each cell.
+     * @param {object} sortFields Array of sort fields.
+     * @param {array} columnPathArray Array of column paths.
+     * @return {array} Array of heading cells.
+     */
+    makeReportHeadingsSingle(report, records, rootProperties, sortFields, columnPathArray) {
+        const metadataPaths = columnPathArray.map(columnPath => Util.stripArrayReferences(columnPath))
+        const headings = []
+        const sortedMetadataPaths = VXApp.sortedMetadataPaths(metadataPaths, sortFields)
+        sortedMetadataPaths.forEach((metadataPath, index) => {
+            const text = VXApp.formatPropertyName(Meta[report.entityType], metadataPath)
+            const key = columnPathArray[index]
+            const columnProperties = VXApp.makeColumnProperties(report, metadataPath)
+            const cell = { text, key, ...rootProperties, ...columnProperties }
+            headings.push(cell)
+        })
+        return headings
+    },
+
+    /**
+     * Given a report and an array of records, return an array of row objects.
+     *
+     *
+     * @param {object} report Report record.
+     * @param {object} records Array of records.
+     * @param {object} rootProperties Root properties to be merged into each cell.
+     * @param {object} sortFields Array of sort fields.
+     * @param {array} columnPathArray Array of column paths.
+     * @return {array} Array of row objects.
+     */
+    makeReportRowsSingle(report, records, rootProperties, sortFields, columnPathArray) {
+        const rows = []
+        records.forEach(record => {
+            const row = {}
+            row.columns = []
+            columnPathArray.forEach((columnPath) => {
+                const metadataPath = Util.stripArrayReferences(columnPath)
+                const definition = VXApp.findDefinition(Meta[report.entityType], metadataPath)
+                const columnProperties = VXApp.makeColumnProperties(report, metadataPath)
+                const text = VXApp.transformText(definition, report.domain, get(record, columnPath))
+                const key = columnPath
+                const cell = { text, key, metadataPath, definition, ...rootProperties, ...columnProperties }
+                row.columns.push(cell)
+            })
+            rows.push(row)
+        })
         return rows
     },
 
@@ -1396,7 +1586,7 @@ VXApp = { ...VXApp, ...{
             metadataPaths.push(field.metadataPath)
         })
         checked?.forEach(metadataPath => {
-            if (!metadataPaths.includes(metadataPath)) {
+            if (!sortFields.includes(metadataPath)) {
                 metadataPaths.push(metadataPath)
             }
         })
@@ -1413,6 +1603,7 @@ VXApp = { ...VXApp, ...{
         const rootProperties = {}
         rootProperties.padding = VXApp.findReportField(report, "ROOT", "padding") || "10px"
         rootProperties.limit = VXApp.findReportField(report, "ROOT", "limit") || 1000
+        rootProperties.rowFormat = VXApp.findReportField(report, "ROOT", "rowFormat") || "MULTI_ROW"
         return rootProperties
     },
 
@@ -1451,10 +1642,11 @@ VXApp = { ...VXApp, ...{
      * Fetch report rows.
      *
      * @param {object} report Report record.
+     * @param {boolean} limit True to limit records.
      * @return {array} Array of records.
      */
-    fetchReportRecords(report) {
-        const fetchParameters = VXApp.makeFetchParameters(report)
+    fetchReportRecords(report, limit) {
+        const fetchParameters = VXApp.makeFetchParameters(report, limit)
         const collection = VXApp.entityCollection(report.entityType)
         OLog.debug(`vxapp.js fetchReportRecords name=${report.name} fetchParameters=${OLog.debugString(fetchParameters)}`)
         return collection.find(fetchParameters.criteria, fetchParameters.options).fetch()
@@ -1466,9 +1658,10 @@ VXApp = { ...VXApp, ...{
      * criteria, options, regex filter and post-fetch sort.
      *
      * @param {object} report Report record.
+     * @param {boolean} limit True to limit records returned.
      * @return {array} Fetch parameters object.
      */
-    makeFetchParameters(report) {
+    makeFetchParameters(report, limit) {
         const entityTypeObject = Util.getCodeObject("entityType", report.entityType)
         const fetchParameters = {}
         fetchParameters.criteria = {}
@@ -1479,12 +1672,14 @@ VXApp = { ...VXApp, ...{
             fetchParameters.criteria[entityTypeObject.retirePath] = { $exists: false }
         }
         fetchParameters.options = {}
-        const limit = VXApp.findReportField(report, "ROOT", "limit")
-        if (Util.isNullish(limit)) {
+        if (limit) {
+            fetchParameters.options.limit = 20
+        }
+        else if (Util.isNullish(limit)) {
             fetchParameters.options.limit = 1000
         }
         else if (limit > 0) {
-            fetchParameters.options.limit = limit
+            fetchParameters.options.limit = VXApp.findReportField(report, "ROOT", "limit")
         }
         fetchParameters.regexFilter = {}
         report.fields?.forEach(field => {
@@ -1593,7 +1788,6 @@ VXApp = { ...VXApp, ...{
             const segmentName = metadataPathArray[segmentIndex]
             metadataNode =  metadataNode[segmentName]
             if (!metadataNode) {
-                OLog.debug(`vxapp.js findDefinition cannot find metadata definition of segmentName=${segmentName}`)
                 return
             }
             if (segmentIndex === metadataPathArray.length - 1) {
@@ -1760,6 +1954,9 @@ VXApp = { ...VXApp, ...{
         let nestedArray = false
         metadataPathsChildrenUnique.forEach(metadataPath => {
             const definition = VXApp.findDefinition(metadataNode, metadataPath)
+            if (!definition) {
+                return
+            }
             if (definition.bindingType === "Array") {
                 const segment = Util.lastToken(metadataPath, ".")
                 const childMetadataPath = `${parentMetadataPath}.${segment}`
@@ -1877,6 +2074,37 @@ VXApp = { ...VXApp, ...{
             return Util.safeCompare(recordA.localized, recordB.localized)
         })
         return codeArray
+    },
+
+    /**
+     * Make array of permission types suituable for dropdown list.
+     *
+     * @param {string} domainId Optional domain ID.
+     * @return {array} Code array of permission types
+     */
+    makePermissionTypeArray(domainId) {
+        domainId = domainId || Util.getCurrentDomainId()
+        const permissionTypeObjects = Util.fetchDomainField(domainId, "permissionTypes")
+        if (!permissionTypeObjects) {
+            return []
+        }
+        return permissionTypeObjects.map(permissionTypeObject => {
+            return { code : permissionTypeObject.permissionTypeCode, localized : permissionTypeObject.permissionTypeDescription }
+        })
+    },
+
+    /**
+     * Return the icon class name to render the entity control for permissions.
+     *
+     * @param {string} userId User ID.
+     * @param {string} domainId Domain ID.
+     * @return {string} Icon class name.
+     */
+    permissionsIconClassName(userId, domainId) {
+        domainId = domainId || Util.getCurrentDomainId()
+        userId = userId || Meteor.userId()
+        const permissions = Util.fetchUserDomainField(userId, domainId, "permissions")
+        return permissions && permissions.length > 0 ? "fa-unlock" : "fa-lock"
     },
 
     /**

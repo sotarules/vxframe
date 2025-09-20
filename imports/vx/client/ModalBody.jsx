@@ -15,7 +15,7 @@ export default class ModalBody extends Component {
     render() {
         return (
             <div className={this.className()}>
-                <div className="modal-form">
+                <div className="modal-form flexi-grow">
                     {this.props.children}
                 </div>
             </div>
@@ -23,7 +23,7 @@ export default class ModalBody extends Component {
     }
 
     className() {
-        return `modal-body ${this.scrollClasses()} ${this.props.className || ""}`
+        return `modal-body flexi-grow ${this.scrollClasses()} ${this.props.className || ""}`
     }
 
     scrollClasses() {

@@ -22,13 +22,13 @@ Meteor.methods({
         return VXApp.clearPNotify(notificationId, sent)
     },
 
-    putImage(filename, content) {
+    async putImage(filename, content) {
         return PkgCloud.putImage(filename, content)
     },
 
-    fetchReportData(reportId) {
+    fetchReportData(reportId, limit) {
         this.unblock()
-        return VXApp.fetchReportData(reportId)
+        return VXApp.fetchReportData(reportId, limit)
     },
 
     fetchReportSpreadsheet(reportId) {

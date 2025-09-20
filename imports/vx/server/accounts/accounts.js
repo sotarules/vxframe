@@ -2,6 +2,7 @@ import { authenticator } from "otplib"
 
 Accounts.emailTemplates.siteName = CX.SYSTEM_NAME
 Accounts.emailTemplates.from = `${CX.SYSTEM_NAME} <${CX.SYSTEM_EMAIL}>`
+Accounts.emailTemplates.headers = { "Sender": Accounts.emailTemplates.from }
 
 Accounts.urls.resetPassword = function(token) {
     OLog.debug(`accounts.js resetPassword URL fetched, token=${token}`)

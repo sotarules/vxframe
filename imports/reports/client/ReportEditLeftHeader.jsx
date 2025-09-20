@@ -44,7 +44,7 @@ export default class ReportEditLeftHeader extends Component {
                         </div>
                         <div className="col-sm-4">
                             <VXSelect id={`${this.props.id}-entity-type`}
-                                codeArray={UX.addBlankSelection(UX.makeCodeArray("entityType"))}
+                                codeArray={UX.addBlankSelection(VXApp.makeEntityTypeArray())}
                                 label={Util.i18n("common.label_entity_type")}
                                 value={this.props.report.entityType}
                                 dbName="entityType"

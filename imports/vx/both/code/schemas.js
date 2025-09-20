@@ -205,6 +205,20 @@ Schema.Tenants = new SimpleSchema({
     }
 })
 
+Schema.DomainPermissionType = new SimpleSchema({
+    id : {
+        type : String
+    },
+    permissionTypeDescription : {
+        type : String,
+        optional : true
+    },
+    permissionTypeCode : {
+        type : String,
+        optional : true
+    }
+})
+
 Schema.Domains = new SimpleSchema({
     dateCreated : {
         type : Date,
@@ -338,7 +352,14 @@ Schema.Domains = new SimpleSchema({
     twilioDestinationOverride : {
         type : String,
         optional : true
-    }
+    },
+    "permissionTypes.$" : {
+        type : Schema.DomainPermissionType,
+    },
+    permissionTypes : {
+        type : Array,
+        optional : true
+    },
 })
 
 Schema.Log = new SimpleSchema({
@@ -656,6 +677,16 @@ Schema.Clipboard = new SimpleSchema({
     }
 })
 
+Schema.UserProfilePermission = new SimpleSchema({
+    id : {
+        type : String
+    },
+    permissionTypeCode : {
+        type : String,
+        optional : true
+    }
+})
+
 Schema.UserProfileReport = new SimpleSchema({
     id : {
         type : String
@@ -717,6 +748,14 @@ Schema.UserProfileDomain = new SimpleSchema({
     },
     "roles.$" : {
         type : String
+    },
+    permissions : {
+        type : Array,
+        optional : true,
+    },
+    "permissions.$" : {
+        type : Schema.UserProfilePermission,
+        optional : true
     },
     reports : {
         type : Array,
@@ -1267,6 +1306,10 @@ Schema.ReportField = new SimpleSchema({
         optional : true
     },
     alignment : {
+        type : String,
+        optional : true
+    },
+    rowFormat : {
         type : String,
         optional : true
     },
