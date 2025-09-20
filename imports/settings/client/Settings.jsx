@@ -12,7 +12,6 @@ export default class Settings extends Component {
         tenant : PropTypes.object.isRequired,
         domain : PropTypes.object.isRequired,
         logLevels : PropTypes.array.isRequired,
-        campaignUnits : PropTypes.array.isRequired,
         admins : PropTypes.array.isRequired,
         states : PropTypes.array.isRequired,
         countries : PropTypes.array.isRequired,

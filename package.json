@@ -1,7 +1,7 @@
 {
   "name": "VXFrame",
-  "version": "1.9.1",
-  "buildDate": "2023-07-26T12:55:00-07:00",
+  "version": "2.0.1",
+  "buildDate": "2025-09-20T12:00:00-07:00",
   "description": "VXFrame",
   "author": "SOTA",
   "license": "MIT",
@@ -24,6 +24,7 @@
     "handlebars": "^4.7.7",
     "html-react-parser": "^3.0.16",
     "ladda": "^2.0.3",
+    "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "mailgun.js": "^8.2.2",
     "meteor-node-stubs": "^1.2.5",

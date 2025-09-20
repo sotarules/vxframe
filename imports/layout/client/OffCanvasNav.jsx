@@ -9,8 +9,7 @@ export default class OffCanvasNav extends Component {
 
     static propTypes = {
         isUserAdmin : PropTypes.bool.isRequired,
-        isUserSuperAdmin : PropTypes.bool.isRequired,
-        isEnableBrokerages : PropTypes.bool.isRequired
+        isUserSuperAdmin : PropTypes.bool.isRequired
     }
 
     render() {
@@ -20,42 +19,13 @@ export default class OffCanvasNav extends Component {
                     <OffCanvasNavItem iconClass="fa-times"
                         text={Util.i18n("navbar.close_menu")}
                         onClick={this.onClickCloseMenu.bind(this)}/>
-                    <OffCanvasNavItem iconClass="fa-dashboard"
-                        text={Util.i18n("navbar.dashboard")}
-                        path="/dashboard"/>
-                    <OffCanvasNavItem iconClass="fa-folder-open"
-                        text={Util.i18n("navbar.clients")}
-                        path="/clients"/>
-                    {this.props.isEnableCarriers &&
-                        <OffCanvasNavItem iconClass="fa-institution"
-                            text={Util.i18n("navbar.carriers")}
-                            path="/carriers"/>
-                    }
-                    {this.props.isEnableBrokerages &&
-                        <OffCanvasNavItem iconClass="fa-phone-square"
-                            text={Util.i18n("navbar.brokerages")}
-                            path="/brokerages"/>
-                    }
-                    <OffCanvasNavItem iconClass="fa-user-circle-o"
-                        text={Util.i18n("navbar.vendors")}
-                        path="/vendors"/>
-                    <OffCanvasNavItem iconClass="fa-user-plus"
-                        text={Util.i18n("navbar.prospects")}
-                        path="/prospects"/>
-                    {Util.isPermission("ACCESS_REPORTS") &&
-                        <OffCanvasNavItem iconClass="fa-print"
-                            text={Util.i18n("navbar.reports")}
-                            path="/reports"/>
-                    }
+                    <OffCanvasNavItem iconClass="fa-print"
+                        text={Util.i18n("navbar.reports")}
+                        path="/reports"/>
                     <OffCanvasNavSeparator/>
                     <OffCanvasNavItem iconClass="fa-cloud-upload"
                         text={Util.i18n("navbar.import")}
                         onClick={this.onClickImport.bind(this)}/>
-                    {Util.isPermission("ACCESS_TASK_DEFINITIONS") &&
-                        <OffCanvasNavItem iconClass="fa-calendar-o"
-                            text={Util.i18n("navbar.task_definitions")}
-                            path="/taskdefinitions"/>
-                    }
                     {this.props.isUserSuperAdmin &&
                         <OffCanvasNavItem iconClass="fa-code"
                             text={Util.i18n("navbar.functions")}
@@ -81,11 +51,9 @@ export default class OffCanvasNav extends Component {
 
                         </>
                     }
-                    {Util.isPermission("ACCESS_SETTINGS") &&
-                        <OffCanvasNavItem iconClass="fa-gear"
-                            text={Util.i18n("navbar.settings")}
-                            path="/system-settings"/>
-                    }
+                    <OffCanvasNavItem iconClass="fa-gear"
+                        text={Util.i18n("navbar.settings")}
+                        path="/system-settings"/>
                     {this.props.isUserSuperAdmin &&
                         <>
                             <OffCanvasNavItem iconClass="fa-history"
@@ -97,9 +65,6 @@ export default class OffCanvasNav extends Component {
                         </>
                     }
                     <OffCanvasNavSeparator/>
-                    <OffCanvasNavItem iconClass="fa-graduation-cap"
-                        text={Util.i18n("navbar.tutorials")}
-                        path="/tutorials"/>
                     <OffCanvasNavItem iconClass="fa-info-circle"
                         text={Util.i18n("navbar.about")}
                         onClick={this.onClickAbout.bind(this)}/>

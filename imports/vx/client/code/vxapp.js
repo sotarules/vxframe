@@ -281,7 +281,7 @@ VXApp = { ...VXApp, ...{
             return true
         }
         const userRoutes = ["reports", "report", "reportpreview", "profile", "tenants", "domains"]
-        const systemAdminRoutes = ["users-domains", "domains-users", "user", "domain", "tenant"]
+        const systemAdminRoutes = ["users-domains", "domains-users", "user", "domain", "tenant", "system-settings"]
         const superAdminRoutes = ["log", "events", "functions", "function", "templates", "template"]
         if (Util.isRoutePath(userRoutes)) {
             return !!meteorUserId
